@@ -58,7 +58,7 @@ namespace Replicant
             }
         }
 
-        public async Task<(bool success, string? path)> DownloadFile(string uri)
+        public async Task<string> DownloadFile(string uri)
         {
             var file = Path.Combine(directory, Hash.Compute(uri));
 
@@ -67,7 +67,7 @@ namespace Replicant
                 var fileTimestamp = Timestamp.GetTimestamp(file);
                 if (fileTimestamp.Expiry > DateTime.UtcNow)
                 {
-                    return (true, file);
+                    return file;
                 }
             }
 
@@ -77,7 +77,7 @@ namespace Replicant
                 using var headResponse = await client.SendAsync(request);
                 if (headResponse.StatusCode != HttpStatusCode.OK)
                 {
-                    return (false, null);
+                    headResponse.EnsureSuccessStatusCode();
                 }
 
                 webTimeStamp = Timestamp.GetTimestamp(headResponse);
@@ -86,7 +86,7 @@ namespace Replicant
                     var fileTimestamp = Timestamp.GetTimestamp(file);
                     if (fileTimestamp.LastModified == webTimeStamp.LastModified)
                     {
-                        return (true, file);
+                        return file;
                     }
 
                     File.Delete(file);
@@ -103,24 +103,26 @@ namespace Replicant
             webTimeStamp = Timestamp.GetTimestamp(response);
 
             Timestamp.SetTimestamp(file, webTimeStamp);
-            return (true, file);
+            return file;
         }
 
-        public async Task<(bool success, string? content)> String(string uri)
+        public async Task<string> String(string uri)
         {
-            var (success, path) = await DownloadFile(uri);
-            if (success)
-            {
-                return (true, File.ReadAllText(path));
-            }
-
-            return (false, null);
+            var path = await DownloadFile(uri);
+            return await File.ReadAllTextAsync(path);
         }
 
         public void Dispose()
         {
             client.Dispose();
             timer.Dispose();
+        }
+
+        public async Task ToStream(string uri, Stream stream)
+        {
+            var path = await DownloadFile(uri);
+            await using var fileStream = File.OpenRead(path);
+            await fileStream.CopyToAsync(stream);
         }
     }
 }

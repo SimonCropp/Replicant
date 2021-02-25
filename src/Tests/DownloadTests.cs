@@ -8,29 +8,37 @@ using Xunit;
 public class DownloadTests
 {
     Download download;
+
     public DownloadTests()
     {
         download = new Download(Path.Combine(Path.GetTempPath(), "DownloadTests"));
     }
+
     [Fact]
     public async Task EmptyContent()
     {
         var content = await download.String("https://httpbin.org/status/200");
-        await Verifier.Verify(new {content.success, content.content});
+        await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task WithContent()
     {
         var content = await download.String("https://httpbin.org/json");
-        await Verifier.Verify(new {content.success, content.content});
+        await Verifier.Verify(content);
     }
 
     [Fact]
-    public async Task NotFound()
+    public async Task ToStream()
     {
-        var content = await download.String("https://httpbin.org/status/404");
-        Assert.False(content.success);
-        Assert.Null(content.content);
+        var stream = new MemoryStream();
+        await download.ToStream("https://httpbin.org/json", stream);
+        await Verifier.Verify(stream);
+    }
+
+    [Fact]
+    public Task NotFound()
+    {
+        return Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/404"));
     }
 }
