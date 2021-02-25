@@ -9,13 +9,14 @@ namespace Replicant
 {
     public class Download
     {
-        static string cache;
+        string directory;
 
-        static Download()
+        public Download(string directory)
         {
-            cache = Path.Combine(Path.GetTempPath(), "MarkdownSnippets");
-            Directory.CreateDirectory(cache);
-            foreach (var file in new DirectoryInfo(cache)
+            Guard.AgainstNullOrEmpty(directory,nameof(directory));
+            this.directory = directory;
+            Directory.CreateDirectory(directory);
+            foreach (var file in new DirectoryInfo(directory)
                 .GetFiles()
                 .OrderByDescending(x => x.LastWriteTime)
                 .Skip(100))
@@ -24,14 +25,14 @@ namespace Replicant
             }
         }
 
-        static HttpClient httpClient = new()
+        HttpClient httpClient = new()
         {
             Timeout = TimeSpan.FromSeconds(30)
         };
 
-        public static async Task<(bool success, string? path)> DownloadFile(string uri)
+        public async Task<(bool success, string? path)> DownloadFile(string uri)
         {
-            var file = Path.Combine(cache, Hash.Compute(uri));
+            var file = Path.Combine(directory, Hash.Compute(uri));
 
             if (File.Exists(file))
             {
@@ -78,7 +79,7 @@ namespace Replicant
             return (true, file);
         }
 
-        public static async Task<(bool success, string? content)> DownloadContent(string uri)
+        public async Task<(bool success, string? content)> String(string uri)
         {
             var (success, path) = await DownloadFile(uri);
             if (success)
