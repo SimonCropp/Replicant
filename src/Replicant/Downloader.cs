@@ -3,32 +3,60 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Replicant
 {
-    public class Download
+    public class Download: IDisposable
     {
         string directory;
+        int maxEntries;
+        HttpClient client;
+        Timer timer;
+        static TimeSpan purgeInterval = TimeSpan.FromMinutes(10);
+        static TimeSpan ignoreTimeSpan = TimeSpan.FromMilliseconds(-1);
 
-        public Download(string directory)
+        public Download(string directory, HttpClient? client = null, int maxEntries = 1000)
         {
-            Guard.AgainstNullOrEmpty(directory,nameof(directory));
+            Guard.AgainstNullOrEmpty(directory, nameof(directory));
             this.directory = directory;
-            Directory.CreateDirectory(directory);
-            foreach (var file in new DirectoryInfo(directory)
-                .GetFiles()
-                .OrderByDescending(x => x.LastWriteTime)
-                .Skip(100))
+            this.maxEntries = maxEntries;
+            if (client == null)
             {
-                file.Delete();
+                this.client = new()
+                {
+                    Timeout = TimeSpan.FromSeconds(30)
+                };
             }
+            else
+            {
+                this.client = client;
+            }
+
+            Directory.CreateDirectory(directory);
+
+            timer = new Timer(_ => Purge(), null, ignoreTimeSpan, purgeInterval);
         }
 
-        HttpClient httpClient = new()
+        void Purge()
         {
-            Timeout = TimeSpan.FromSeconds(30)
-        };
+            timer.Change(ignoreTimeSpan, ignoreTimeSpan);
+            try
+            {
+                foreach (var file in new DirectoryInfo(directory)
+                    .GetFiles()
+                    .OrderByDescending(x => x.LastAccessTime)
+                    .Skip(maxEntries))
+                {
+                    file.Delete();
+                }
+            }
+            finally
+            {
+                timer.Change(purgeInterval, ignoreTimeSpan);
+            }
+        }
 
         public async Task<(bool success, string? path)> DownloadFile(string uri)
         {
@@ -46,7 +74,7 @@ namespace Replicant
             Timestamp webTimeStamp;
             using (HttpRequestMessage request = new(HttpMethod.Head, uri))
             {
-                using var headResponse = await httpClient.SendAsync(request);
+                using var headResponse = await client.SendAsync(request);
                 if (headResponse.StatusCode != HttpStatusCode.OK)
                 {
                     return (false, null);
@@ -66,7 +94,7 @@ namespace Replicant
                 }
             }
 
-            using var response = await httpClient.GetAsync(uri);
+            using var response = await client.GetAsync(uri);
             using var httpStream = await response.Content.ReadAsStreamAsync();
             using (FileStream fileStream = new(file, FileMode.Create, FileAccess.Write, FileShare.None))
             {
@@ -88,6 +116,12 @@ namespace Replicant
             }
 
             return (false, null);
+        }
+
+        public void Dispose()
+        {
+            client.Dispose();
+            timer.Dispose();
         }
     }
 }
