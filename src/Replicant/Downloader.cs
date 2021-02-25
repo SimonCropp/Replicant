@@ -124,5 +124,11 @@ namespace Replicant
             await using var fileStream = File.OpenRead(path);
             await fileStream.CopyToAsync(stream);
         }
+
+        public async Task ToFile(string uri, string path)
+        {
+            var downloadedFile = await DownloadFile(uri);
+            File.Copy(downloadedFile, path, true);
+        }
     }
 }

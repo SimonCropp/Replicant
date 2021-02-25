@@ -29,6 +29,21 @@ public class DownloadTests
     }
 
     [Fact]
+    public async Task ToFile()
+    {
+        var tempFileName = $"{Path.GetTempFileName()}.txt";
+        try
+        {
+            await download.ToFile("https://httpbin.org/json", tempFileName);
+            await Verifier.VerifyFile(tempFileName);
+        }
+        finally
+        {
+            File.Delete(tempFileName);
+        }
+    }
+
+    [Fact]
     public async Task ToStream()
     {
         var stream = new MemoryStream();
