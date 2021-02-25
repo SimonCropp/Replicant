@@ -81,7 +81,6 @@ namespace Replicant
                 }
 
                 webTimeStamp = Timestamp.GetTimestamp(headResponse);
-
                 if (File.Exists(file))
                 {
                     var fileTimestamp = Timestamp.GetTimestamp(file);

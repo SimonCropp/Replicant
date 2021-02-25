@@ -14,4 +14,4 @@ https://nuget.org/packages/Replicant/
 
 ## Icon
 
-[Calendar](https://thenounproject.com/term/calendar/689871/) designed by [Monster Critic](https://thenounproject.com/monstercritic/) from [The Noun Project](https://thenounproject.com/monstercritic/).
+[Cyborg](https://thenounproject.com/term/cyborg/689871/) designed by [Symbolon](https://thenounproject.com/symbolon/) from [The Noun Project](https://thenounproject.com).

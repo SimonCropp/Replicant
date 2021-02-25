@@ -20,6 +20,13 @@ public class DownloadTests
     }
 
     [Fact]
+    public async Task WithContent()
+    {
+        var content = await download.String("https://httpbin.org/json");
+        await Verifier.Verify(new {content.success, content.content});
+    }
+
+    [Fact]
     public async Task NotFound()
     {
         var content = await download.String("https://httpbin.org/status/404");
