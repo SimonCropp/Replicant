@@ -21,6 +21,12 @@ class Timestamp
             timestamp.Expiry = headResponse.Content.Headers.Expires.Value.UtcDateTime;
         }
 
+        var cacheControl = headResponse.Headers.CacheControl;
+        if (cacheControl != null && cacheControl.MaxAge != null)
+        {
+            timestamp.Expiry = DateTime.UtcNow.Add(cacheControl.MaxAge.Value);
+        }
+
         return timestamp;
     }
 

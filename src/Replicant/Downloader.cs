@@ -66,7 +66,7 @@ namespace Replicant
 
         public async Task<(string path, CacheStatus status)> DownloadFile(string uri)
         {
-            var file = Path.Combine(directory, Hash.Compute(uri));
+            var file = Path.Combine(directory, $"{Hash.Compute(uri)}.bin");
 
             if (File.Exists(file))
             {
@@ -81,10 +81,7 @@ namespace Replicant
             using (HttpRequestMessage request = new(HttpMethod.Head, uri))
             {
                 using var headResponse = await client.SendAsync(request);
-                if (headResponse.StatusCode != HttpStatusCode.OK)
-                {
-                    headResponse.EnsureSuccessStatusCode();
-                }
+                headResponse.EnsureSuccessStatusCode();
 
                 webTimeStamp = Timestamp.GetTimestamp(headResponse);
                 if (File.Exists(file))

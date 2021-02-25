@@ -1,0 +1,8 @@
+{
+  "args": {}, 
+  "headers": {
+    "Host": "httpbin.org", 
+  }, 
+  "origin": "118.208.171.78", 
+  "url": "https://httpbin.org/cache/100"
+}
