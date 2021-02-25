@@ -94,8 +94,8 @@ namespace Replicant
             }
 
             using var response = await client.GetAsync(uri);
-            using var httpStream = await response.Content.ReadAsStreamAsync();
-            using (FileStream fileStream = new(file, FileMode.Create, FileAccess.Write, FileShare.None))
+            await using var httpStream = await response.Content.ReadAsStreamAsync();
+            await using (FileStream fileStream = new(file, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 await httpStream.CopyToAsync(fileStream);
             }
