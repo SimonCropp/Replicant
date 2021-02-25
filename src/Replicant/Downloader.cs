@@ -20,6 +20,11 @@ namespace Replicant
         public Download(string directory, HttpClient? client = null, int maxEntries = 1000)
         {
             Guard.AgainstNullOrEmpty(directory, nameof(directory));
+            if (maxEntries < 100)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxEntries), "maxEntries must be greater than 100");
+            }
+
             this.directory = directory;
             this.maxEntries = maxEntries;
             if (client == null)
