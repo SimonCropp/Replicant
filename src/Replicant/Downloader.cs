@@ -112,6 +112,18 @@ namespace Replicant
             return await File.ReadAllTextAsync(path);
         }
 
+        public async Task<byte[]> Bytes(string uri)
+        {
+            var path = await DownloadFile(uri);
+            return await File.ReadAllBytesAsync(path);
+        }
+
+        public async Task<Stream> Stream(string uri)
+        {
+            var path = await DownloadFile(uri);
+            return File.OpenRead(path);
+        }
+
         public void Dispose()
         {
             client.Dispose();

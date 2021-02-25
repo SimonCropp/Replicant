@@ -29,6 +29,20 @@ public class DownloadTests
     }
 
     [Fact]
+    public async Task Bytes()
+    {
+        var content = await download.Bytes("https://httpbin.org/json");
+        await Verifier.Verify(content);
+    }
+
+    [Fact]
+    public async Task Stream()
+    {
+        var content = await download.Stream("https://httpbin.org/json");
+        await Verifier.Verify(content);
+    }
+
+    [Fact]
     public async Task ToFile()
     {
         var tempFileName = $"{Path.GetTempFileName()}.txt";
