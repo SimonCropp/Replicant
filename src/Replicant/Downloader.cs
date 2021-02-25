@@ -133,7 +133,7 @@ namespace Replicant
         public async Task ToStream(string uri, Stream stream)
         {
             var path = await DownloadFile(uri);
-            await using var fileStream = File.OpenRead(path);
+            await using var fileStream = FileEx.OpenRead(path);
             await fileStream.CopyToAsync(stream);
         }
 
