@@ -1,24 +1,13 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
-static class FileNameFromUrl
+static class Hash
 {
-    public static string ConvertToFileName(string url)
+    public static string Compute(string value)
     {
-        var invalid = Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToList();
-        StringBuilder stringBuilder = new();
-        foreach (var ch in url)
-        {
-            if (invalid.Contains(ch))
-            {
-                stringBuilder.Append("_");
-                continue;
-            }
-
-            stringBuilder.Append(ch);
-        }
-
-        return stringBuilder.ToString();
+        using SHA1Managed sha = new();
+        var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(value));
+        return string.Concat(hash.Take(4).Select(b => b.ToString("x2")));
     }
 }
