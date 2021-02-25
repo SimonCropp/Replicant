@@ -12,6 +12,7 @@ public class DownloadTests
     public DownloadTests()
     {
         download = new Download(Path.Combine(Path.GetTempPath(), "DownloadTests"));
+        download.Purge();
     }
 
     [Fact]

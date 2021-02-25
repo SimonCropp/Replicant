@@ -42,10 +42,10 @@ namespace Replicant
 
             Directory.CreateDirectory(directory);
 
-            timer = new Timer(_ => Purge(), null, ignoreTimeSpan, purgeInterval);
+            timer = new Timer(_ => PurgeOld(), null, ignoreTimeSpan, purgeInterval);
         }
 
-        void Purge()
+        void PurgeOld()
         {
             timer.Change(ignoreTimeSpan, ignoreTimeSpan);
             try
@@ -148,11 +148,13 @@ namespace Replicant
             var result = await DownloadFile(uri);
             File.Copy(result.path, path, true);
         }
-    }
 
-    public enum CacheStatus
-    {
-        Hit,
-        Miss,
+        public void Purge()
+        {
+            foreach (var file in Directory.EnumerateFiles(directory))
+            {
+                File.Delete(file);
+            }
+        }
     }
 }
