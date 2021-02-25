@@ -17,12 +17,19 @@ public class DownloadTests
     [Fact]
     public async Task EmptyContent()
     {
-        var content = await download.String("https://httpbin.org/status/200");
+        var content = await download.DownloadFile("https://httpbin.org/status/200");
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task WithContent()
+    {
+        var content = await download.DownloadFile("https://httpbin.org/json");
+        await Verifier.Verify(content);
+    }
+
+    [Fact]
+    public async Task String()
     {
         var content = await download.String("https://httpbin.org/json");
         await Verifier.Verify(content);

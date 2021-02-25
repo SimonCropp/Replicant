@@ -27,6 +27,7 @@ namespace Replicant
 
             this.directory = directory;
             this.maxEntries = maxEntries;
+
             if (client == null)
             {
                 this.client = new()
@@ -63,7 +64,7 @@ namespace Replicant
             }
         }
 
-        public async Task<string> DownloadFile(string uri)
+        public async Task<(string path, CacheStatus status)> DownloadFile(string uri)
         {
             var file = Path.Combine(directory, Hash.Compute(uri));
 
@@ -72,7 +73,7 @@ namespace Replicant
                 var fileTimestamp = Timestamp.GetTimestamp(file);
                 if (fileTimestamp.Expiry > DateTime.UtcNow)
                 {
-                    return file;
+                    return (file, CacheStatus.Hit);
                 }
             }
 
@@ -91,7 +92,7 @@ namespace Replicant
                     var fileTimestamp = Timestamp.GetTimestamp(file);
                     if (fileTimestamp.LastModified == webTimeStamp.LastModified)
                     {
-                        return file;
+                        return (file,CacheStatus.Hit);
                     }
 
                     File.Delete(file);
@@ -108,25 +109,25 @@ namespace Replicant
             webTimeStamp = Timestamp.GetTimestamp(response);
 
             Timestamp.SetTimestamp(file, webTimeStamp);
-            return file;
+            return (file,CacheStatus.Miss);
         }
 
         public async Task<string> String(string uri)
         {
-            var path = await DownloadFile(uri);
-            return await File.ReadAllTextAsync(path);
+            var result = await DownloadFile(uri);
+            return await File.ReadAllTextAsync(result.path);
         }
 
         public async Task<byte[]> Bytes(string uri)
         {
-            var path = await DownloadFile(uri);
-            return await File.ReadAllBytesAsync(path);
+            var result = await DownloadFile(uri);
+            return await File.ReadAllBytesAsync(result.path);
         }
 
         public async Task<Stream> Stream(string uri)
         {
-            var path = await DownloadFile(uri);
-            return File.OpenRead(path);
+            var result = await DownloadFile(uri);
+            return File.OpenRead(result.path);
         }
 
         public void Dispose()
@@ -137,15 +138,21 @@ namespace Replicant
 
         public async Task ToStream(string uri, Stream stream)
         {
-            var path = await DownloadFile(uri);
-            await using var fileStream = FileEx.OpenRead(path);
+            var result = await DownloadFile(uri);
+            await using var fileStream = FileEx.OpenRead(result.path);
             await fileStream.CopyToAsync(stream);
         }
 
         public async Task ToFile(string uri, string path)
         {
-            var downloadedFile = await DownloadFile(uri);
-            File.Copy(downloadedFile, path, true);
+            var result = await DownloadFile(uri);
+            File.Copy(result.path, path, true);
         }
+    }
+
+    public enum CacheStatus
+    {
+        Hit,
+        Miss,
     }
 }
