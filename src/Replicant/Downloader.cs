@@ -55,11 +55,12 @@ namespace Replicant
             try
             {
                 foreach (var file in new DirectoryInfo(directory)
-                    .GetFiles()
+                    .GetFiles("*.bin")
                     .OrderByDescending(x => x.LastAccessTime)
                     .Skip(maxEntries))
                 {
                     file.Delete();
+                    File.Delete(Path.ChangeExtension(file.FullName, "json"));
                 }
             }
             finally
@@ -71,47 +72,60 @@ namespace Replicant
         public async Task<Result> DownloadFile(string uri)
         {
             var hash = Hash.Compute(uri);
-            var contentFile = Path.Combine(directory, $"{hash}.bin");
-            var metaFile = Path.Combine(directory, $"{hash}.json");
+            var contentFile = new DirectoryInfo(directory)
+                .GetFiles($"{hash}_*.bin")
+                .OrderBy(x => x.LastWriteTime)
+                .FirstOrDefault();
 
-            if (File.Exists(contentFile))
+            var now = DateTime.UtcNow;
+
+            if (contentFile != null)
             {
-                var fileTimestamp = Timestamp.Get(contentFile);
-                if (fileTimestamp.Expiry > DateTime.UtcNow)
+                var contentPath = contentFile.FullName;
+                var metaFile = Path.ChangeExtension(contentPath, ".json");
+                var fileTimestamp = Timestamp.Get(contentPath);
+                if (fileTimestamp.Expiry > now)
                 {
                     var meta = await ReadMeta(metaFile);
-                    return BuildResult(meta, contentFile, CacheStatus.Hit);
+                    return BuildResult(meta, contentPath, CacheStatus.Hit);
                 }
             }
 
             using var response = await client.GetAsync(uri);
-            var webTimestamp = Timestamp.Get(response);
-            if (File.Exists(contentFile))
+            var webExpiry = response.GetExpiry(now);
+            var webEtag = response.GetETag();
+            var webLastModified = response.GetLastModified(now);
+
+            if (contentFile != null)
             {
-                var fileTimestamp = Timestamp.Get(contentFile);
-                if (fileTimestamp.LastModified == webTimestamp.LastModified)
+                var contentPath = contentFile.FullName;
+                var metaFile = Path.ChangeExtension(contentPath, ".json");
+                var fileTimestamp = Timestamp.Get(contentPath);
+                if (fileTimestamp.LastModified == webLastModified)
                 {
                     var meta = await ReadMeta(metaFile);
-                    return BuildResult(meta, contentFile, CacheStatus.Hit);
+                    return BuildResult(meta, contentPath, CacheStatus.Hit);
                 }
 
                 File.Delete(metaFile);
-                File.Delete(contentFile);
+                File.Delete(contentPath);
             }
 
+            var newContentFile = Path.Combine(directory, $"{hash}_{webLastModified:yyyy-MM-ddTHHmmss}_{webEtag}.bin");
+            var newMetaFile = Path.ChangeExtension(newContentFile, ".json");
             await using var httpStream = await response.Content.ReadAsStreamAsync();
-            await using (var contentFileStream = FileEx.OpenWrite(contentFile))
-            await using (var metaFileStream = FileEx.OpenWrite(metaFile))
+            await using (var contentFileStream = FileEx.OpenWrite(newContentFile))
             {
                 await httpStream.CopyToAsync(contentFileStream);
+            }
+            await using (var metaFileStream = FileEx.OpenWrite(newMetaFile))
+            {
                 var meta = new MetaData(response.Headers, response.Content.Headers);
                 await JsonSerializer.SerializeAsync(metaFileStream, meta);
             }
+            File.SetLastWriteTimeUtc(newContentFile, webExpiry.GetValueOrDefault(FileEx.MaxFileDate));
 
-            webTimestamp = Timestamp.Get(response);
-
-            Timestamp.Set(contentFile, webTimestamp);
-            return new(contentFile, CacheStatus.Miss, response.Headers, response.Content.Headers);
+            return new(newContentFile, CacheStatus.Miss, response.Headers, response.Content.Headers);
         }
 
         static Result BuildResult(MetaData metaData, string contentFile, CacheStatus cacheStatus)
@@ -122,10 +136,10 @@ namespace Replicant
             return new(contentFile, cacheStatus, message.Headers, message.Content.Headers);
         }
 
-        static async Task<MetaData> ReadMeta(string metadataFile)
+        static async Task<MetaData> ReadMeta(string path)
         {
-            await using var metadataStream = FileEx.OpenRead(metadataFile);
-            return (await JsonSerializer.DeserializeAsync<MetaData>(metadataStream))!;
+            await using var stream = FileEx.OpenRead(path);
+            return (await JsonSerializer.DeserializeAsync<MetaData>(stream))!;
         }
 
         public async Task<string> String(string uri)

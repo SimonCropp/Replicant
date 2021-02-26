@@ -1,5 +1,4 @@
 {
-  Status: Miss,
   ResponseHeaders: {
     Access-Control-Allow-Credentials: true,
     Access-Control-Allow-Origin: *,
