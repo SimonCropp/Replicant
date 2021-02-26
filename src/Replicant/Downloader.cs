@@ -112,29 +112,26 @@ namespace Replicant
 
                 using var response = await client.SendAsync(request);
 
-                if (!response.IsSuccessStatusCode &&
-                    response.StatusCode != HttpStatusCode.NotModified)
+                if (response.StatusCode == HttpStatusCode.NotModified)
                 {
-                    response.EnsureSuccessStatusCode();
+                    var meta = await ReadMeta(metaFile);
+                    return BuildResult(meta, contentPath, CacheStatus.Hit);
                 }
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (useStaleOnError)
+                    {
+                        var meta = await ReadMeta(metaFile);
+                        return BuildResult(meta, contentPath, CacheStatus.Hit);
+                    }
+
+                    response.EnsureSuccessStatusCode();
+                }
 
                 var webExpiry = response.GetExpiry(now);
                 var webEtag = response.GetETag()?.Trim('"');
                 var webLastModified = response.GetLastModified(now);
-
-                if (fileTimestamp.LastModified == webLastModified)
-                {
-                    var meta = await ReadMeta(metaFile);
-                    return BuildResult(meta, contentPath, CacheStatus.Hit);
-                }
-                if (webEtag != null &&
-                    fileTimestamp.ETag != null &&
-                    fileTimestamp.ETag == webEtag)
-                {
-                    var meta = await ReadMeta(metaFile);
-                    return BuildResult(meta, contentPath, CacheStatus.Hit);
-                }
 
                 File.Delete(metaFile);
                 File.Delete(contentPath);
@@ -145,6 +142,13 @@ namespace Replicant
             }
         }
 
+        //public async Task AddItem(string uri, DateTime? lastModified, DateTime? expiry, string? etag, Stream stream)
+        //{
+
+        //    var hash = Hash.Compute(uri);
+        //    var newContentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etag?.Trim('"')}.bin");
+        //    await WriteContent(newContentFile, response, webExpiry);
+        //}
         static async Task WriteContent(string newContentFile, HttpResponseMessage response, DateTime? webExpiry)
         {
             var newMetaFile = Path.ChangeExtension(newContentFile, ".json");

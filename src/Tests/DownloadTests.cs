@@ -100,4 +100,10 @@ public class DownloadTests
     {
         return Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/500"));
     }
+
+    [Fact]
+    public Task ServerErrorUseStale()
+    {
+        return Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/500"));
+    }
 }
