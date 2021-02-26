@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -79,7 +80,19 @@ namespace Replicant
 
             var now = DateTime.UtcNow;
 
-            if (contentFile != null)
+            if (contentFile == null)
+            {
+                using var response = await client.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
+                var webExpiry = response.GetExpiry(now);
+                var webEtag = response.GetETag();
+                var webLastModified = response.GetLastModified(now);
+                var newContentFile = Path.Combine(directory, $"{hash}_{webLastModified:yyyy-MM-ddTHHmmss}_{webEtag?.Trim('"')}.bin");
+                await WriteContent(newContentFile, response, webExpiry);
+
+                return new(newContentFile, CacheStatus.Miss, response.Headers, response.Content.Headers);
+            }
+            else
             {
                 var contentPath = contentFile.FullName;
                 var metaFile = Path.ChangeExtension(contentPath, ".json");
@@ -89,19 +102,35 @@ namespace Replicant
                     var meta = await ReadMeta(metaFile);
                     return BuildResult(meta, contentPath, CacheStatus.Hit);
                 }
-            }
 
-            using var response = await client.GetAsync(uri);
-            var webExpiry = response.GetExpiry(now);
-            var webEtag = response.GetETag();
-            var webLastModified = response.GetLastModified(now);
+                using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+                request.Headers.IfModifiedSince = fileTimestamp.LastModified;
+                if (fileTimestamp.ETag != null)
+                {
+                    request.Headers.TryAddWithoutValidation("If-None-Match", $"\"{fileTimestamp.ETag}\"");
+                }
 
-            if (contentFile != null)
-            {
-                var contentPath = contentFile.FullName;
-                var metaFile = Path.ChangeExtension(contentPath, ".json");
-                var fileTimestamp = Timestamp.Get(contentPath);
+                using var response = await client.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode &&
+                    response.StatusCode != HttpStatusCode.NotModified)
+                {
+                    response.EnsureSuccessStatusCode();
+                }
+
+
+                var webExpiry = response.GetExpiry(now);
+                var webEtag = response.GetETag()?.Trim('"');
+                var webLastModified = response.GetLastModified(now);
+
                 if (fileTimestamp.LastModified == webLastModified)
+                {
+                    var meta = await ReadMeta(metaFile);
+                    return BuildResult(meta, contentPath, CacheStatus.Hit);
+                }
+                if (webEtag != null &&
+                    fileTimestamp.ETag != null &&
+                    fileTimestamp.ETag == webEtag)
                 {
                     var meta = await ReadMeta(metaFile);
                     return BuildResult(meta, contentPath, CacheStatus.Hit);
@@ -109,23 +138,29 @@ namespace Replicant
 
                 File.Delete(metaFile);
                 File.Delete(contentPath);
-            }
+                var newContentFile = Path.Combine(directory, $"{hash}_{webLastModified:yyyy-MM-ddTHHmmss}_{webEtag?.Trim('"')}.bin");
+                await WriteContent(newContentFile, response, webExpiry);
 
-            var newContentFile = Path.Combine(directory, $"{hash}_{webLastModified:yyyy-MM-ddTHHmmss}_{webEtag}.bin");
+                return new(newContentFile, CacheStatus.Miss, response.Headers, response.Content.Headers);
+            }
+        }
+
+        static async Task WriteContent(string newContentFile, HttpResponseMessage response, DateTime? webExpiry)
+        {
             var newMetaFile = Path.ChangeExtension(newContentFile, ".json");
             await using var httpStream = await response.Content.ReadAsStreamAsync();
             await using (var contentFileStream = FileEx.OpenWrite(newContentFile))
             {
                 await httpStream.CopyToAsync(contentFileStream);
             }
+
             await using (var metaFileStream = FileEx.OpenWrite(newMetaFile))
             {
                 var meta = new MetaData(response.Headers, response.Content.Headers);
                 await JsonSerializer.SerializeAsync(metaFileStream, meta);
             }
-            File.SetLastWriteTimeUtc(newContentFile, webExpiry.GetValueOrDefault(FileEx.MaxFileDate));
 
-            return new(newContentFile, CacheStatus.Miss, response.Headers, response.Content.Headers);
+            File.SetLastWriteTimeUtc(newContentFile, webExpiry.GetValueOrDefault(FileEx.MinFileDate));
         }
 
         static Result BuildResult(MetaData metaData, string contentFile, CacheStatus cacheStatus)

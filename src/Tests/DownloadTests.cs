@@ -25,8 +25,8 @@ public class DownloadTests
     [Fact]
     public async Task Etag()
     {
-        await download.DownloadFile("https://httpbin.org/etag/the-tag");
-        var content = await download.DownloadFile("https://httpbin.org/etag/the-tag");
+        await download.DownloadFile("https://httpbin.org/etag/\"the-tag\"");
+        var content = await download.DownloadFile("https://httpbin.org/etag/\"the-tag\"");
         await Verifier.Verify(content);
     }
 

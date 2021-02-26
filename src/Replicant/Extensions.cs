@@ -7,7 +7,13 @@ static class Extensions
 {
     public static string? GetETag(this HttpResponseMessage response)
     {
-        return response.Headers.ETag?.Tag;
+        var eTag = response.Headers.ETag;
+        if (eTag == null)
+        {
+            return null;
+        }
+
+        return eTag.Tag;
     }
 
     public static DateTime GetLastModified(this HttpResponseMessage response, DateTime now)
