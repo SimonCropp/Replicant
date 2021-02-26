@@ -70,7 +70,7 @@ namespace Replicant
             }
         }
 
-        public async Task<Result> DownloadFile(string uri)
+        public async Task<Result> DownloadFile(string uri, bool useStaleOnError = false)
         {
             var hash = Hash.Compute(uri);
             var contentFile = new DirectoryInfo(directory)
@@ -177,34 +177,34 @@ namespace Replicant
             return (await JsonSerializer.DeserializeAsync<MetaData>(stream))!;
         }
 
-        public async Task<string> String(string uri)
+        public async Task<string> String(string uri, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri);
+            var result = await DownloadFile(uri,useStaleOnError);
             return await File.ReadAllTextAsync(result.Path);
         }
 
-        public async Task<byte[]> Bytes(string uri)
+        public async Task<byte[]> Bytes(string uri, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri);
+            var result = await DownloadFile(uri,useStaleOnError);
             return await File.ReadAllBytesAsync(result.Path);
         }
 
-        public async Task<Stream> Stream(string uri)
+        public async Task<Stream> Stream(string uri, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri);
+            var result = await DownloadFile(uri,useStaleOnError);
             return File.OpenRead(result.Path);
         }
 
-        public async Task ToStream(string uri, Stream stream)
+        public async Task ToStream(string uri, Stream stream, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri);
+            var result = await DownloadFile(uri,useStaleOnError);
             await using var fileStream = FileEx.OpenRead(result.Path);
             await fileStream.CopyToAsync(stream);
         }
 
-        public async Task ToFile(string uri, string path)
+        public async Task ToFile(string uri, string path, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri);
+            var result = await DownloadFile(uri,useStaleOnError);
             File.Copy(result.Path, path, true);
         }
 
