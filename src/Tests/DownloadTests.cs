@@ -94,4 +94,10 @@ public class DownloadTests
     {
         return Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/404"));
     }
+
+    [Fact]
+    public Task ServerError()
+    {
+        return Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/500"));
+    }
 }
