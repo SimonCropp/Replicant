@@ -1,8 +1,13 @@
 {
-  "args": {}, 
-  "headers": {
-    "Host": "httpbin.org", 
-  }, 
-  "origin": "118.208.171.78", 
-  "url": "https://httpbin.org/cache/100"
+  ResponseHeaders: {
+    Access-Control-Allow-Credentials: true,
+    Access-Control-Allow-Origin: *,
+    Cache-Control: public, max-age=20,
+    Connection: keep-alive,
+    Date: DateTime_1
+  },
+  ContentHeaders: {
+    Content-Length: 205,
+    Content-Type: application/json
+  }
 }

@@ -1,4 +1,13 @@
 {
-  Item1: {TempPath}\DownloadTests\abe9fd41,
-  Item2: Miss
+  Status: Miss,
+  ResponseHeaders: {
+    Access-Control-Allow-Credentials: true,
+    Access-Control-Allow-Origin: *,
+    Connection: keep-alive,
+    Date: DateTime_1
+  },
+  ContentHeaders: {
+    Content-Length: 0,
+    Content-Type: text/html; charset=utf-8
+  }
 }

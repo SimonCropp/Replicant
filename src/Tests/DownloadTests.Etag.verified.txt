@@ -4,10 +4,11 @@
     Access-Control-Allow-Credentials: true,
     Access-Control-Allow-Origin: *,
     Connection: keep-alive,
-    Date: DateTime_1
+    Date: DateTime_1,
+    ETag: the-tag
   },
   ContentHeaders: {
-    Content-Length: 429,
+    Content-Length: 209,
     Content-Type: application/json
   }
 }

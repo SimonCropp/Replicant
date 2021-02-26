@@ -23,13 +23,19 @@ public class DownloadTests
     }
 
     [Fact]
+    public async Task Etag()
+    {
+        await download.DownloadFile("https://httpbin.org/etag/the-tag");
+        var content = await download.DownloadFile("https://httpbin.org/etag/the-tag");
+        await Verifier.Verify(content);
+    }
+
+    [Fact]
     public async Task CacheControlMaxAge()
     {
-        await download.DownloadFile("https://httpbin.org/cache/100");
-        var content = await download.DownloadFile("https://httpbin.org/cache/100");
-        await Verifier.Verify(File.ReadAllTextAsync(content.path))
-            .ScrubLinesContaining("X-Amzn-Trace-Id");
-        Assert.Equal(CacheStatus.Hit, content.status);
+        await download.DownloadFile("https://httpbin.org/cache/20");
+        var content = await download.DownloadFile("https://httpbin.org/cache/20");
+        await Verifier.Verify(content);
     }
 
     [Fact]

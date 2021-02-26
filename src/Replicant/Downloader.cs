@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Replicant
 {
-    public class Download: IDisposable
+    public class Download :
+        IAsyncDisposable,
+        IDisposable
     {
         string directory;
         int maxEntries;
@@ -64,16 +68,19 @@ namespace Replicant
             }
         }
 
-        public async Task<(string path, CacheStatus status)> DownloadFile(string uri)
+        public async Task<Result> DownloadFile(string uri)
         {
-            var file = Path.Combine(directory, $"{Hash.Compute(uri)}.bin");
+            var hash = Hash.Compute(uri);
+            var contentFile = Path.Combine(directory, $"{hash}.bin");
+            var metadataFile = Path.Combine(directory, $"{hash}.json");
 
-            if (File.Exists(file))
+            if (File.Exists(contentFile))
             {
-                var fileTimestamp = Timestamp.GetTimestamp(file);
+                var fileTimestamp = Timestamp.GetTimestamp(contentFile);
                 if (fileTimestamp.Expiry > DateTime.UtcNow)
                 {
-                    return (file, CacheStatus.Hit);
+                    var metaData = await ReadMetaData(metadataFile);
+                    return BuildResult(metaData, contentFile, CacheStatus.Hit);
                 }
             }
 
@@ -84,66 +91,80 @@ namespace Replicant
                 headResponse.EnsureSuccessStatusCode();
 
                 webTimeStamp = Timestamp.GetTimestamp(headResponse);
-                if (File.Exists(file))
+                if (File.Exists(contentFile))
                 {
-                    var fileTimestamp = Timestamp.GetTimestamp(file);
+                    var fileTimestamp = Timestamp.GetTimestamp(contentFile);
                     if (fileTimestamp.LastModified == webTimeStamp.LastModified)
                     {
-                        return (file,CacheStatus.Hit);
+                        var metaData = await ReadMetaData(metadataFile);
+                        return BuildResult(metaData, contentFile, CacheStatus.Hit);
                     }
 
-                    File.Delete(file);
+                    File.Delete(metadataFile);
+                    File.Delete(contentFile);
                 }
             }
 
             using var response = await client.GetAsync(uri);
             await using var httpStream = await response.Content.ReadAsStreamAsync();
-            await using (FileStream fileStream = new(file, FileMode.Create, FileAccess.Write, FileShare.None))
+            await using (var contentFileStream = FileEx.OpenWrite(contentFile))
+            await using (var metadataFileStream = FileEx.OpenWrite(metadataFile))
             {
-                await httpStream.CopyToAsync(fileStream);
+                await httpStream.CopyToAsync(contentFileStream);
+                var metaData = new MetaData(response.Headers, response.Content.Headers);
+                await JsonSerializer.SerializeAsync(metadataFileStream, metaData);
             }
 
             webTimeStamp = Timestamp.GetTimestamp(response);
 
-            Timestamp.SetTimestamp(file, webTimeStamp);
-            return (file,CacheStatus.Miss);
+            Timestamp.SetTimestamp(contentFile, webTimeStamp);
+            return new(contentFile, CacheStatus.Miss, response.Headers, response.Content.Headers);
+        }
+
+        private static Result BuildResult(MetaData metaData, string contentFile, CacheStatus cacheStatus)
+        {
+            var message = new HttpResponseMessage();
+            message.Headers.AddRange(metaData.ResponseHeaders);
+            message.Content.Headers.AddRange(metaData.ContentHeaders);
+            return new(contentFile, cacheStatus, message.Headers, message.Content.Headers);
+        }
+
+
+        static async Task<MetaData> ReadMetaData(string metadataFile)
+        {
+            await using var metadataStream = FileEx.OpenRead(metadataFile);
+            return (await JsonSerializer.DeserializeAsync<MetaData>(metadataStream))!;
         }
 
         public async Task<string> String(string uri)
         {
             var result = await DownloadFile(uri);
-            return await File.ReadAllTextAsync(result.path);
+            return await File.ReadAllTextAsync(result.Path);
         }
 
         public async Task<byte[]> Bytes(string uri)
         {
             var result = await DownloadFile(uri);
-            return await File.ReadAllBytesAsync(result.path);
+            return await File.ReadAllBytesAsync(result.Path);
         }
 
         public async Task<Stream> Stream(string uri)
         {
             var result = await DownloadFile(uri);
-            return File.OpenRead(result.path);
-        }
-
-        public void Dispose()
-        {
-            client.Dispose();
-            timer.Dispose();
+            return File.OpenRead(result.Path);
         }
 
         public async Task ToStream(string uri, Stream stream)
         {
             var result = await DownloadFile(uri);
-            await using var fileStream = FileEx.OpenRead(result.path);
+            await using var fileStream = FileEx.OpenRead(result.Path);
             await fileStream.CopyToAsync(stream);
         }
 
         public async Task ToFile(string uri, string path)
         {
             var result = await DownloadFile(uri);
-            File.Copy(result.path, path, true);
+            File.Copy(result.Path, path, true);
         }
 
         public void Purge()
@@ -153,5 +174,18 @@ namespace Replicant
                 File.Delete(file);
             }
         }
+
+        public void Dispose()
+        {
+            client.Dispose();
+            timer.Dispose();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            client.Dispose();
+            return timer.DisposeAsync();
+        }
     }
+
 }
