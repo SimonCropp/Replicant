@@ -72,56 +72,49 @@ namespace Replicant
         {
             var hash = Hash.Compute(uri);
             var contentFile = Path.Combine(directory, $"{hash}.bin");
-            var metadataFile = Path.Combine(directory, $"{hash}.json");
+            var metaFile = Path.Combine(directory, $"{hash}.json");
 
             if (File.Exists(contentFile))
             {
-                var fileTimestamp = Timestamp.GetTimestamp(contentFile);
+                var fileTimestamp = Timestamp.Get(contentFile);
                 if (fileTimestamp.Expiry > DateTime.UtcNow)
                 {
-                    var metaData = await ReadMetaData(metadataFile);
-                    return BuildResult(metaData, contentFile, CacheStatus.Hit);
-                }
-            }
-
-            Timestamp webTimeStamp;
-            using (HttpRequestMessage request = new(HttpMethod.Head, uri))
-            {
-                using var headResponse = await client.SendAsync(request);
-                headResponse.EnsureSuccessStatusCode();
-
-                webTimeStamp = Timestamp.GetTimestamp(headResponse);
-                if (File.Exists(contentFile))
-                {
-                    var fileTimestamp = Timestamp.GetTimestamp(contentFile);
-                    if (fileTimestamp.LastModified == webTimeStamp.LastModified)
-                    {
-                        var metaData = await ReadMetaData(metadataFile);
-                        return BuildResult(metaData, contentFile, CacheStatus.Hit);
-                    }
-
-                    File.Delete(metadataFile);
-                    File.Delete(contentFile);
+                    var meta = await ReadMeta(metaFile);
+                    return BuildResult(meta, contentFile, CacheStatus.Hit);
                 }
             }
 
             using var response = await client.GetAsync(uri);
-            await using var httpStream = await response.Content.ReadAsStreamAsync();
-            await using (var contentFileStream = FileEx.OpenWrite(contentFile))
-            await using (var metadataFileStream = FileEx.OpenWrite(metadataFile))
+            var webTimestamp = Timestamp.Get(response);
+            if (File.Exists(contentFile))
             {
-                await httpStream.CopyToAsync(contentFileStream);
-                var metaData = new MetaData(response.Headers, response.Content.Headers);
-                await JsonSerializer.SerializeAsync(metadataFileStream, metaData);
+                var fileTimestamp = Timestamp.Get(contentFile);
+                if (fileTimestamp.LastModified == webTimestamp.LastModified)
+                {
+                    var meta = await ReadMeta(metaFile);
+                    return BuildResult(meta, contentFile, CacheStatus.Hit);
+                }
+
+                File.Delete(metaFile);
+                File.Delete(contentFile);
             }
 
-            webTimeStamp = Timestamp.GetTimestamp(response);
+            await using var httpStream = await response.Content.ReadAsStreamAsync();
+            await using (var contentFileStream = FileEx.OpenWrite(contentFile))
+            await using (var metaFileStream = FileEx.OpenWrite(metaFile))
+            {
+                await httpStream.CopyToAsync(contentFileStream);
+                var meta = new MetaData(response.Headers, response.Content.Headers);
+                await JsonSerializer.SerializeAsync(metaFileStream, meta);
+            }
 
-            Timestamp.SetTimestamp(contentFile, webTimeStamp);
+            webTimestamp = Timestamp.Get(response);
+
+            Timestamp.Set(contentFile, webTimestamp);
             return new(contentFile, CacheStatus.Miss, response.Headers, response.Content.Headers);
         }
 
-        private static Result BuildResult(MetaData metaData, string contentFile, CacheStatus cacheStatus)
+        static Result BuildResult(MetaData metaData, string contentFile, CacheStatus cacheStatus)
         {
             var message = new HttpResponseMessage();
             message.Headers.AddRange(metaData.ResponseHeaders);
@@ -129,8 +122,7 @@ namespace Replicant
             return new(contentFile, cacheStatus, message.Headers, message.Content.Headers);
         }
 
-
-        static async Task<MetaData> ReadMetaData(string metadataFile)
+        static async Task<MetaData> ReadMeta(string metadataFile)
         {
             await using var metadataStream = FileEx.OpenRead(metadataFile);
             return (await JsonSerializer.DeserializeAsync<MetaData>(metadataStream))!;

@@ -8,7 +8,7 @@ class Timestamp
     public DateTime? Expiry;
     public DateTime? LastModified;
 
-    public static Timestamp GetTimestamp(HttpResponseMessage headResponse)
+    public static Timestamp Get(HttpResponseMessage headResponse)
     {
         Timestamp timestamp = new();
         if (headResponse.Content.Headers.LastModified != null)
@@ -30,13 +30,13 @@ class Timestamp
         return timestamp;
     }
 
-    public  static void SetTimestamp(string path, Timestamp timestamp)
+    public  static void Set(string path, Timestamp timestamp)
     {
         File.SetCreationTimeUtc(path, timestamp.LastModified.GetValueOrDefault(DateTime.UtcNow));
         File.SetLastWriteTimeUtc(path, timestamp.Expiry.GetValueOrDefault(minFileDate));
     }
 
-    public static Timestamp GetTimestamp(string path)
+    public static Timestamp Get(string path)
     {
         Timestamp timestamp = new();
         var creationTimeUtc = File.GetCreationTimeUtc(path);
