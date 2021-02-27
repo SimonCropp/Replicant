@@ -9,3 +9,5 @@ build_script:
 test: off
 artifacts:
 - path: nugets\**\*.nupkg
+on_failure:
+  - ps: Get-ChildItem *.received.* -recurse | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
