@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -84,7 +83,7 @@ namespace Replicant
                 messageCallback?.Invoke(request);
                 using var response = await client.SendAsync(request, token);
                 response.EnsureSuccessStatusCode();
-                return await AddItem(response, now, hash, CacheStatus.Miss);
+                return await AddItem(response, now, hash, CacheStatus.Stored);
             }
             else
             {
@@ -123,7 +122,7 @@ namespace Replicant
 
                 File.Delete(metaFile);
                 File.Delete(contentPath);
-                return await AddItem(response, now, hash, CacheStatus.Miss);
+                return await AddItem(response, now, hash, CacheStatus.Stored);
             }
         }
 
@@ -133,7 +132,7 @@ namespace Replicant
             var now = DateTime.UtcNow;
             var hash = Hash.Compute(uri);
 
-            return AddItem(response, now, hash, CacheStatus.Miss);
+            return AddItem(response, now, hash, CacheStatus.Stored);
         }
 
         async Task<Result> AddItem(HttpResponseMessage response, DateTimeOffset now, string hash, CacheStatus status)

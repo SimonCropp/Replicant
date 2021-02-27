@@ -3,6 +3,7 @@
     public enum CacheStatus
     {
         Hit,
-        Miss,
+        Stored,
+        Revalidate
     }
 }

@@ -1,39 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Replicant;
 using VerifyXunit;
-using VerifyTests;
 using Xunit;
-
-public class ResultConverter :
-    WriteOnlyJsonConverter
-{
-    public override bool CanConvert(Type objectType)
-    {
-        return objectType == typeof(Result);
-    }
-
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer, IReadOnlyDictionary<string, object> context)
-    {
-        if (value == null)
-        {
-            return;
-        }
-
-        var result = (Result)value;
-        writer.WritePropertyName("Status");
-        serializer.Serialize(writer, result.Status.ToString());
-        writer.WritePropertyName("response");
-        using var message = result.AsResponseMessage().GetAwaiter().GetResult();
-        serializer.Serialize(writer, message);
-    }
-}
 
 [UsesVerify]
 public class DownloadTests
@@ -80,10 +51,7 @@ public class DownloadTests
     {
         var uri = "https://httpbin.org/cache/20";
         await download.DownloadFile(uri);
-        var stopwatch = Stopwatch.StartNew();
         var content = await download.DownloadFile(uri);
-        stopwatch.Stop();
-        var stopwatchElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
         await Verifier.Verify(content);
     }
 
