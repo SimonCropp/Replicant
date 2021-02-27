@@ -44,5 +44,13 @@ namespace Replicant
             message.Content.Headers.AddRange(meta.ContentHeaders);
             return message.Content.Headers;
         }
+
+        public async Task<HttpContentHeaders> GetTrailingHeaders()
+        {
+            var meta = await MetaDataReader.ReadMeta(MetaPath);
+            HttpResponseMessage message = new();
+            message.Content.Headers.AddRange(meta.TrailingHeaders);
+            return message.Content.Headers;
+        }
     }
 }

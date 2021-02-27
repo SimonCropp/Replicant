@@ -13,7 +13,7 @@ public class DownloadTests
 
     public DownloadTests()
     {
-        download = new Download(Path.Combine(Path.GetTempPath(), "DownloadTests"));
+        download = new(Path.Combine(Path.GetTempPath(), "DownloadTests"));
         download.Purge();
     }
 
@@ -39,7 +39,7 @@ public class DownloadTests
         var uri = "https://www.wikipedia.org/";
         Result content;
         content = await download.DownloadFile(uri);
-        var newMessage = new HttpResponseMessage(HttpStatusCode.OK);
+        HttpResponseMessage newMessage = new(HttpStatusCode.OK);
         newMessage.Headers.ETag = (await content.GetResponseHeaders()).ETag;
         await download.AddItem(uri, newMessage);
         content = await download.DownloadFile(uri);
