@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Replicant
 {
-    public partial class Download :
+    public partial class HttpCache :
         IAsyncDisposable,
         IDisposable
     {
@@ -19,7 +19,7 @@ namespace Replicant
         static TimeSpan purgeInterval = TimeSpan.FromMinutes(10);
         static TimeSpan ignoreTimeSpan = TimeSpan.FromMilliseconds(-1);
 
-        public Download(string directory, HttpClient? client = null, int maxEntries = 1000)
+        public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000)
         {
             Guard.AgainstNullOrEmpty(directory, nameof(directory));
             if (maxEntries < 100)

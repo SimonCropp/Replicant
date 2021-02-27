@@ -8,21 +8,21 @@ using VerifyXunit;
 using Xunit;
 
 [UsesVerify]
-public class DownloadTests
+public class HttpCacheTests
 {
-    Download download;
+    HttpCache httpCache;
     static string CachePath = Path.Combine(Path.GetTempPath(), "DownloadTests");
 
-    public DownloadTests()
+    public HttpCacheTests()
     {
-        download = new(CachePath);
-        download.Purge();
+        httpCache = new(CachePath);
+        httpCache.Purge();
     }
 
     [Fact]
     public async Task EmptyContent()
     {
-        var content = await download.DownloadFile("https://httpbin.org/status/200");
+        var content = await httpCache.DownloadFile("https://httpbin.org/status/200");
         await Verifier.Verify(content);
     }
 
@@ -30,8 +30,8 @@ public class DownloadTests
     public async Task Etag()
     {
         var uri = "https://httpbin.org/etag/{etag}";
-        await download.DownloadFile(uri);
-        var content = await download.DownloadFile(uri);
+        await httpCache.DownloadFile(uri);
+        var content = await httpCache.DownloadFile(uri);
         await Verifier.Verify(content);
     }
 
@@ -40,11 +40,11 @@ public class DownloadTests
     {
         var uri = "https://www.wikipedia.org/";
         Result content;
-        content = await download.DownloadFile(uri);
+        content = await httpCache.DownloadFile(uri);
         HttpResponseMessage newMessage = new(HttpStatusCode.OK);
         newMessage.Headers.ETag = (await content.GetResponseHeaders()).ETag;
-        await download.AddItem(uri, newMessage);
-        content = await download.DownloadFile(uri);
+        await httpCache.AddItem(uri, newMessage);
+        content = await httpCache.DownloadFile(uri);
         await Verifier.Verify(content);
     }
 
@@ -52,36 +52,36 @@ public class DownloadTests
     public async Task CacheControlMaxAge()
     {
         var uri = "https://httpbin.org/cache/20";
-        await download.DownloadFile(uri);
-        var content = await download.DownloadFile(uri);
+        await httpCache.DownloadFile(uri);
+        var content = await httpCache.DownloadFile(uri);
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task WithContent()
     {
-        var content = await download.DownloadFile("https://httpbin.org/json");
+        var content = await httpCache.DownloadFile("https://httpbin.org/json");
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task String()
     {
-        var content = await download.String("https://httpbin.org/json");
+        var content = await httpCache.String("https://httpbin.org/json");
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task Bytes()
     {
-        var content = await download.Bytes("https://httpbin.org/json");
+        var content = await httpCache.Bytes("https://httpbin.org/json");
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task Stream()
     {
-        var content = await download.Stream("https://httpbin.org/json");
+        var content = await httpCache.Stream("https://httpbin.org/json");
         await Verifier.Verify(content);
     }
 
@@ -91,7 +91,7 @@ public class DownloadTests
         var tempFileName = $"{Path.GetTempFileName()}.txt";
         try
         {
-            await download.ToFile("https://httpbin.org/json", tempFileName);
+            await httpCache.ToFile("https://httpbin.org/json", tempFileName);
             await Verifier.VerifyFile(tempFileName);
         }
         finally
@@ -104,14 +104,14 @@ public class DownloadTests
     public async Task ToStream()
     {
         MemoryStream stream = new();
-        await download.ToStream("https://httpbin.org/json", stream);
+        await httpCache.ToStream("https://httpbin.org/json", stream);
         await Verifier.Verify(stream);
     }
 
     [Fact]
     public Task NotFound()
     {
-        return Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/404"));
+        return Verifier.ThrowsTask(() => httpCache.String("https://httpbin.org/status/404"));
     }
 
     [Fact]
@@ -121,9 +121,10 @@ public class DownloadTests
         {
             Timeout = TimeSpan.FromMilliseconds(1)
         };
-        download = new(CachePath, httpClient);
-        download.Purge();
-        var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => download.String("https://httpbin.org/status/200"));
+        httpCache = new(CachePath, httpClient);
+        httpCache.Purge();
+        var uri = "https://httpbin.org/status/200";
+        var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => httpCache.String(uri));
         await Verifier.Verify(exception.Message);
     }
 
@@ -134,21 +135,21 @@ public class DownloadTests
         {
             Timeout = TimeSpan.FromMilliseconds(1)
         };
-        download = new(CachePath, httpClient);
-        download.Purge();
+        httpCache = new(CachePath, httpClient);
+        httpCache.Purge();
         var uri = "https://httpbin.org/status/200";
         using HttpResponseMessage response = new(HttpStatusCode.OK)
         {
             Content = new StringContent("foo")
         };
-        await download.AddItem(uri, response);
-        await Verifier.Verify(download.DownloadFile(uri, true));
+        await httpCache.AddItem(uri, response);
+        await Verifier.Verify(httpCache.DownloadFile(uri, true));
     }
 
     [Fact]
     public Task ServerError()
     {
-        return Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/500"));
+        return Verifier.ThrowsTask(() => httpCache.String("https://httpbin.org/status/500"));
     }
 
     [Fact]
@@ -159,8 +160,8 @@ public class DownloadTests
             Content = new StringContent("foo")
         };
         var uri = "https://httpbin.org/status/500";
-        await download.AddItem(uri, response);
-        await Verifier.ThrowsTask(() => download.String(uri));
+        await httpCache.AddItem(uri, response);
+        await Verifier.ThrowsTask(() => httpCache.String(uri));
     }
 
     [Fact]
@@ -171,7 +172,7 @@ public class DownloadTests
             Content = new StringContent("foo")
         };
         var uri = "https://httpbin.org/status/500";
-        await download.AddItem(uri, httpResponseMessage);
-        await Verifier.Verify(download.DownloadFile(uri, true));
+        await httpCache.AddItem(uri, httpResponseMessage);
+        await Verifier.Verify(httpCache.DownloadFile(uri, true));
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Replicant
 {
-    public partial class Download
+    public partial class HttpCache
     {
         public async Task<string> String(
             string uri,
