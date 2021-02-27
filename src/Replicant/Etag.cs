@@ -16,7 +16,8 @@ readonly struct Etag
     }
 
     public string ForFile { get; }
-    public static Etag Empty { get; } = new(string.Empty, string.Empty, true);
+
+    static Etag Empty { get; } = new(string.Empty, string.Empty, true);
 
     Etag(string forWeb, string forFile, bool isEmpty)
     {
