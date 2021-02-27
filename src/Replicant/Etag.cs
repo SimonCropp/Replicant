@@ -33,7 +33,7 @@ readonly struct Etag
             return Empty;
         }
 
-        var tag = value.Substring(1);
+        var tag = value[1..];
         if (value.StartsWith("W"))
         {
             return new Etag($"W/\"{tag}\"", value, false);
