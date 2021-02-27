@@ -4,6 +4,6 @@
     <Version>0.1.0-beta.1</Version>
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <PackageTags>HttpClient, Cache</PackageTags>
-    <Description>a HttpClient that caches to disk</Description>
+    <Description>A wrapper for HttpClient that caches to disk</Description>
   </PropertyGroup>
 </Project>

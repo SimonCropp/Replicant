@@ -43,7 +43,7 @@ namespace Replicant
             try
             {
                 foreach (var file in new DirectoryInfo(directory)
-                    .GetFiles("*.bin")
+                    .GetFiles("*_*_*.bin")
                     .OrderByDescending(x => x.LastAccessTime)
                     .Skip(maxEntries))
                 {

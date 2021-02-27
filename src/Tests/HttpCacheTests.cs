@@ -19,6 +19,26 @@ public class HttpCacheTests
         httpCache.Purge();
     }
 
+    async Task Construction(string cacheDirectory)
+    {
+        #region Construction
+
+        HttpCache httpCache = new(
+            cacheDirectory,
+            // omit for default new HttpClient()
+            new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(30)
+            },
+            // omit for the default of 1000
+            maxEntries: 10000);
+
+        // Dispose when finished
+        await httpCache.DisposeAsync();
+
+        #endregion
+    }
+
     [Fact]
     public async Task EmptyContent()
     {
