@@ -3,7 +3,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/2t806jcx34s3r796/branch/master?svg=true)](https://ci.appveyor.com/project/SimonCropp/Replicant)
 [![NuGet Status](https://img.shields.io/nuget/v/Replicant.svg)](https://www.nuget.org/packages/Replicant/)
 
-A wrapper for HttpClient that caches to disk. Cached files, over the max specified, are cleanup up based on the last access times.
+A wrapper for HttpClient that caches to disk. Cached files, over the max specified, are deleted based on the last access times.
 
 
 ## NuGet package

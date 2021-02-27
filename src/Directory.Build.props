@@ -4,7 +4,7 @@
     <NoWarn>CS1591</NoWarn>
     <Version>0.1.0-beta.1</Version>
     <AssemblyVersion>1.0.0</AssemblyVersion>
-    <PackageTags>HttpClient, Cache</PackageTags>
+    <PackageTags>HttpClient, HttpCache, Cache</PackageTags>
     <Description>A wrapper for HttpClient that caches to disk</Description>
   </PropertyGroup>
 </Project>
