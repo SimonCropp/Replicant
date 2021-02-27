@@ -23,7 +23,7 @@ class Timestamp
         timestamp.LastModified = DateTimeOffset.ParseExact(lastModifiedPart, "yyyy-MM-ddTHHmmss", null, DateTimeStyles.AssumeUniversal);
 
         var etagPart = file[(indexOf + 19)..];
-        timestamp.ETag = Etag.FromFile(etagPart);
+        timestamp.ETag = Etag.FromFilePart(etagPart);
 
         var expiry = File.GetLastWriteTimeUtc(path);
         if (expiry != FileEx.MinFileDate)

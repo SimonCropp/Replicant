@@ -26,7 +26,7 @@ readonly struct Etag
         ForFile = forFile;
     }
 
-    public static Etag FromFile(string value)
+    public static Etag FromFilePart(string value)
     {
         if (value == string.Empty)
         {
