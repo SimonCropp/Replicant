@@ -6,8 +6,7 @@ class Timestamp
 {
     public DateTimeOffset? Expiry;
     public DateTimeOffset LastModified;
-    public string? ETag;
-    public bool? WeakEtag;
+    public Etag ETag;
     public string UrlHash = null!;
 
     public static Timestamp Get(string path)
@@ -24,11 +23,7 @@ class Timestamp
         timestamp.LastModified = DateTimeOffset.ParseExact(lastModifiedPart, "yyyy-MM-ddTHHmmss", null, DateTimeStyles.AssumeUniversal);
 
         var etagPart = file[(indexOf + 19)..];
-        if (etagPart != string.Empty)
-        {
-            timestamp.WeakEtag = etagPart.StartsWith("W");
-            timestamp.ETag = etagPart[1..];
-        }
+        timestamp.ETag = Etag.FromFile(etagPart);
 
         var expiry = File.GetLastWriteTimeUtc(path);
         if (expiry != FileEx.MinFileDate)

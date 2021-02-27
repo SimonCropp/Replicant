@@ -30,17 +30,7 @@ namespace Replicant
             this.directory = directory;
             this.maxEntries = maxEntries;
 
-            if (client == null)
-            {
-                this.client = new()
-                {
-                    Timeout = TimeSpan.FromSeconds(30)
-                };
-            }
-            else
-            {
-                this.client = client;
-            }
+            this.client = client ?? new();
 
             Directory.CreateDirectory(directory);
 
@@ -67,7 +57,11 @@ namespace Replicant
             }
         }
 
-        public async Task<Result> DownloadFile(string uri, bool useStaleOnError = false, Action<HttpRequestMessage>? messageCallback = null, CancellationToken token = default)
+        public Task<Result> DownloadFile(
+            string uri,
+            bool useStaleOnError = false,
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
         {
             var hash = Hash.Compute(uri);
             var contentFile = new DirectoryInfo(directory)
@@ -75,15 +69,21 @@ namespace Replicant
                 .OrderBy(x => x.LastWriteTime)
                 .FirstOrDefault();
 
-            if (contentFile != null)
+            if (contentFile == null)
             {
-                return await HandleFileExists(uri, useStaleOnError, messageCallback, token, contentFile, hash);
+                return HandleFileMissing(uri, messageCallback, token, hash);
             }
 
-            return await HandleFileMissing(uri, messageCallback, token, hash);
+            return HandleFileExists(uri, useStaleOnError, messageCallback, token, contentFile, hash);
         }
 
-        async Task<Result> HandleFileExists(string uri, bool useStaleOnError, Action<HttpRequestMessage>? messageCallback, CancellationToken token, FileInfo contentFile, string hash)
+        async Task<Result> HandleFileExists(
+            string uri,
+            bool useStaleOnError,
+            Action<HttpRequestMessage>? messageCallback,
+            CancellationToken token,
+            FileInfo contentFile,
+            string hash)
         {
             var now = DateTimeOffset.UtcNow;
 
@@ -98,9 +98,9 @@ namespace Replicant
             using HttpRequestMessage request = new(HttpMethod.Get, uri);
             messageCallback?.Invoke(request);
             request.Headers.IfModifiedSince = fileTimestamp.LastModified;
-            if (fileTimestamp.ETag != null)
+            if (!fileTimestamp.ETag.IsEmpty)
             {
-                request.Headers.TryAddWithoutValidation("If-None-Match", $"\"{fileTimestamp.ETag}\"");
+                request.Headers.TryAddWithoutValidation("If-None-Match", fileTimestamp.ETag.ForWeb);
             }
 
             HttpResponseMessage? response = null;
@@ -151,7 +151,11 @@ namespace Replicant
             }
         }
 
-        async Task<Result> HandleFileMissing(string uri, Action<HttpRequestMessage>? messageCallback, CancellationToken token, string hash)
+        async Task<Result> HandleFileMissing(
+            string uri,
+            Action<HttpRequestMessage>? messageCallback,
+            CancellationToken token,
+            string hash)
         {
             var now = DateTimeOffset.UtcNow;
 
@@ -174,11 +178,11 @@ namespace Replicant
         async Task<Result> AddItem(HttpResponseMessage response, DateTimeOffset now, string hash, CacheStatus status)
         {
             var expiry = response.GetExpiry(now);
-            var etagValue = GetEtagValue(response);
+            var etag = Etag.FromResponse(response);
 
             var lastModified = response.GetLastModified(now);
 
-            var contentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etagValue}.bin");
+            var contentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etag.ForFile}.bin");
             var metaFile = Path.ChangeExtension(contentFile, ".json");
             await using var httpStream = await response.Content.ReadAsStreamAsync(default);
             //TODO: should write these to temp files then copy them. then we can  pass token
@@ -200,22 +204,6 @@ namespace Replicant
             }
 
             return new(contentFile, status, metaFile);
-        }
-
-        static string? GetEtagValue(HttpResponseMessage response)
-        {
-            if (!response.TryGetETag(out var weak, out var etag))
-            {
-                return null;
-            }
-
-            if (weak.Value)
-            {
-                return $"W{etag}";
-            }
-
-            return $"S{etag}";
-
         }
 
         public void Purge()

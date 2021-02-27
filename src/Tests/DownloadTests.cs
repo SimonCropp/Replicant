@@ -121,7 +121,7 @@ public class DownloadTests
         {
             Timeout = TimeSpan.FromMilliseconds(1)
         };
-        download = new(CachePath,httpClient);
+        download = new(CachePath, httpClient);
         download.Purge();
         var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => download.String("https://httpbin.org/status/200"));
         await Verifier.Verify(exception.Message);

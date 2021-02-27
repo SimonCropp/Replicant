@@ -1,39 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
 static class Extensions
 {
-    public static bool TryGetETag(
-        this HttpResponseMessage response,
-        [NotNullWhen(true)]out bool? weak,
-        [NotNullWhen(true)] out string? value)
-    {
-        if (response.Headers.TryGetValues("ETag", out var values))
-        {
-            var tag = values.First();
-            if (tag.StartsWith("W/"))
-            {
-                weak = true;
-                value = tag[2..].Trim('"');
-            }
-            else
-            {
-                weak = false;
-                value = tag.Trim('"');
-            }
-
-            return true;
-        }
-
-        weak = null;
-        value = null;
-        return false;
-    }
-
     public static DateTimeOffset GetLastModified(this HttpResponseMessage response, DateTimeOffset now)
     {
         var contentHeaders = response.Content.Headers;
