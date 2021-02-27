@@ -3,18 +3,8 @@ using System.Net.Http;
 
 readonly struct Etag
 {
-    readonly bool weak;
     public bool IsEmpty { get; }
     readonly string forWeb;
-
-    public bool Weak
-    {
-        get
-        {
-            ThrowIfEmpty();
-            return weak;
-        }
-    }
 
     public string ForWeb
     {
@@ -26,12 +16,11 @@ readonly struct Etag
     }
 
     public string ForFile { get; }
-    public static Etag Empty { get; } = new(string.Empty, string.Empty,true,true);
+    public static Etag Empty { get; } = new(string.Empty, string.Empty, true);
 
-    Etag(string forWeb, string forFile, bool weak, bool isEmpty)
+    Etag(string forWeb, string forFile, bool isEmpty)
     {
         this.forWeb = forWeb;
-        this.weak = weak;
         IsEmpty = isEmpty;
         ForFile = forFile;
     }
@@ -46,10 +35,10 @@ readonly struct Etag
         var tag = value.Substring(1);
         if (value.StartsWith("W"))
         {
-            return new Etag($"W/\"{tag}\"",value, true, false);
+            return new Etag($"W/\"{tag}\"", value, false);
         }
 
-        return new Etag($"\"{tag}\"", tag, false, false);
+        return new Etag($"\"{tag}\"", tag, false);
     }
 
     public static Etag FromResponse(HttpResponseMessage response)
@@ -63,10 +52,10 @@ readonly struct Etag
 
         if (tag.StartsWith("W/"))
         {
-            return new Etag(tag, $"W{tag[2..].Trim('"')}", true, false);
+            return new Etag(tag, $"W{tag[2..].Trim('"')}", false);
         }
 
-        return new Etag(tag, $"S{tag.Trim('"')}", false, false);
+        return new Etag(tag, $"S{tag.Trim('"')}", false);
     }
 
     void ThrowIfEmpty()
