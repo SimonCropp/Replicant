@@ -75,39 +75,60 @@ namespace Replicant
                 .OrderBy(x => x.LastWriteTime)
                 .FirstOrDefault();
 
+            if (contentFile != null)
+            {
+                return await HandleFileExists(uri, useStaleOnError, messageCallback, token, contentFile, hash);
+            }
+
+            return await HandleFileMissing(uri, messageCallback, token, hash);
+        }
+
+        async Task<Result> HandleFileExists(string uri, bool useStaleOnError, Action<HttpRequestMessage>? messageCallback, CancellationToken token, FileInfo contentFile, string hash)
+        {
             var now = DateTimeOffset.UtcNow;
 
-            if (contentFile == null)
+            var contentPath = contentFile.FullName;
+            var metaFile = Path.ChangeExtension(contentPath, ".json");
+            var fileTimestamp = Timestamp.Get(contentPath);
+            if (fileTimestamp.Expiry > now)
             {
-                using HttpRequestMessage request = new(HttpMethod.Get, uri);
-                messageCallback?.Invoke(request);
-                using var response = await client.SendAsync(request, token);
-                response.EnsureSuccessStatusCode();
-                return await AddItem(response, now, hash, CacheStatus.Stored);
+                return new(contentPath, CacheStatus.Hit, metaFile);
             }
-            else
+
+            using HttpRequestMessage request = new(HttpMethod.Get, uri);
+            messageCallback?.Invoke(request);
+            request.Headers.IfModifiedSince = fileTimestamp.LastModified;
+            if (fileTimestamp.ETag != null)
             {
-                var contentPath = contentFile.FullName;
-                var metaFile = Path.ChangeExtension(contentPath, ".json");
-                var fileTimestamp = Timestamp.Get(contentPath);
-                if (fileTimestamp.Expiry > now)
-                {
-                    return new(contentPath, CacheStatus.Hit, metaFile);
-                }
+                request.Headers.TryAddWithoutValidation("If-None-Match", $"\"{fileTimestamp.ETag}\"");
+            }
 
-                using HttpRequestMessage request = new(HttpMethod.Get, uri);
-                messageCallback?.Invoke(request);
-                request.Headers.IfModifiedSince = fileTimestamp.LastModified;
-                if (fileTimestamp.ETag != null)
-                {
-                    request.Headers.TryAddWithoutValidation("If-None-Match", $"\"{fileTimestamp.ETag}\"");
-                }
+            HttpResponseMessage? response = null;
 
-                using var response = await client.SendAsync(request, token);
+            try
+            {
+                try
+                {
+                    response = await client.SendAsync(request, token);
+                }
+                catch (TaskCanceledException)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+
+                    if (useStaleOnError)
+                    {
+                        return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+                    }
+
+                    throw;
+                }
 
                 if (response.StatusCode == HttpStatusCode.NotModified)
                 {
-                    return new(contentPath, CacheStatus.Hit, metaFile);
+                    return new(contentPath, CacheStatus.Revalidate, metaFile);
                 }
 
                 if (!response.IsSuccessStatusCode)
@@ -124,6 +145,21 @@ namespace Replicant
                 File.Delete(contentPath);
                 return await AddItem(response, now, hash, CacheStatus.Stored);
             }
+            finally
+            {
+                response?.Dispose();
+            }
+        }
+
+        async Task<Result> HandleFileMissing(string uri, Action<HttpRequestMessage>? messageCallback, CancellationToken token, string hash)
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            using HttpRequestMessage request = new(HttpMethod.Get, uri);
+            messageCallback?.Invoke(request);
+            using var response = await client.SendAsync(request, token);
+            response.EnsureSuccessStatusCode();
+            return await AddItem(response, now, hash, CacheStatus.Stored);
         }
 
         public Task AddItem(string uri, HttpResponseMessage response)

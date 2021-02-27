@@ -1,14 +1,14 @@
-Status: Revalidate,
+Status: UseStaleDueToError,
 Response: {
   Version: 1.1,
   Content: {
-    Headers: {}
+    Headers: {
+      Content-Type: text/plain; charset=utf-8
+    }
   },
   StatusCode: OK,
   ReasonPhrase: OK,
-  Headers: {
-    ETag: W/"10d32-5bad197160b5f"
-  },
+  Headers: {},
   TrailingHeaders: {},
   IsSuccessStatusCode: true
 }

@@ -4,6 +4,7 @@
     {
         Hit,
         Stored,
-        Revalidate
+        Revalidate,
+        UseStaleDueToError
     }
 }

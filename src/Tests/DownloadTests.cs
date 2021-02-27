@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -10,10 +11,11 @@ using Xunit;
 public class DownloadTests
 {
     Download download;
+    static string CachePath = Path.Combine(Path.GetTempPath(), "DownloadTests");
 
     public DownloadTests()
     {
-        download = new(Path.Combine(Path.GetTempPath(), "DownloadTests"));
+        download = new(CachePath);
         download.Purge();
     }
 
@@ -113,6 +115,37 @@ public class DownloadTests
     }
 
     [Fact]
+    public async Task Timeout()
+    {
+        HttpClient httpClient = new()
+        {
+            Timeout = TimeSpan.FromMilliseconds(1)
+        };
+        download = new(CachePath,httpClient);
+        download.Purge();
+        var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => download.String("https://httpbin.org/status/200"));
+        await Verifier.Verify(exception.Message);
+    }
+
+    [Fact]
+    public async Task TimeoutUseStale()
+    {
+        HttpClient httpClient = new()
+        {
+            Timeout = TimeSpan.FromMilliseconds(1)
+        };
+        download = new(CachePath, httpClient);
+        download.Purge();
+        var uri = "https://httpbin.org/status/200";
+        using HttpResponseMessage response = new(HttpStatusCode.OK)
+        {
+            Content = new StringContent("foo")
+        };
+        await download.AddItem(uri, response);
+        await Verifier.Verify(download.DownloadFile(uri, true));
+    }
+
+    [Fact]
     public Task ServerError()
     {
         return Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/500"));
@@ -121,12 +154,12 @@ public class DownloadTests
     [Fact]
     public async Task ServerErrorDontUseStale()
     {
-        using HttpResponseMessage httpResponseMessage = new(HttpStatusCode.OK)
+        using HttpResponseMessage response = new(HttpStatusCode.OK)
         {
             Content = new StringContent("foo")
         };
         var uri = "https://httpbin.org/status/500";
-        await download.AddItem(uri, httpResponseMessage);
+        await download.AddItem(uri, response);
         await Verifier.ThrowsTask(() => download.String(uri));
     }
 
