@@ -1,6 +1,14 @@
-{
-  ResponseHeaders: {
+Status: Hit,
+response: {
+  Version: 1.1,
+  Content: {
+    Headers: {}
+  },
+  StatusCode: OK,
+  ReasonPhrase: OK,
+  Headers: {
     ETag: W/"10d32-5bad197160b5f"
   },
-  ContentHeaders: {}
+  TrailingHeaders: {},
+  IsSuccessStatusCode: true
 }

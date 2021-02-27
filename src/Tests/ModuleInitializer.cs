@@ -10,7 +10,8 @@ public static class ModuleInitializer
         VerifierSettings.ModifySerialization(
             settings =>
             {
-                settings.IgnoreMember<Result>(x => x.Path);
+                settings.AddExtraSettings(x => x.Converters.Add(new ResultConverter()));
+                settings.IgnoreMember<Result>(x => x.ContentPath);
                 settings.IgnoreMembers(
                     "StackTrace",
                     "Content-Length",

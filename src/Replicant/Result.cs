@@ -1,20 +1,48 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace Replicant
 {
     public readonly struct Result
     {
-        public string Path { get; }
+        public string ContentPath { get; }
+        public string MetaPath { get; }
         public CacheStatus Status { get; }
-        public HttpResponseHeaders ResponseHeaders { get; }
-        public HttpContentHeaders ContentHeaders { get; }
 
-        public Result(string path, CacheStatus status, HttpResponseHeaders responseHeaders, HttpContentHeaders contentHeaders)
+        public Result(string contentPath, CacheStatus status, string metaPath)
         {
-            Path = path;
+            ContentPath = contentPath;
             Status = status;
-            ResponseHeaders = responseHeaders;
-            ContentHeaders = contentHeaders;
+            MetaPath = metaPath;
+        }
+
+        public async Task<HttpResponseMessage> AsResponseMessage()
+        {
+            var meta = await MetaDataReader.ReadMeta(MetaPath);
+            HttpResponseMessage message = new()
+            {
+                Content = new StreamContent(FileEx.OpenRead(ContentPath))
+            };
+            message.Headers.AddRange(meta.ResponseHeaders);
+            message.Content.Headers.AddRange(meta.ContentHeaders);
+            return message;
+        }
+
+        public async Task<HttpResponseHeaders> GetResponseHeaders()
+        {
+            var meta = await MetaDataReader.ReadMeta(MetaPath);
+            HttpResponseMessage message = new();
+            message.Headers.AddRange(meta.ResponseHeaders);
+            return message.Headers;
+        }
+
+        public async Task<HttpContentHeaders> GetContentHeaders()
+        {
+            var meta = await MetaDataReader.ReadMeta(MetaPath);
+            HttpResponseMessage message = new();
+            message.Content.Headers.AddRange(meta.ContentHeaders);
+            return message.Content.Headers;
         }
     }
 }

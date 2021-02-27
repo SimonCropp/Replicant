@@ -1,12 +1,19 @@
-{
-  Status: Miss,
-  ResponseHeaders: {
+Status: Miss,
+response: {
+  Version: 1.1,
+  Content: {
+    Headers: {
+      Content-Type: application/json
+    }
+  },
+  StatusCode: OK,
+  ReasonPhrase: OK,
+  Headers: {
     Access-Control-Allow-Credentials: true,
     Access-Control-Allow-Origin: *,
     Connection: keep-alive,
     Date: DateTime_1
   },
-  ContentHeaders: {
-    Content-Type: application/json
-  }
+  TrailingHeaders: {},
+  IsSuccessStatusCode: true
 }

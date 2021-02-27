@@ -15,7 +15,7 @@ namespace Replicant
             CancellationToken token = default)
         {
             var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
-            return await File.ReadAllTextAsync(result.Path, token);
+            return await File.ReadAllTextAsync(result.ContentPath, token);
         }
 
         public async Task<byte[]> Bytes(
@@ -25,7 +25,7 @@ namespace Replicant
             CancellationToken token = default)
         {
             var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
-            return await File.ReadAllBytesAsync(result.Path, token);
+            return await File.ReadAllBytesAsync(result.ContentPath, token);
         }
 
         public async Task<Stream> Stream(
@@ -35,7 +35,7 @@ namespace Replicant
             CancellationToken token = default)
         {
             var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
-            return File.OpenRead(result.Path);
+            return File.OpenRead(result.ContentPath);
         }
 
         public async Task ToStream(
@@ -46,7 +46,7 @@ namespace Replicant
             CancellationToken token = default)
         {
             var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
-            await using var fileStream = FileEx.OpenRead(result.Path);
+            await using var fileStream = FileEx.OpenRead(result.ContentPath);
             await fileStream.CopyToAsync(stream, token);
         }
 
@@ -58,7 +58,7 @@ namespace Replicant
             CancellationToken token = default)
         {
             var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
-            File.Copy(result.Path, path, true);
+            File.Copy(result.ContentPath, path, true);
         }
     }
 }

@@ -45,7 +45,7 @@ namespace Replicant
 
             Directory.CreateDirectory(directory);
 
-            timer = new Timer(_ => PurgeOld(), null, ignoreTimeSpan, purgeInterval);
+            timer = new(_ => PurgeOld(), null, ignoreTimeSpan, purgeInterval);
         }
 
         void PurgeOld()
@@ -68,7 +68,6 @@ namespace Replicant
             }
         }
 
-
         public async Task<Result> DownloadFile(string uri, bool useStaleOnError = false, Action<HttpRequestMessage>? messageCallback = null, CancellationToken token = default)
         {
             var hash = Hash.Compute(uri);
@@ -81,7 +80,7 @@ namespace Replicant
 
             if (contentFile == null)
             {
-                using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+                using HttpRequestMessage request = new(HttpMethod.Get, uri);
                 messageCallback?.Invoke(request);
                 using var response = await client.SendAsync(request, token);
                 response.EnsureSuccessStatusCode();
@@ -94,11 +93,10 @@ namespace Replicant
                 var fileTimestamp = Timestamp.Get(contentPath);
                 if (fileTimestamp.Expiry > now)
                 {
-                    var meta = await ReadMeta(metaFile);
-                    return BuildResult(meta, contentPath, CacheStatus.Hit);
+                    return new(contentPath, CacheStatus.Hit, metaFile);
                 }
 
-                using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+                using HttpRequestMessage request = new(HttpMethod.Get, uri);
                 messageCallback?.Invoke(request);
                 request.Headers.IfModifiedSince = fileTimestamp.LastModified;
                 if (fileTimestamp.ETag != null)
@@ -110,16 +108,14 @@ namespace Replicant
 
                 if (response.StatusCode == HttpStatusCode.NotModified)
                 {
-                    var meta = await ReadMeta(metaFile);
-                    return BuildResult(meta, contentPath, CacheStatus.Hit);
+                    return new(contentPath, CacheStatus.Hit, metaFile);
                 }
 
                 if (!response.IsSuccessStatusCode)
                 {
                     if (useStaleOnError)
                     {
-                        var meta = await ReadMeta(metaFile);
-                        return BuildResult(meta, contentPath, CacheStatus.Hit);
+                        return new(contentPath, CacheStatus.Hit, metaFile);
                     }
 
                     response.EnsureSuccessStatusCode();
@@ -143,66 +139,48 @@ namespace Replicant
         async Task<Result> AddItem(HttpResponseMessage response, DateTimeOffset now, string hash, CacheStatus status)
         {
             var expiry = response.GetExpiry(now);
-            string? etagValue = null;
-            if (response.TryGetETag(out var weak, out var etag))
-            {
-                if (weak.Value)
-                {
-                    etagValue = $"W{etag}";
-                }
-                else
-                {
-                    etagValue = $"S{etag}";
-                }
-            }
+            var etagValue = GetEtagValue(response);
 
             var lastModified = response.GetLastModified(now);
 
             var contentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etagValue}.bin");
-            await WriteContent(contentFile, response, expiry);
-            return new(contentFile, status, response.Headers, response.Content.Headers);
-        }
-
-        static async Task WriteContent(string newContentFile, HttpResponseMessage response, DateTimeOffset? webExpiry, CancellationToken token = default)
-        {
-            var metaFile = Path.ChangeExtension(newContentFile, ".json");
-            await using var httpStream = await response.Content.ReadAsStreamAsync(token);
+            var metaFile = Path.ChangeExtension(contentFile, ".json");
+            await using var httpStream = await response.Content.ReadAsStreamAsync(default);
             //TODO: should write these to temp files then copy them. then we can  pass token
-            await using (var contentFileStream = FileEx.OpenWrite(newContentFile))
+            await using (var contentFileStream = FileEx.OpenWrite(contentFile))
             {
                 // ReSharper disable once MethodSupportsCancellation
                 await httpStream.CopyToAsync(contentFileStream);
             }
 
-            await using (var metaFileStream = FileEx.OpenWrite(metaFile))
-            {
-                var meta = new MetaData(response.Headers, response.Content.Headers);
-                // ReSharper disable once MethodSupportsCancellation
-                await JsonSerializer.SerializeAsync(metaFileStream, meta);
-            }
+            await MetaDataReader.WriteMetaData(response, metaFile);
 
-            if (webExpiry == null)
+            if (expiry == null)
             {
-                File.SetLastWriteTimeUtc(newContentFile, FileEx.MinFileDate);
+                File.SetLastWriteTimeUtc(contentFile, FileEx.MinFileDate);
             }
             else
             {
-                File.SetLastWriteTimeUtc(newContentFile, webExpiry.Value.UtcDateTime);
+                File.SetLastWriteTimeUtc(contentFile, expiry.Value.UtcDateTime);
             }
+
+            return new(contentFile, status, metaFile);
         }
 
-        static Result BuildResult(MetaData metaData, string contentFile, CacheStatus cacheStatus)
+        static string? GetEtagValue(HttpResponseMessage response)
         {
-            var message = new HttpResponseMessage();
-            message.Headers.AddRange(metaData.ResponseHeaders);
-            message.Content.Headers.AddRange(metaData.ContentHeaders);
-            return new(contentFile, cacheStatus, message.Headers, message.Content.Headers);
-        }
+            if (!response.TryGetETag(out var weak, out var etag))
+            {
+                return null;
+            }
 
-        static async Task<MetaData> ReadMeta(string path)
-        {
-            await using var stream = FileEx.OpenRead(path);
-            return (await JsonSerializer.DeserializeAsync<MetaData>(stream))!;
+            if (weak.Value)
+            {
+                return $"W{etag}";
+            }
+
+            return $"S{etag}";
+
         }
 
         public void Purge()

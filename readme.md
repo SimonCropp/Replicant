@@ -12,6 +12,11 @@ https://nuget.org/packages/Replicant/
 ## Usage
 
 
+## Influences
+
+ * [Tavis.HttpCache](https://github.com/tavis-software/Tavis.HttpCache)
+
+
 ## Icon
 
 [Cyborg](https://thenounproject.com/term/cyborg/689871/) designed by [Symbolon](https://thenounproject.com/symbolon/) from [The Noun Project](https://thenounproject.com).

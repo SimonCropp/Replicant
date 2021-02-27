@@ -1,6 +1,14 @@
-{
-  ResponseHeaders: {},
-  ContentHeaders: {
-    Content-Type: text/plain; charset=utf-8
-  }
+Status: Hit,
+response: {
+  Version: 1.1,
+  Content: {
+    Headers: {
+      Content-Type: text/plain; charset=utf-8
+    }
+  },
+  StatusCode: OK,
+  ReasonPhrase: OK,
+  Headers: {},
+  TrailingHeaders: {},
+  IsSuccessStatusCode: true
 }

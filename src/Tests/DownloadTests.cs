@@ -1,11 +1,39 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Replicant;
 using VerifyXunit;
+using VerifyTests;
 using Xunit;
+
+public class ResultConverter :
+    WriteOnlyJsonConverter
+{
+    public override bool CanConvert(Type objectType)
+    {
+        return objectType == typeof(Result);
+    }
+
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer, IReadOnlyDictionary<string, object> context)
+    {
+        if (value == null)
+        {
+            return;
+        }
+
+        var result = (Result)value;
+        writer.WritePropertyName("Status");
+        serializer.Serialize(writer, result.Status.ToString());
+        writer.WritePropertyName("response");
+        using var message = result.AsResponseMessage().GetAwaiter().GetResult();
+        serializer.Serialize(writer, message);
+    }
+}
 
 [UsesVerify]
 public class DownloadTests
@@ -41,7 +69,7 @@ public class DownloadTests
         Result content;
         content = await download.DownloadFile(uri);
         var newMessage = new HttpResponseMessage(HttpStatusCode.OK);
-        newMessage.Headers.ETag = content.ResponseHeaders.ETag;
+        newMessage.Headers.ETag = (await content.GetResponseHeaders()).ETag;
         await download.AddItem(uri, newMessage);
         content = await download.DownloadFile(uri);
         await Verifier.Verify(content);
