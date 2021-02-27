@@ -57,7 +57,7 @@ namespace Replicant
             }
         }
 
-        public Task<Result> DownloadFile(
+        public Task<Result> Download(
             string uri,
             bool useStaleOnError = false,
             Action<HttpRequestMessage>? messageCallback = null,
@@ -98,10 +98,7 @@ namespace Replicant
             using HttpRequestMessage request = new(HttpMethod.Get, uri);
             messageCallback?.Invoke(request);
             request.Headers.IfModifiedSince = fileTimestamp.LastModified;
-            if (!fileTimestamp.ETag.IsEmpty)
-            {
-                request.Headers.TryAddWithoutValidation("If-None-Match", fileTimestamp.ETag.ForWeb);
-            }
+            request.AddIfNoneMatch(fileTimestamp.ETag);
 
             HttpResponseMessage? response = null;
 

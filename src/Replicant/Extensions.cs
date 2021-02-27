@@ -35,9 +35,17 @@ static class Extensions
         return null;
     }
 
+    public static void AddIfNoneMatch(this  HttpRequestMessage request, Etag etag)
+    {
+        if (!etag.IsEmpty)
+        {
+            request.Headers.TryAddWithoutValidation("If-None-Match", etag.ForWeb);
+        }
+    }
+
     public static void AddRange(this HttpHeaders to, IEnumerable<KeyValuePair<string, IEnumerable<string>>> from)
     {
-        foreach (var (key, value) in from)
+        foreach (var (key, value) in @from)
         {
             to.TryAddWithoutValidation(key, value);
         }

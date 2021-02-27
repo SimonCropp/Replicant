@@ -14,7 +14,7 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
+            var result = await Download(uri, useStaleOnError, messageCallback, token);
             return await File.ReadAllTextAsync(result.ContentPath, token);
         }
 
@@ -24,7 +24,7 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
+            var result = await Download(uri, useStaleOnError, messageCallback, token);
             return await File.ReadAllBytesAsync(result.ContentPath, token);
         }
 
@@ -34,7 +34,7 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
+            var result = await Download(uri, useStaleOnError, messageCallback, token);
             return File.OpenRead(result.ContentPath);
         }
 
@@ -45,7 +45,7 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
+            var result = await Download(uri, useStaleOnError, messageCallback, token);
             await using var fileStream = FileEx.OpenRead(result.ContentPath);
             await fileStream.CopyToAsync(stream, token);
         }
@@ -57,7 +57,7 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError, messageCallback, token);
+            var result = await Download(uri, useStaleOnError, messageCallback, token);
             File.Copy(result.ContentPath, path, true);
         }
     }

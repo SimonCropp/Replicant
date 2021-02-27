@@ -22,7 +22,7 @@ public class HttpCacheTests
     [Fact]
     public async Task EmptyContent()
     {
-        var content = await httpCache.DownloadFile("https://httpbin.org/status/200");
+        var content = await httpCache.Download("https://httpbin.org/status/200");
         await Verifier.Verify(content);
     }
 
@@ -30,8 +30,8 @@ public class HttpCacheTests
     public async Task Etag()
     {
         var uri = "https://httpbin.org/etag/{etag}";
-        await httpCache.DownloadFile(uri);
-        var content = await httpCache.DownloadFile(uri);
+        await httpCache.Download(uri);
+        var content = await httpCache.Download(uri);
         await Verifier.Verify(content);
     }
 
@@ -40,11 +40,11 @@ public class HttpCacheTests
     {
         var uri = "https://www.wikipedia.org/";
         Result content;
-        content = await httpCache.DownloadFile(uri);
+        content = await httpCache.Download(uri);
         HttpResponseMessage newMessage = new(HttpStatusCode.OK);
         newMessage.Headers.ETag = (await content.GetResponseHeaders()).ETag;
         await httpCache.AddItem(uri, newMessage);
-        content = await httpCache.DownloadFile(uri);
+        content = await httpCache.Download(uri);
         await Verifier.Verify(content);
     }
 
@@ -52,15 +52,15 @@ public class HttpCacheTests
     public async Task CacheControlMaxAge()
     {
         var uri = "https://httpbin.org/cache/20";
-        await httpCache.DownloadFile(uri);
-        var content = await httpCache.DownloadFile(uri);
+        await httpCache.Download(uri);
+        var content = await httpCache.Download(uri);
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task WithContent()
     {
-        var content = await httpCache.DownloadFile("https://httpbin.org/json");
+        var content = await httpCache.Download("https://httpbin.org/json");
         await Verifier.Verify(content);
     }
 
@@ -143,7 +143,7 @@ public class HttpCacheTests
             Content = new StringContent("foo")
         };
         await httpCache.AddItem(uri, response);
-        await Verifier.Verify(httpCache.DownloadFile(uri, true));
+        await Verifier.Verify(httpCache.Download(uri, true));
     }
 
     [Fact]
@@ -173,6 +173,6 @@ public class HttpCacheTests
         };
         var uri = "https://httpbin.org/status/500";
         await httpCache.AddItem(uri, httpResponseMessage);
-        await Verifier.Verify(httpCache.DownloadFile(uri, true));
+        await Verifier.Verify(httpCache.Download(uri, true));
     }
 }
