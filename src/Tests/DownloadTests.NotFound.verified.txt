@@ -1,9 +1,5 @@
 {
   Type: HttpRequestException,
   StatusCode: NotFound,
-  Message: Response status code does not indicate success: 404 (NOT FOUND).,
-  StackTrace: 
-at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
-at Replicant.Download.DownloadFile(String uri, Boolean useStaleOnError, CancellationToken token)
-at Replicant.Download.String(String uri, Boolean useStaleOnError, CancellationToken token)
+  Message: Response status code does not indicate success: 404 (NOT FOUND).
 }

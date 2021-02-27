@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Replicant
 {
-    public class Download :
+    public partial class Download :
         IAsyncDisposable,
         IDisposable
     {
@@ -69,7 +69,7 @@ namespace Replicant
         }
 
 
-        public async Task<Result> DownloadFile(string uri, bool useStaleOnError = false, CancellationToken token = default)
+        public async Task<Result> DownloadFile(string uri, bool useStaleOnError = false, Action<HttpRequestMessage>? messageCallback = null, CancellationToken token = default)
         {
             var hash = Hash.Compute(uri);
             var contentFile = new DirectoryInfo(directory)
@@ -81,7 +81,9 @@ namespace Replicant
 
             if (contentFile == null)
             {
-                using var response = await client.GetAsync(uri, token);
+                using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+                messageCallback?.Invoke(request);
+                using var response = await client.SendAsync(request, token);
                 response.EnsureSuccessStatusCode();
                 return await AddItem(response, now, hash, CacheStatus.Miss);
             }
@@ -97,6 +99,7 @@ namespace Replicant
                 }
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+                messageCallback?.Invoke(request);
                 request.Headers.IfModifiedSince = fileTimestamp.LastModified;
                 if (fileTimestamp.ETag != null)
                 {
@@ -128,14 +131,13 @@ namespace Replicant
             }
         }
 
-
-        public async Task AddItem(string uri, HttpResponseMessage response)
+        public Task AddItem(string uri, HttpResponseMessage response)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             var now = DateTime.UtcNow;
             var hash = Hash.Compute(uri);
 
-            await AddItem(response, now, hash, CacheStatus.Miss);
+            return AddItem(response, now, hash, CacheStatus.Miss);
         }
 
         async Task<Result> AddItem(HttpResponseMessage response, DateTimeOffset now, string hash, CacheStatus status)
@@ -146,11 +148,11 @@ namespace Replicant
             {
                 if (weak.Value)
                 {
-                    etagValue = "W" + etag;
+                    etagValue = $"W{etag}";
                 }
                 else
                 {
-                    etagValue = "S" + etag;
+                    etagValue = $"S{etag}";
                 }
             }
 
@@ -201,37 +203,6 @@ namespace Replicant
         {
             await using var stream = FileEx.OpenRead(path);
             return (await JsonSerializer.DeserializeAsync<MetaData>(stream))!;
-        }
-
-        public async Task<string> String(string uri, bool useStaleOnError = false, CancellationToken token = default)
-        {
-            var result = await DownloadFile(uri, useStaleOnError, token);
-            return await File.ReadAllTextAsync(result.Path, token);
-        }
-
-        public async Task<byte[]> Bytes(string uri, bool useStaleOnError = false, CancellationToken token = default)
-        {
-            var result = await DownloadFile(uri, useStaleOnError, token);
-            return await File.ReadAllBytesAsync(result.Path, token);
-        }
-
-        public async Task<Stream> Stream(string uri, bool useStaleOnError = false, CancellationToken token = default)
-        {
-            var result = await DownloadFile(uri, useStaleOnError, token);
-            return File.OpenRead(result.Path);
-        }
-
-        public async Task ToStream(string uri, Stream stream, bool useStaleOnError = false, CancellationToken token = default)
-        {
-            var result = await DownloadFile(uri, useStaleOnError, token);
-            await using var fileStream = FileEx.OpenRead(result.Path);
-            await fileStream.CopyToAsync(stream, token);
-        }
-
-        public async Task ToFile(string uri, string path, bool useStaleOnError = false, CancellationToken token = default)
-        {
-            var result = await DownloadFile(uri, useStaleOnError, token);
-            File.Copy(result.Path, path, true);
         }
 
         public void Purge()

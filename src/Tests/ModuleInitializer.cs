@@ -12,6 +12,7 @@ public static class ModuleInitializer
             {
                 settings.IgnoreMember<Result>(x => x.Path);
                 settings.IgnoreMembers(
+                    "StackTrace",
                     "Content-Length",
                     "X-Amzn-Trace-Id",
                     "Server",

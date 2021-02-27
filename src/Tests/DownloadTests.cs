@@ -1,7 +1,7 @@
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Replicant;
 using VerifyXunit;
@@ -52,7 +52,10 @@ public class DownloadTests
     {
         var uri = "https://httpbin.org/cache/20";
         await download.DownloadFile(uri);
+        var stopwatch = Stopwatch.StartNew();
         var content = await download.DownloadFile(uri);
+        stopwatch.Stop();
+        var stopwatchElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
         await Verifier.Verify(content);
     }
 
