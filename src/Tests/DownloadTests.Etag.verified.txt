@@ -7,7 +7,6 @@
     ETag: {etag}
   },
   ContentHeaders: {
-    Content-Length: 205,
     Content-Type: application/json
   }
 }

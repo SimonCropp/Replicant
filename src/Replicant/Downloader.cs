@@ -69,7 +69,7 @@ namespace Replicant
         }
 
 
-        public async Task<Result> DownloadFile(string uri, bool useStaleOnError = false)
+        public async Task<Result> DownloadFile(string uri, bool useStaleOnError = false, CancellationToken token = default)
         {
             var hash = Hash.Compute(uri);
             var contentFile = new DirectoryInfo(directory)
@@ -81,7 +81,7 @@ namespace Replicant
 
             if (contentFile == null)
             {
-                using var response = await client.GetAsync(uri);
+                using var response = await client.GetAsync(uri, token);
                 response.EnsureSuccessStatusCode();
                 return await AddItem(response, now, hash, CacheStatus.Miss);
             }
@@ -103,7 +103,7 @@ namespace Replicant
                     request.Headers.TryAddWithoutValidation("If-None-Match", $"\"{fileTimestamp.ETag}\"");
                 }
 
-                using var response = await client.SendAsync(request);
+                using var response = await client.SendAsync(request, token);
 
                 if (response.StatusCode == HttpStatusCode.NotModified)
                 {
@@ -153,6 +153,7 @@ namespace Replicant
                     etagValue = "S" + etag;
                 }
             }
+
             var lastModified = response.GetLastModified(now);
 
             var contentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etagValue}.bin");
@@ -160,18 +161,21 @@ namespace Replicant
             return new(contentFile, status, response.Headers, response.Content.Headers);
         }
 
-        static async Task WriteContent(string newContentFile, HttpResponseMessage response, DateTimeOffset? webExpiry)
+        static async Task WriteContent(string newContentFile, HttpResponseMessage response, DateTimeOffset? webExpiry, CancellationToken token = default)
         {
             var metaFile = Path.ChangeExtension(newContentFile, ".json");
-            await using var httpStream = await response.Content.ReadAsStreamAsync();
+            await using var httpStream = await response.Content.ReadAsStreamAsync(token);
+            //TODO: should write these to temp files then copy them. then we can  pass token
             await using (var contentFileStream = FileEx.OpenWrite(newContentFile))
             {
+                // ReSharper disable once MethodSupportsCancellation
                 await httpStream.CopyToAsync(contentFileStream);
             }
 
             await using (var metaFileStream = FileEx.OpenWrite(metaFile))
             {
                 var meta = new MetaData(response.Headers, response.Content.Headers);
+                // ReSharper disable once MethodSupportsCancellation
                 await JsonSerializer.SerializeAsync(metaFileStream, meta);
             }
 
@@ -199,34 +203,34 @@ namespace Replicant
             return (await JsonSerializer.DeserializeAsync<MetaData>(stream))!;
         }
 
-        public async Task<string> String(string uri, bool useStaleOnError = false)
+        public async Task<string> String(string uri, bool useStaleOnError = false, CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError);
-            return await File.ReadAllTextAsync(result.Path);
+            var result = await DownloadFile(uri, useStaleOnError, token);
+            return await File.ReadAllTextAsync(result.Path, token);
         }
 
-        public async Task<byte[]> Bytes(string uri, bool useStaleOnError = false)
+        public async Task<byte[]> Bytes(string uri, bool useStaleOnError = false, CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError);
-            return await File.ReadAllBytesAsync(result.Path);
+            var result = await DownloadFile(uri, useStaleOnError, token);
+            return await File.ReadAllBytesAsync(result.Path, token);
         }
 
-        public async Task<Stream> Stream(string uri, bool useStaleOnError = false)
+        public async Task<Stream> Stream(string uri, bool useStaleOnError = false, CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError);
+            var result = await DownloadFile(uri, useStaleOnError, token);
             return File.OpenRead(result.Path);
         }
 
-        public async Task ToStream(string uri, Stream stream, bool useStaleOnError = false)
+        public async Task ToStream(string uri, Stream stream, bool useStaleOnError = false, CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError);
+            var result = await DownloadFile(uri, useStaleOnError, token);
             await using var fileStream = FileEx.OpenRead(result.Path);
-            await fileStream.CopyToAsync(stream);
+            await fileStream.CopyToAsync(stream, token);
         }
 
-        public async Task ToFile(string uri, string path, bool useStaleOnError = false)
+        public async Task ToFile(string uri, string path, bool useStaleOnError = false, CancellationToken token = default)
         {
-            var result = await DownloadFile(uri, useStaleOnError);
+            var result = await DownloadFile(uri, useStaleOnError, token);
             File.Copy(result.Path, path, true);
         }
 

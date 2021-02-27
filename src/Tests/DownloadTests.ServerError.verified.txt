@@ -4,6 +4,6 @@
   Message: Response status code does not indicate success: 500 (INTERNAL SERVER ERROR).,
   StackTrace: 
 at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
-at Replicant.Download.DownloadFile(String uri, Boolean useStaleOnError)
-at Replicant.Download.String(String uri, Boolean useStaleOnError)
+at Replicant.Download.DownloadFile(String uri, Boolean useStaleOnError, CancellationToken token)
+at Replicant.Download.String(String uri, Boolean useStaleOnError, CancellationToken token)
 }

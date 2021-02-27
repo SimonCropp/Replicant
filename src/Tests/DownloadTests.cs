@@ -41,7 +41,7 @@ public class DownloadTests
         Result content;
         content = await download.DownloadFile(uri);
         var newMessage = new HttpResponseMessage(HttpStatusCode.OK);
-        newMessage.Headers.ETag =content.ResponseHeaders.ETag;
+        newMessage.Headers.ETag = content.ResponseHeaders.ETag;
         await download.AddItem(uri, newMessage);
         content = await download.DownloadFile(uri);
         await Verifier.Verify(content);
@@ -126,8 +126,9 @@ public class DownloadTests
         {
             Content = new StringContent("foo")
         };
-        await download.AddItem("https://httpbin.org/status/500", httpResponseMessage);
-        await Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/500"));
+        var uri = "https://httpbin.org/status/500";
+        await download.AddItem(uri, httpResponseMessage);
+        await Verifier.ThrowsTask(() => download.String(uri));
     }
 
     [Fact]
@@ -137,7 +138,8 @@ public class DownloadTests
         {
             Content = new StringContent("foo")
         };
-        await download.AddItem("https://httpbin.org/status/500", httpResponseMessage);
-        await Verifier.Verify(download.DownloadFile("https://httpbin.org/status/500", true));
+        var uri = "https://httpbin.org/status/500";
+        await download.AddItem(uri, httpResponseMessage);
+        await Verifier.Verify(download.DownloadFile(uri, true));
     }
 }

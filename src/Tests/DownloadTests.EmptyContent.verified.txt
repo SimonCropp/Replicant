@@ -7,7 +7,6 @@
     Date: DateTime_1
   },
   ContentHeaders: {
-    Content-Length: 0,
     Content-Type: text/html; charset=utf-8
   }
 }
