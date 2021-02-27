@@ -67,45 +67,75 @@ public class HttpCacheTests
     [Fact]
     public async Task String()
     {
+        #region string
         var content = await httpCache.String("https://httpbin.org/json");
+        #endregion
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task Bytes()
     {
-        var content = await httpCache.Bytes("https://httpbin.org/json");
-        await Verifier.Verify(content);
+        #region bytes
+        var bytes = await httpCache.Bytes("https://httpbin.org/json");
+        #endregion
+        await Verifier.Verify(bytes);
     }
 
     [Fact]
     public async Task Stream()
     {
-        var content = await httpCache.Stream("https://httpbin.org/json");
-        await Verifier.Verify(content);
+        #region stream
+        await using var stream = await httpCache.Stream("https://httpbin.org/json");
+        #endregion
+        await Verifier.Verify(stream);
     }
 
     [Fact]
     public async Task ToFile()
     {
-        var tempFileName = $"{Path.GetTempFileName()}.txt";
+        var targetFile = $"{Path.GetTempFileName()}.txt";
         try
         {
-            await httpCache.ToFile("https://httpbin.org/json", tempFileName);
-            await Verifier.VerifyFile(tempFileName);
+            #region ToFile
+            await httpCache.ToFile("https://httpbin.org/json", targetFile);
+            #endregion
+            await Verifier.VerifyFile(targetFile);
         }
         finally
         {
-            File.Delete(tempFileName);
+            File.Delete(targetFile);
         }
     }
 
     [Fact]
     public async Task ToStream()
     {
-        MemoryStream stream = new();
-        await httpCache.ToStream("https://httpbin.org/json", stream);
-        await Verifier.Verify(stream);
+        MemoryStream targetStream = new();
+        #region ToStream
+        await httpCache.ToStream("https://httpbin.org/json", targetStream);
+        #endregion
+        await Verifier.Verify(targetStream);
+    }
+
+    [Fact]
+    public async Task Callback()
+    {
+        var uri = "https://httpbin.org/json";
+
+        #region Callback
+
+        var content = await httpCache.String(
+            uri,
+            messageCallback: message =>
+            {
+                message.Headers.Add("Key1", "Value1");
+                message.Headers.Add("Key2", "Value2");
+            });
+
+        #endregion
+
+        await Verifier.Verify(content);
     }
 
     [Fact]
@@ -137,12 +167,14 @@ public class HttpCacheTests
         };
         httpCache = new(CachePath, httpClient);
         httpCache.Purge();
+        #region AddItem
         var uri = "https://httpbin.org/status/200";
         using HttpResponseMessage response = new(HttpStatusCode.OK)
         {
-            Content = new StringContent("foo")
+            Content = new StringContent("the content")
         };
         await httpCache.AddItem(uri, response);
+        #endregion
         await Verifier.Verify(httpCache.Download(uri, true));
     }
 
@@ -169,10 +201,13 @@ public class HttpCacheTests
     {
         using HttpResponseMessage httpResponseMessage = new(HttpStatusCode.OK)
         {
-            Content = new StringContent("foo")
+            Content = new StringContent("content")
         };
         var uri = "https://httpbin.org/status/500";
         await httpCache.AddItem(uri, httpResponseMessage);
-        await Verifier.Verify(httpCache.Download(uri, true));
+        #region useStaleOnError
+        var content = httpCache.String(uri, useStaleOnError: true);
+        #endregion
+        await Verifier.Verify(content);
     }
 }

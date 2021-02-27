@@ -9,7 +9,123 @@
 https://nuget.org/packages/Replicant/
 
 
+<!-- toc -->
+## Contents
+
+  * [Usage](#usage)
+    * [Get a string](#get-a-string)
+    * [Get bytes](#get-bytes)
+    * [Get a stream](#get-a-stream)
+    * [Download to a file](#download-to-a-file)
+    * [Download to a stream](#download-to-a-stream)
+    * [Manually add an item to the cache](#manually-add-an-item-to-the-cache)
+    * [Use stale cached item when an error occurs](#use-stale-cached-item-when-an-error-occurs)
+    * [Customizing HttpRequestMessage](#customizing-httprequestmessage)
+  * [Influences](#influences)<!-- endToc -->
+
+
 ## Usage
+
+
+### Get a string
+
+<!-- snippet: string -->
+<a id='snippet-string'></a>
+```cs
+var content = await httpCache.String("https://httpbin.org/json");
+```
+<sup><a href='/src/Tests/HttpCacheTests.cs#L70-L72' title='Snippet source file'>snippet source</a> | <a href='#snippet-string' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### Get bytes
+
+<!-- snippet: bytes -->
+<a id='snippet-bytes'></a>
+```cs
+var bytes = await httpCache.Bytes("https://httpbin.org/json");
+```
+<sup><a href='/src/Tests/HttpCacheTests.cs#L79-L81' title='Snippet source file'>snippet source</a> | <a href='#snippet-bytes' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### Get a stream
+
+<!-- snippet: stream -->
+<a id='snippet-stream'></a>
+```cs
+await using var stream = await httpCache.Stream("https://httpbin.org/json");
+```
+<sup><a href='/src/Tests/HttpCacheTests.cs#L88-L90' title='Snippet source file'>snippet source</a> | <a href='#snippet-stream' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### Download to a file
+
+<!-- snippet: ToFile -->
+<a id='snippet-tofile'></a>
+```cs
+await httpCache.ToFile("https://httpbin.org/json", targetFile);
+```
+<sup><a href='/src/Tests/HttpCacheTests.cs#L100-L102' title='Snippet source file'>snippet source</a> | <a href='#snippet-tofile' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### Download to a stream
+
+<!-- snippet: ToStream -->
+<a id='snippet-tostream'></a>
+```cs
+await httpCache.ToStream("https://httpbin.org/json", targetStream);
+```
+<sup><a href='/src/Tests/HttpCacheTests.cs#L115-L117' title='Snippet source file'>snippet source</a> | <a href='#snippet-tostream' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### Manually add an item to the cache
+
+<!-- snippet: AddItem -->
+<a id='snippet-additem'></a>
+```cs
+var uri = "https://httpbin.org/status/200";
+using HttpResponseMessage response = new(HttpStatusCode.OK)
+{
+    Content = new StringContent("the content")
+};
+await httpCache.AddItem(uri, response);
+```
+<sup><a href='/src/Tests/HttpCacheTests.cs#L170-L177' title='Snippet source file'>snippet source</a> | <a href='#snippet-additem' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### Use stale cached item when an error occurs
+
+<!-- snippet: useStaleOnError -->
+<a id='snippet-usestaleonerror'></a>
+```cs
+var content = httpCache.String(uri, useStaleOnError: true);
+```
+<sup><a href='/src/Tests/HttpCacheTests.cs#L208-L210' title='Snippet source file'>snippet source</a> | <a href='#snippet-usestaleonerror' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### Customizing HttpRequestMessage
+
+The HttpRequestMessage used can be customized using a callback.
+
+<!-- snippet: Callback -->
+<a id='snippet-callback'></a>
+```cs
+var content = await httpCache.String(
+    uri,
+    messageCallback: message =>
+    {
+        message.Headers.Add("Key1", "Value1");
+        message.Headers.Add("Key2", "Value2");
+    });
+```
+<sup><a href='/src/Tests/HttpCacheTests.cs#L126-L136' title='Snippet source file'>snippet source</a> | <a href='#snippet-callback' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 
 ## Influences
