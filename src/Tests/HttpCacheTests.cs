@@ -47,6 +47,19 @@ public class HttpCacheTests
     }
 
     [Fact]
+    public async Task FullHttpResponseMessage()
+    {
+        #region FullHttpResponseMessage
+
+        var result = await httpCache.Download("https://httpbin.org/status/200");
+        var httpResponseMessage = await result.AsResponseMessage();
+
+        #endregion
+
+        await Verifier.Verify(httpResponseMessage);
+    }
+
+    [Fact]
     public async Task Etag()
     {
         var uri = "https://httpbin.org/etag/{etag}";
