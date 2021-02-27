@@ -4,10 +4,10 @@
     Access-Control-Allow-Origin: *,
     Connection: keep-alive,
     Date: DateTime_1,
-    ETag: "the-tag"
+    ETag: {etag}
   },
   ContentHeaders: {
-    Content-Length: 213,
+    Content-Length: 205,
     Content-Type: application/json
   }
 }

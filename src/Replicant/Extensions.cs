@@ -1,22 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
 static class Extensions
 {
-    public static string? GetETag(this HttpResponseMessage response)
+    public static bool TryGetETag(
+        this HttpResponseMessage response,
+        [NotNullWhen(true)]out bool? weak,
+        [NotNullWhen(true)] out string? value)
     {
-        var eTag = response.Headers.ETag;
-        if (eTag == null)
+        if (response.Headers.TryGetValues("ETag", out var values))
         {
-            return null;
+            var tag = values.First();
+            if (tag.StartsWith("W/"))
+            {
+                weak = true;
+                value = tag[2..].Trim('"');
+            }
+            else
+            {
+                weak = false;
+                value = tag.Trim('"');
+            }
+
+            return true;
         }
 
-        return eTag.Tag;
+        weak = null;
+        value = null;
+        return false;
     }
 
-    public static DateTime GetLastModified(this HttpResponseMessage response, DateTime now)
+    public static DateTimeOffset GetLastModified(this HttpResponseMessage response, DateTimeOffset now)
     {
         var contentHeaders = response.Content.Headers;
         if (contentHeaders.LastModified == null)
@@ -24,17 +43,17 @@ static class Extensions
             return now;
         }
 
-        return contentHeaders.LastModified.Value.UtcDateTime;
+        return contentHeaders.LastModified.Value;
     }
 
-    public static DateTime? GetExpiry(this HttpResponseMessage response, DateTime now)
+    public static DateTimeOffset? GetExpiry(this HttpResponseMessage response, DateTimeOffset now)
     {
         var responseHeaders = response.Headers;
         var contentHeaders = response.Content.Headers;
 
         if (contentHeaders.Expires != null)
         {
-            return contentHeaders.Expires.Value.UtcDateTime;
+            return contentHeaders.Expires.Value;
         }
 
         var cacheControl = responseHeaders.CacheControl;

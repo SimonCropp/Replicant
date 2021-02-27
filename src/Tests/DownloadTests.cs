@@ -1,4 +1,7 @@
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Replicant;
 using VerifyXunit;
@@ -25,16 +28,31 @@ public class DownloadTests
     [Fact]
     public async Task Etag()
     {
-        await download.DownloadFile("https://httpbin.org/etag/\"the-tag\"");
-        var content = await download.DownloadFile("https://httpbin.org/etag/\"the-tag\"");
+        var uri = "https://httpbin.org/etag/{etag}";
+        await download.DownloadFile(uri);
+        var content = await download.DownloadFile(uri);
+        await Verifier.Verify(content);
+    }
+
+    [Fact]
+    public async Task WeakEtag()
+    {
+        var uri = "https://www.wikipedia.org/";
+        Result content;
+        content = await download.DownloadFile(uri);
+        var newMessage = new HttpResponseMessage(HttpStatusCode.OK);
+        newMessage.Headers.ETag =content.ResponseHeaders.ETag;
+        await download.AddItem(uri, newMessage);
+        content = await download.DownloadFile(uri);
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task CacheControlMaxAge()
     {
-        await download.DownloadFile("https://httpbin.org/cache/20");
-        var content = await download.DownloadFile("https://httpbin.org/cache/20");
+        var uri = "https://httpbin.org/cache/20";
+        await download.DownloadFile(uri);
+        var content = await download.DownloadFile(uri);
         await Verifier.Verify(content);
     }
 
@@ -84,7 +102,7 @@ public class DownloadTests
     [Fact]
     public async Task ToStream()
     {
-        var stream = new MemoryStream();
+        MemoryStream stream = new();
         await download.ToStream("https://httpbin.org/json", stream);
         await Verifier.Verify(stream);
     }
@@ -102,8 +120,24 @@ public class DownloadTests
     }
 
     [Fact]
-    public Task ServerErrorUseStale()
+    public async Task ServerErrorDontUseStale()
     {
-        return Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/500"));
+        using HttpResponseMessage httpResponseMessage = new(HttpStatusCode.OK)
+        {
+            Content = new StringContent("foo")
+        };
+        await download.AddItem("https://httpbin.org/status/500", httpResponseMessage);
+        await Verifier.ThrowsTask(() => download.String("https://httpbin.org/status/500"));
+    }
+
+    [Fact]
+    public async Task ServerErrorUseStale()
+    {
+        using HttpResponseMessage httpResponseMessage = new(HttpStatusCode.OK)
+        {
+            Content = new StringContent("foo")
+        };
+        await download.AddItem("https://httpbin.org/status/500", httpResponseMessage);
+        await Verifier.Verify(download.DownloadFile("https://httpbin.org/status/500", true));
     }
 }

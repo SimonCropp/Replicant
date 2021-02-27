@@ -1,0 +1,6 @@
+{
+  ResponseHeaders: {
+    ETag: W/"10d32-5bad197160b5f"
+  },
+  ContentHeaders: {}
+}

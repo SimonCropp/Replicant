@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -70,6 +68,7 @@ namespace Replicant
             }
         }
 
+
         public async Task<Result> DownloadFile(string uri, bool useStaleOnError = false)
         {
             var hash = Hash.Compute(uri);
@@ -78,19 +77,13 @@ namespace Replicant
                 .OrderBy(x => x.LastWriteTime)
                 .FirstOrDefault();
 
-            var now = DateTime.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
             if (contentFile == null)
             {
                 using var response = await client.GetAsync(uri);
                 response.EnsureSuccessStatusCode();
-                var webExpiry = response.GetExpiry(now);
-                var webEtag = response.GetETag();
-                var webLastModified = response.GetLastModified(now);
-                var newContentFile = Path.Combine(directory, $"{hash}_{webLastModified:yyyy-MM-ddTHHmmss}_{webEtag?.Trim('"')}.bin");
-                await WriteContent(newContentFile, response, webExpiry);
-
-                return new(newContentFile, CacheStatus.Miss, response.Headers, response.Content.Headers);
+                return await AddItem(response, now, hash, CacheStatus.Miss);
             }
             else
             {
@@ -129,42 +122,67 @@ namespace Replicant
                     response.EnsureSuccessStatusCode();
                 }
 
-                var webExpiry = response.GetExpiry(now);
-                var webEtag = response.GetETag()?.Trim('"');
-                var webLastModified = response.GetLastModified(now);
-
                 File.Delete(metaFile);
                 File.Delete(contentPath);
-                var newContentFile = Path.Combine(directory, $"{hash}_{webLastModified:yyyy-MM-ddTHHmmss}_{webEtag?.Trim('"')}.bin");
-                await WriteContent(newContentFile, response, webExpiry);
-
-                return new(newContentFile, CacheStatus.Miss, response.Headers, response.Content.Headers);
+                return await AddItem(response, now, hash, CacheStatus.Miss);
             }
         }
 
-        //public async Task AddItem(string uri, DateTime? lastModified, DateTime? expiry, string? etag, Stream stream)
-        //{
 
-        //    var hash = Hash.Compute(uri);
-        //    var newContentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etag?.Trim('"')}.bin");
-        //    await WriteContent(newContentFile, response, webExpiry);
-        //}
-        static async Task WriteContent(string newContentFile, HttpResponseMessage response, DateTime? webExpiry)
+        public async Task AddItem(string uri, HttpResponseMessage response)
         {
-            var newMetaFile = Path.ChangeExtension(newContentFile, ".json");
+            Guard.AgainstNull(response.Content, nameof(response.Content));
+            var now = DateTime.UtcNow;
+            var hash = Hash.Compute(uri);
+
+            await AddItem(response, now, hash, CacheStatus.Miss);
+        }
+
+        async Task<Result> AddItem(HttpResponseMessage response, DateTimeOffset now, string hash, CacheStatus status)
+        {
+            var expiry = response.GetExpiry(now);
+            string? etagValue = null;
+            if (response.TryGetETag(out var weak, out var etag))
+            {
+                if (weak.Value)
+                {
+                    etagValue = "W" + etag;
+                }
+                else
+                {
+                    etagValue = "S" + etag;
+                }
+            }
+            var lastModified = response.GetLastModified(now);
+
+            var contentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etagValue}.bin");
+            await WriteContent(contentFile, response, expiry);
+            return new(contentFile, status, response.Headers, response.Content.Headers);
+        }
+
+        static async Task WriteContent(string newContentFile, HttpResponseMessage response, DateTimeOffset? webExpiry)
+        {
+            var metaFile = Path.ChangeExtension(newContentFile, ".json");
             await using var httpStream = await response.Content.ReadAsStreamAsync();
             await using (var contentFileStream = FileEx.OpenWrite(newContentFile))
             {
                 await httpStream.CopyToAsync(contentFileStream);
             }
 
-            await using (var metaFileStream = FileEx.OpenWrite(newMetaFile))
+            await using (var metaFileStream = FileEx.OpenWrite(metaFile))
             {
                 var meta = new MetaData(response.Headers, response.Content.Headers);
                 await JsonSerializer.SerializeAsync(metaFileStream, meta);
             }
 
-            File.SetLastWriteTimeUtc(newContentFile, webExpiry.GetValueOrDefault(FileEx.MinFileDate));
+            if (webExpiry == null)
+            {
+                File.SetLastWriteTimeUtc(newContentFile, FileEx.MinFileDate);
+            }
+            else
+            {
+                File.SetLastWriteTimeUtc(newContentFile, webExpiry.Value.UtcDateTime);
+            }
         }
 
         static Result BuildResult(MetaData metaData, string contentFile, CacheStatus cacheStatus)
@@ -183,32 +201,32 @@ namespace Replicant
 
         public async Task<string> String(string uri, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri,useStaleOnError);
+            var result = await DownloadFile(uri, useStaleOnError);
             return await File.ReadAllTextAsync(result.Path);
         }
 
         public async Task<byte[]> Bytes(string uri, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri,useStaleOnError);
+            var result = await DownloadFile(uri, useStaleOnError);
             return await File.ReadAllBytesAsync(result.Path);
         }
 
         public async Task<Stream> Stream(string uri, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri,useStaleOnError);
+            var result = await DownloadFile(uri, useStaleOnError);
             return File.OpenRead(result.Path);
         }
 
         public async Task ToStream(string uri, Stream stream, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri,useStaleOnError);
+            var result = await DownloadFile(uri, useStaleOnError);
             await using var fileStream = FileEx.OpenRead(result.Path);
             await fileStream.CopyToAsync(stream);
         }
 
         public async Task ToFile(string uri, string path, bool useStaleOnError = false)
         {
-            var result = await DownloadFile(uri,useStaleOnError);
+            var result = await DownloadFile(uri, useStaleOnError);
             File.Copy(result.Path, path, true);
         }
 
@@ -232,5 +250,4 @@ namespace Replicant
             return timer.DisposeAsync();
         }
     }
-
 }

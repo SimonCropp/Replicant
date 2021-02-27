@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Net.Http;
 
 class Timestamp
 {
-    public DateTime? Expiry;
-    public DateTime LastModified;
+    public DateTimeOffset? Expiry;
+    public DateTimeOffset LastModified;
     public string? ETag;
+    public bool? WeakEtag;
     public string UrlHash = null!;
 
     public static Timestamp Get(string path)
@@ -19,11 +21,15 @@ class Timestamp
             UrlHash = file[..indexOf]
         };
 
-
         var lastModifiedPart = file.Substring(indexOf + 1, 17);
-        timestamp.LastModified = DateTime.ParseExact(lastModifiedPart, "yyyy-MM-ddTHHmmss", null);
+        timestamp.LastModified = DateTimeOffset.ParseExact(lastModifiedPart, "yyyy-MM-ddTHHmmss", null, DateTimeStyles.AssumeUniversal);
 
-        timestamp.ETag = file[(indexOf + 19)..];
+        var etagPart = file[(indexOf + 19)..];
+        if (etagPart != string.Empty)
+        {
+            timestamp.WeakEtag = etagPart.StartsWith("W");
+            timestamp.ETag = etagPart[1..];
+        }
 
         var expiry = File.GetLastWriteTimeUtc(path);
         if (expiry != FileEx.MinFileDate)
@@ -33,4 +39,5 @@ class Timestamp
 
         return timestamp;
     }
+
 }
