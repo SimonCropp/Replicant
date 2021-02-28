@@ -29,8 +29,9 @@ readonly struct Timestamp
         request.AddIfNoneMatch(Etag);
     }
 
-    public static Timestamp FromResponse(string uri, HttpResponseMessage response, DateTimeOffset now)
+    public static Timestamp FromResponse(string uri, HttpResponseMessage response)
     {
+        var now = DateTime.UtcNow;
         var hash = Hash.Compute(uri);
         var etag = Etag.FromResponse(response);
         var expiry = response.GetExpiry(now);

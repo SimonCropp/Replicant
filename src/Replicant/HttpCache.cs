@@ -250,8 +250,7 @@ namespace Replicant
 
         async Task<Result> AddItem(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
         {
-            var now = DateTime.UtcNow;
-            var timestamp = Timestamp.FromResponse(uri, response, now);
+            var timestamp = Timestamp.FromResponse(uri, response);
 
             var tempContentFile = FileEx.GetTempFileName();
             var tempMetaFile = FileEx.GetTempFileName();
@@ -266,19 +265,7 @@ namespace Replicant
                     await httpStream.CopyToAsync(contentFileStream, token);
                 }
 
-                SetExpiryOnFile(timestamp, tempContentFile);
-
-                var contentFile = Path.Combine(directory, timestamp.ContentFileName);
-                var metaFile = Path.Combine(directory, timestamp.MetaFileName);
-
-                // if another thread has downloaded in parallel, the use those files
-                if (!File.Exists(contentFile))
-                {
-                    File.Move(tempContentFile, contentFile, true);
-                    File.Move(tempMetaFile, metaFile, true);
-                }
-
-                return new(contentFile, status, metaFile);
+                return BuildResult(status, timestamp, tempContentFile, tempMetaFile);
             }
             finally
             {
@@ -287,7 +274,7 @@ namespace Replicant
             }
         }
 
-        static void SetExpiryOnFile(Timestamp timestamp, string tempContentFile)
+        Result BuildResult(CacheStatus status, Timestamp timestamp, string tempContentFile, string tempMetaFile)
         {
             if (timestamp.Expiry == null)
             {
@@ -297,6 +284,18 @@ namespace Replicant
             {
                 File.SetLastWriteTimeUtc(tempContentFile, timestamp.Expiry.Value.UtcDateTime);
             }
+
+            var contentFile = Path.Combine(directory, timestamp.ContentFileName);
+            var metaFile = Path.Combine(directory, timestamp.MetaFileName);
+
+            // if another thread has downloaded in parallel, the use those files
+            if (!File.Exists(contentFile))
+            {
+                File.Move(tempContentFile, contentFile, true);
+                File.Move(tempMetaFile, metaFile, true);
+            }
+
+            return new(contentFile, status, metaFile);
         }
 
         public void Dispose()
