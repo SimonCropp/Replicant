@@ -112,10 +112,12 @@ public class HttpCacheTests
     {
         var result = await httpCache.Download("https://httpbin.org/status/200");
 
-        await using var locked = FileEx.OpenWrite(result.MetaPath);
-        HttpCache.PurgeItem(result.ContentPath);
-        Assert.True(File.Exists(result.ContentPath));
-        Assert.True(File.Exists(result.MetaPath));
+        await using (FileEx.OpenWrite(result.MetaPath))
+        {
+            HttpCache.PurgeItem(result.ContentPath);
+            Assert.True(File.Exists(result.ContentPath));
+            Assert.True(File.Exists(result.MetaPath));
+        }
     }
 
     [Fact]
