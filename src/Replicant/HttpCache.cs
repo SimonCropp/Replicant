@@ -136,18 +136,23 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var hash = Hash.Compute(uri);
-            var contentFile = new DirectoryInfo(directory)
-                .GetFiles($"{hash}_*.bin")
-                .OrderBy(x => x.LastWriteTime)
-                .FirstOrDefault();
+            var contentFile = FindContentFileForUri(uri);
 
             if (contentFile == null)
             {
-                return HandleFileMissing(uri, messageCallback, token, hash);
+                return HandleFileMissing(uri, messageCallback, token);
             }
 
-            return HandleFileExists(uri, useStaleOnError, messageCallback, token, contentFile, hash);
+            return HandleFileExists(uri, useStaleOnError, messageCallback, token, contentFile);
+        }
+
+        FileInfo? FindContentFileForUri(string uri)
+        {
+            var hash = Hash.Compute(uri);
+            return new DirectoryInfo(directory)
+                .GetFiles($"{hash}_*.bin")
+                .OrderBy(x => x.LastWriteTime)
+                .FirstOrDefault();
         }
 
         async Task<Result> HandleFileExists(
@@ -155,31 +160,29 @@ namespace Replicant
             bool useStaleOnError,
             Action<HttpRequestMessage>? messageCallback,
             CancellationToken token,
-            FileInfo contentFile,
-            string hash)
+            FileInfo contentFile)
         {
             var now = DateTimeOffset.UtcNow;
 
             var contentPath = contentFile.FullName;
+            var timestamp = Timestamp.FromPath(contentPath);
             var metaFile = Path.ChangeExtension(contentPath, ".json");
-            var fileTimestamp = Timestamp.Get(contentPath);
-            if (fileTimestamp.Expiry > now)
+            if (timestamp.Expiry > now)
             {
                 return new(contentPath, CacheStatus.Hit, metaFile);
             }
 
-            using HttpRequestMessage request = new(HttpMethod.Get, uri);
-            messageCallback?.Invoke(request);
-            request.Headers.IfModifiedSince = fileTimestamp.LastModified;
-            request.AddIfNoneMatch(fileTimestamp.ETag);
+            using var request = BuildRequest(uri, messageCallback);
+            timestamp.ApplyHeadersToRequest(request);
 
             HttpResponseMessage? response = null;
 
+            var httpClient = GetClient();
             try
             {
                 try
                 {
-                    response = await GetClient().SendAsync(request, token);
+                    response = await httpClient.SendAsync(request, token);
                 }
                 catch (TaskCanceledException)
                     when (!token.IsCancellationRequested && useStaleOnError)
@@ -202,7 +205,7 @@ namespace Replicant
                     response.EnsureSuccessStatusCode();
                 }
 
-                return await AddItem(response, now, hash, CacheStatus.Stored, token);
+                return await AddItem(response, uri, CacheStatus.Stored, token);
             }
             finally
             {
@@ -213,16 +216,20 @@ namespace Replicant
         async Task<Result> HandleFileMissing(
             string uri,
             Action<HttpRequestMessage>? messageCallback,
-            CancellationToken token,
-            string hash)
+            CancellationToken token)
         {
-            var now = DateTimeOffset.UtcNow;
-
-            using HttpRequestMessage request = new(HttpMethod.Get, uri);
-            messageCallback?.Invoke(request);
-            using var response = await GetClient().SendAsync(request, token);
+            var httpClient = GetClient();
+            using var request = BuildRequest(uri, messageCallback);
+            var response = await httpClient.SendAsync(request, token);
             response.EnsureSuccessStatusCode();
-            return await AddItem(response, now, hash, CacheStatus.Stored, token);
+            return await AddItem(response,uri, CacheStatus.Stored, token);
+        }
+
+        static HttpRequestMessage BuildRequest(string uri, Action<HttpRequestMessage>? messageCallback)
+        {
+            HttpRequestMessage request = new(HttpMethod.Get, uri);
+            messageCallback?.Invoke(request);
+            return request;
         }
 
         HttpClient GetClient()
@@ -238,18 +245,14 @@ namespace Replicant
         public Task AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
-            var now = DateTime.UtcNow;
-            var hash = Hash.Compute(uri);
-
-            return AddItem(response, now, hash, CacheStatus.Stored, token);
+            return AddItem(response, uri, CacheStatus.Stored, token);
         }
 
-        async Task<Result> AddItem(HttpResponseMessage response, DateTimeOffset now, string hash, CacheStatus status, CancellationToken token)
+        async Task<Result> AddItem(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
         {
-            var expiry = response.GetExpiry(now);
-            var etag = Etag.FromResponse(response);
+            var now = DateTime.UtcNow;
+            var timestamp = Timestamp.FromResponse(uri, response, now);
 
-            var modified = response.GetLastModified(now);
             var tempContentFile = FileEx.GetTempFileName();
             var tempMetaFile = FileEx.GetTempFileName();
             try
@@ -263,17 +266,11 @@ namespace Replicant
                     await httpStream.CopyToAsync(contentFileStream, token);
                 }
 
-                if (expiry == null)
-                {
-                    File.SetLastWriteTimeUtc(tempContentFile, FileEx.MinFileDate);
-                }
-                else
-                {
-                    File.SetLastWriteTimeUtc(tempContentFile, expiry.Value.UtcDateTime);
-                }
+                SetExpiryOnFile(timestamp, tempContentFile);
 
-                var contentFile = Path.Combine(directory, $"{hash}_{modified:yyyy-MM-ddTHHmmss}_{etag.ForFile}.bin");
-                var metaFile = Path.ChangeExtension(contentFile, ".json");
+                var contentFile = Path.Combine(directory, timestamp.ContentFileName);
+                var metaFile = Path.Combine(directory, timestamp.MetaFileName);
+
                 // if another thread has downloaded in parallel, the use those files
                 if (!File.Exists(contentFile))
                 {
@@ -287,6 +284,18 @@ namespace Replicant
             {
                 File.Delete(tempContentFile);
                 File.Delete(tempMetaFile);
+            }
+        }
+
+        static void SetExpiryOnFile(Timestamp timestamp, string tempContentFile)
+        {
+            if (timestamp.Expiry == null)
+            {
+                File.SetLastWriteTimeUtc(tempContentFile, FileEx.MinFileDate);
+            }
+            else
+            {
+                File.SetLastWriteTimeUtc(tempContentFile, timestamp.Expiry.Value.UtcDateTime);
             }
         }
 
