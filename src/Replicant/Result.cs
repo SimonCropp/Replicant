@@ -1,9 +1,11 @@
-﻿using System.Net.Http;
+﻿using System.Diagnostics;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Replicant
 {
+    [DebuggerDisplay("ContentPath={ContentPath}, MetaPath={MetaPath}, Status={Status}")]
     public readonly struct Result
     {
         public string ContentPath { get; }
@@ -32,7 +34,7 @@ namespace Replicant
         public async Task<HttpResponseHeaders> GetResponseHeaders()
         {
             var meta = await MetaDataReader.ReadMeta(MetaPath);
-            HttpResponseMessage message = new();
+            using HttpResponseMessage message = new();
             message.Headers.AddRange(meta.ResponseHeaders);
             return message.Headers;
         }
@@ -40,17 +42,17 @@ namespace Replicant
         public async Task<HttpContentHeaders> GetContentHeaders()
         {
             var meta = await MetaDataReader.ReadMeta(MetaPath);
-            HttpResponseMessage message = new();
+            using HttpResponseMessage message = new();
             message.Content.Headers.AddRange(meta.ContentHeaders);
             return message.Content.Headers;
         }
 
-        public async Task<HttpContentHeaders> GetTrailingHeaders()
+        public async Task<HttpResponseHeaders> GetTrailingHeaders()
         {
             var meta = await MetaDataReader.ReadMeta(MetaPath);
-            HttpResponseMessage message = new();
-            message.Content.Headers.AddRange(meta.TrailingHeaders);
-            return message.Content.Headers;
+            using HttpResponseMessage message = new();
+            message.TrailingHeaders.AddRange(meta.TrailingHeaders);
+            return message.TrailingHeaders;
         }
     }
 }

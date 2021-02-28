@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Replicant;
@@ -228,7 +229,7 @@ public class HttpCacheTests
 
         #endregion
 
-        await Verifier.Verify(bytes);
+        await Verifier.Verify(Encoding.UTF8.GetString(bytes));
     }
 
     [Fact]
@@ -240,7 +241,7 @@ public class HttpCacheTests
 
         #endregion
 
-        await Verifier.Verify(stream);
+        await Verifier.Verify(stream).UseExtension("txt");
     }
 
     [Fact]
@@ -274,7 +275,7 @@ public class HttpCacheTests
 
         #endregion
 
-        await Verifier.Verify(targetStream);
+        await Verifier.Verify(targetStream).UseExtension("txt");
     }
 
     [Fact]
