@@ -196,7 +196,7 @@ namespace Replicant
                 {
                     if (useStaleOnError)
                     {
-                        return new(contentPath, CacheStatus.Hit, metaFile);
+                        return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                     }
 
                     response.EnsureSuccessStatusCode();
