@@ -194,6 +194,10 @@ namespace Replicant
                 {
                     return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
+                catch (HttpRequestException exception)
+                {
+                    throw new HttpRequestException($"{exception.Message}. Uri: {uri}", exception.InnerException, exception.StatusCode);
+                }
 
                 if (response.StatusCode == HttpStatusCode.NotModified)
                 {
