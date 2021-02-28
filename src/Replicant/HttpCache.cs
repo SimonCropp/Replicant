@@ -189,6 +189,11 @@ namespace Replicant
                 {
                     return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
+                catch (HttpRequestException)
+                    when (useStaleOnError)
+                {
+                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+                }
 
                 if (response.StatusCode == HttpStatusCode.NotModified)
                 {
