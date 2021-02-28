@@ -101,10 +101,14 @@ public class HttpCacheTests
     {
         var result = await httpCache.Download("https://httpbin.org/status/200");
 
-        using var locked = await result.AsResponseMessage();
-        HttpCache.PurgeItem(result.ContentPath);
-        Assert.True(File.Exists(result.ContentPath));
-        Assert.True(File.Exists(result.MetaPath));
+        await using (FileStream stream = new(result.ContentPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true))
+        {
+            stream.ReadByte();
+            HttpCache.PurgeItem(result.ContentPath);
+            Assert.True(File.Exists(result.ContentPath));
+            Assert.True(File.Exists(result.MetaPath));
+            stream.ReadByte();
+        }
     }
 
     [Fact]
