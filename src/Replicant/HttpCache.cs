@@ -182,18 +182,9 @@ namespace Replicant
                     response = await GetClient().SendAsync(request, token);
                 }
                 catch (TaskCanceledException)
+                    when (!token.IsCancellationRequested && useStaleOnError)
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        throw;
-                    }
-
-                    if (useStaleOnError)
-                    {
-                        return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
-                    }
-
-                    throw;
+                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
 
                 if (response.StatusCode == HttpStatusCode.NotModified)
