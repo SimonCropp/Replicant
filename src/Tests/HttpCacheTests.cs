@@ -47,15 +47,74 @@ public class HttpCacheTests
     }
 
     [Fact]
+    public async Task DuplicateSlowDownloads()
+    {
+        var task = httpCache.Download("https://httpbin.org/delay/1");
+        await Task.Delay(100);
+        var result = await httpCache.Download("https://httpbin.org/delay/1");
+
+        await task;
+
+        using var httpResponseMessage = await result.AsResponseMessage();
+        await Verifier.Verify(httpResponseMessage);
+    }
+
+    [Fact]
+    public async Task PurgeOldWhenContentFileLocked()
+    {
+        var result = await httpCache.Download("https://httpbin.org/status/200");
+
+        using var locked = await result.AsResponseMessage();
+        HttpCache.PurgeItem(result.ContentPath);
+        Assert.True(File.Exists(result.ContentPath));
+        Assert.True(File.Exists(result.MetaPath));
+    }
+
+    [Fact]
+    public async Task PurgeOldWhenMetaFileLocked()
+    {
+        var result = await httpCache.Download("https://httpbin.org/status/200");
+
+        await using var locked = FileEx.OpenWrite(result.MetaPath);
+        HttpCache.PurgeItem(result.ContentPath);
+        Assert.True(File.Exists(result.ContentPath));
+        Assert.True(File.Exists(result.MetaPath));
+    }
+
+    [Fact]
+    public async Task LockedContentFile()
+    {
+        var result = await httpCache.Download("https://httpbin.org/etag/{etag}");
+        await using (new FileStream(result.ContentPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        {
+            result = await httpCache.Download("https://httpbin.org/etag/{etag}");
+        }
+
+        using var httpResponseMessage = await result.AsResponseMessage();
+        await Verifier.Verify(httpResponseMessage);
+    }
+
+    [Fact]
+    public async Task LockedMetaFile()
+    {
+        var result = await httpCache.Download("https://httpbin.org/etag/{etag}");
+        await using (new FileStream(result.MetaPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        {
+            result = await httpCache.Download("https://httpbin.org/etag/{etag}");
+        }
+
+        using var httpResponseMessage = await result.AsResponseMessage();
+        await Verifier.Verify(httpResponseMessage);
+    }
+
+    [Fact]
     public async Task FullHttpResponseMessage()
     {
         #region FullHttpResponseMessage
 
         var result = await httpCache.Download("https://httpbin.org/status/200");
-        var httpResponseMessage = await result.AsResponseMessage();
-
+        using var httpResponseMessage = await result.AsResponseMessage();
         #endregion
-
         await Verifier.Verify(httpResponseMessage);
     }
 
@@ -127,7 +186,7 @@ public class HttpCacheTests
     [Fact]
     public async Task ToFile()
     {
-        var targetFile = $"{Path.GetTempFileName()}.txt";
+        var targetFile = FileEx.GetTempFileName("txt");
         try
         {
             #region ToFile
@@ -182,11 +241,11 @@ public class HttpCacheTests
     {
         HttpClient httpClient = new()
         {
-            Timeout = TimeSpan.FromMilliseconds(1)
+            Timeout = TimeSpan.FromMilliseconds(10)
         };
         httpCache = new(CachePath, httpClient);
         httpCache.Purge();
-        var uri = "https://httpbin.org/status/200";
+        var uri = "https://httpbin.org/delay/1";
         var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => httpCache.String(uri));
         await Verifier.Verify(exception.Message);
     }
@@ -200,8 +259,8 @@ public class HttpCacheTests
         };
         httpCache = new(CachePath, httpClient);
         httpCache.Purge();
+        var uri = "https://httpbin.org/delay/1";
         #region AddItem
-        var uri = "https://httpbin.org/status/200";
         using HttpResponseMessage response = new(HttpStatusCode.OK)
         {
             Content = new StringContent("the content")

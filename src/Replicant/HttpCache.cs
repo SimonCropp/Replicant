@@ -18,7 +18,7 @@ namespace Replicant
         Timer timer;
         static TimeSpan purgeInterval = TimeSpan.FromMinutes(10);
         static TimeSpan ignoreTimeSpan = TimeSpan.FromMilliseconds(-1);
-
+        public static Action<string> LogError = _ => { };
         public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000)
         {
             Guard.AgainstNullOrEmpty(directory, nameof(directory));
@@ -34,26 +34,74 @@ namespace Replicant
 
             Directory.CreateDirectory(directory);
 
-            timer = new(_ => PurgeOld(), null, ignoreTimeSpan, purgeInterval);
+            timer = new(_ => PauseAndPurgeOld(), null, ignoreTimeSpan, purgeInterval);
         }
 
-        void PurgeOld()
+        void PauseAndPurgeOld()
         {
             timer.Change(ignoreTimeSpan, ignoreTimeSpan);
             try
             {
-                foreach (var file in new DirectoryInfo(directory)
-                    .GetFiles("*_*_*.bin")
-                    .OrderByDescending(x => x.LastAccessTime)
-                    .Skip(maxEntries))
-                {
-                    file.Delete();
-                    File.Delete(Path.ChangeExtension(file.FullName, "json"));
-                }
+                PurgeOld();
             }
             finally
             {
                 timer.Change(purgeInterval, ignoreTimeSpan);
+            }
+        }
+
+        public void PurgeOld()
+        {
+            foreach (var file in new DirectoryInfo(directory)
+                .GetFiles("*_*_*.bin")
+                .OrderByDescending(x => x.LastAccessTime)
+                .Skip(maxEntries))
+            {
+                PurgeItem(file.FullName);
+            }
+        }
+
+        internal static void PurgeItem(string contentPath)
+        {
+            var tempContent = FileEx.GetTempFileName();
+            var tempMeta = FileEx.GetTempFileName();
+            var metaPath = Path.ChangeExtension(contentPath, "json");
+            try
+            {
+                File.Move(contentPath, tempContent);
+                File.Move(metaPath, tempMeta);
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    if (File.Exists(tempContent))
+                    {
+                        File.Move(tempContent, contentPath, true);
+                    }
+                    if (File.Exists(tempMeta))
+                    {
+                        File.Move(tempMeta, metaPath, true);
+                    }
+                    LogError($"Could not purge item due to locked file. Cached item remains. Path: {contentPath}");
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Could not purge item due to locked file. Cached item is in a corrupted state. Path: {contentPath}", e);
+                }
+            }
+            finally
+            {
+                File.Delete(tempContent);
+                File.Delete(tempMeta);
+            }
+        }
+
+        public void Purge()
+        {
+            foreach (var file in Directory.EnumerateFiles(directory))
+            {
+                File.Delete(file);
             }
         }
 
@@ -138,8 +186,6 @@ namespace Replicant
                     response.EnsureSuccessStatusCode();
                 }
 
-                File.Delete(metaFile);
-                File.Delete(contentPath);
                 return await AddItem(response, now, hash, CacheStatus.Stored);
             }
             finally
@@ -178,36 +224,44 @@ namespace Replicant
             var etag = Etag.FromResponse(response);
 
             var lastModified = response.GetLastModified(now);
-
-            var contentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etag.ForFile}.bin");
-            var metaFile = Path.ChangeExtension(contentFile, ".json");
-            await using var httpStream = await response.Content.ReadAsStreamAsync(default);
-            //TODO: should write these to temp files then copy them. then we can  pass token
-            await using (var contentFileStream = FileEx.OpenWrite(contentFile))
+            var tempContentFile = FileEx.GetTempFileName();
+            var tempMetaFile = FileEx.GetTempFileName();
+            try
             {
-                // ReSharper disable once MethodSupportsCancellation
-                await httpStream.CopyToAsync(contentFileStream);
+                await using var httpStream = await response.Content.ReadAsStreamAsync(default);
+                //TODO: should write these to temp files then copy them. then we can  pass token
+                await using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
+                {
+                    // ReSharper disable once MethodSupportsCancellation
+                    await httpStream.CopyToAsync(contentFileStream);
+                }
+
+                await MetaDataReader.WriteMetaData(response, tempMetaFile);
+
+                if (expiry == null)
+                {
+                    File.SetLastWriteTimeUtc(tempContentFile, FileEx.MinFileDate);
+                }
+                else
+                {
+                    File.SetLastWriteTimeUtc(tempContentFile, expiry.Value.UtcDateTime);
+                }
+
+                var contentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etag.ForFile}.bin");
+                var metaFile = Path.ChangeExtension(contentFile, ".json");
+                // if another thread has downloaded in parallel, the use those files
+                if (!File.Exists(contentFile))
+                {
+                    File.Move(tempContentFile, contentFile, true);
+                    File.Move(tempMetaFile, metaFile, true);
+                }
+
+                return new(contentFile, status, metaFile);
             }
-
-            await MetaDataReader.WriteMetaData(response, metaFile);
-
-            if (expiry == null)
+            finally
             {
-                File.SetLastWriteTimeUtc(contentFile, FileEx.MinFileDate);
-            }
-            else
-            {
-                File.SetLastWriteTimeUtc(contentFile, expiry.Value.UtcDateTime);
-            }
-
-            return new(contentFile, status, metaFile);
-        }
-
-        public void Purge()
-        {
-            foreach (var file in Directory.EnumerateFiles(directory))
-            {
-                File.Delete(file);
+                File.Delete(tempContentFile);
+                File.Delete(tempMetaFile);
             }
         }
 

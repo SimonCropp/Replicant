@@ -25,7 +25,7 @@ https://nuget.org/packages/Replicant/
     * [Use stale item on error](#use-stale-item-on-error)
     * [Customizing HttpRequestMessage](#customizing-httprequestmessage)
     * [Full HttpResponseMessage](#full-httpresponsemessage)
-  * [Influences](#influences)<!-- endToc -->
+  * [Influences / Alternatives](#influences--alternatives)<!-- endToc -->
 
 
 ## Usage
@@ -62,7 +62,7 @@ await httpCache.DisposeAsync();
 ```cs
 var content = await httpCache.String("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L103-L105' title='Snippet source file'>snippet source</a> | <a href='#snippet-string' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L162-L164' title='Snippet source file'>snippet source</a> | <a href='#snippet-string' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -73,7 +73,7 @@ var content = await httpCache.String("https://httpbin.org/json");
 ```cs
 var bytes = await httpCache.Bytes("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L112-L114' title='Snippet source file'>snippet source</a> | <a href='#snippet-bytes' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L171-L173' title='Snippet source file'>snippet source</a> | <a href='#snippet-bytes' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -84,7 +84,7 @@ var bytes = await httpCache.Bytes("https://httpbin.org/json");
 ```cs
 await using var stream = await httpCache.Stream("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L121-L123' title='Snippet source file'>snippet source</a> | <a href='#snippet-stream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L180-L182' title='Snippet source file'>snippet source</a> | <a href='#snippet-stream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -95,7 +95,7 @@ await using var stream = await httpCache.Stream("https://httpbin.org/json");
 ```cs
 await httpCache.ToFile("https://httpbin.org/json", targetFile);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L133-L135' title='Snippet source file'>snippet source</a> | <a href='#snippet-tofile' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L192-L194' title='Snippet source file'>snippet source</a> | <a href='#snippet-tofile' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -106,7 +106,7 @@ await httpCache.ToFile("https://httpbin.org/json", targetFile);
 ```cs
 await httpCache.ToStream("https://httpbin.org/json", targetStream);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L148-L150' title='Snippet source file'>snippet source</a> | <a href='#snippet-tostream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L207-L209' title='Snippet source file'>snippet source</a> | <a href='#snippet-tostream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -115,14 +115,13 @@ await httpCache.ToStream("https://httpbin.org/json", targetStream);
 <!-- snippet: AddItem -->
 <a id='snippet-additem'></a>
 ```cs
-var uri = "https://httpbin.org/status/200";
 using HttpResponseMessage response = new(HttpStatusCode.OK)
 {
     Content = new StringContent("the content")
 };
 await httpCache.AddItem(uri, response);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L203-L210' title='Snippet source file'>snippet source</a> | <a href='#snippet-additem' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L263-L269' title='Snippet source file'>snippet source</a> | <a href='#snippet-additem' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -135,7 +134,7 @@ If an error occurs re-validating a potentially stale item, then the fallback can
 ```cs
 var content = httpCache.String(uri, useStaleOnError: true);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L241-L243' title='Snippet source file'>snippet source</a> | <a href='#snippet-usestaleonerror' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L300-L302' title='Snippet source file'>snippet source</a> | <a href='#snippet-usestaleonerror' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -154,7 +153,7 @@ var content = await httpCache.String(
         message.Headers.Add("Key2", "Value2");
     });
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L159-L169' title='Snippet source file'>snippet source</a> | <a href='#snippet-callback' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L218-L228' title='Snippet source file'>snippet source</a> | <a href='#snippet-callback' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -166,15 +165,17 @@ An instance of the HttpResponseMessage can be created from a cached item:
 <a id='snippet-fullhttpresponsemessage'></a>
 ```cs
 var result = await httpCache.Download("https://httpbin.org/status/200");
-var httpResponseMessage = await result.AsResponseMessage();
+using var httpResponseMessage = await result.AsResponseMessage();
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L52-L57' title='Snippet source file'>snippet source</a> | <a href='#snippet-fullhttpresponsemessage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L113-L117' title='Snippet source file'>snippet source</a> | <a href='#snippet-fullhttpresponsemessage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
-## Influences
+## Influences / Alternatives
 
  * [Tavis.HttpCache](https://github.com/tavis-software/Tavis.HttpCache)
+ * [CacheCow](https://github.com/aliostad/CacheCow)
+ * [Monkey Cache](https://github.com/jamesmontemagno/monkey-cache)
 
 
 ## Icon
