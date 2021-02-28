@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -210,7 +211,7 @@ namespace Replicant
                     response.EnsureSuccessStatusCode();
                 }
 
-                return await AddItem(response, now, hash, CacheStatus.Stored);
+                return await AddItem(response, now, hash, CacheStatus.Stored, token);
             }
             finally
             {
@@ -230,7 +231,7 @@ namespace Replicant
             messageCallback?.Invoke(request);
             using var response = await GetClient().SendAsync(request, token);
             response.EnsureSuccessStatusCode();
-            return await AddItem(response, now, hash, CacheStatus.Stored);
+            return await AddItem(response, now, hash, CacheStatus.Stored, token);
         }
 
         HttpClient GetClient()
@@ -243,34 +244,33 @@ namespace Replicant
             return client;
         }
 
-        public Task AddItem(string uri, HttpResponseMessage response)
+        public Task AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             var now = DateTime.UtcNow;
             var hash = Hash.Compute(uri);
 
-            return AddItem(response, now, hash, CacheStatus.Stored);
+            return AddItem(response, now, hash, CacheStatus.Stored, token);
         }
 
-        async Task<Result> AddItem(HttpResponseMessage response, DateTimeOffset now, string hash, CacheStatus status)
+        async Task<Result> AddItem(HttpResponseMessage response, DateTimeOffset now, string hash, CacheStatus status, CancellationToken token)
         {
             var expiry = response.GetExpiry(now);
             var etag = Etag.FromResponse(response);
 
-            var lastModified = response.GetLastModified(now);
+            var modified = response.GetLastModified(now);
             var tempContentFile = FileEx.GetTempFileName();
             var tempMetaFile = FileEx.GetTempFileName();
             try
             {
                 await using var httpStream = await response.Content.ReadAsStreamAsync(default);
-                //TODO: should write these to temp files then copy them. then we can  pass token
                 await using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
+                await using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 {
-                    // ReSharper disable once MethodSupportsCancellation
-                    await httpStream.CopyToAsync(contentFileStream);
+                    MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
+                    await JsonSerializer.SerializeAsync(metaFileStream, meta, cancellationToken: token);
+                    await httpStream.CopyToAsync(contentFileStream, token);
                 }
-
-                await MetaDataReader.WriteMetaData(response, tempMetaFile);
 
                 if (expiry == null)
                 {
@@ -281,7 +281,7 @@ namespace Replicant
                     File.SetLastWriteTimeUtc(tempContentFile, expiry.Value.UtcDateTime);
                 }
 
-                var contentFile = Path.Combine(directory, $"{hash}_{lastModified:yyyy-MM-ddTHHmmss}_{etag.ForFile}.bin");
+                var contentFile = Path.Combine(directory, $"{hash}_{modified:yyyy-MM-ddTHHmmss}_{etag.ForFile}.bin");
                 var metaFile = Path.ChangeExtension(contentFile, ".json");
                 // if another thread has downloaded in parallel, the use those files
                 if (!File.Exists(contentFile))

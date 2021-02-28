@@ -131,10 +131,11 @@ public class HttpCacheTests
     [Fact]
     public async Task LockedContentFile()
     {
-        var result = await httpCache.Download("https://httpbin.org/etag/{etag}");
+        var uri = "https://httpbin.org/etag/{etag}";
+        var result = await httpCache.Download(uri);
         await using (new FileStream(result.ContentPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
-            result = await httpCache.Download("https://httpbin.org/etag/{etag}");
+            result = await httpCache.Download(uri);
         }
 
         using var httpResponseMessage = await result.AsResponseMessage();
@@ -144,10 +145,11 @@ public class HttpCacheTests
     [Fact]
     public async Task LockedMetaFile()
     {
-        var result = await httpCache.Download("https://httpbin.org/etag/{etag}");
+        var uri = "https://httpbin.org/etag/{etag}";
+        var result = await httpCache.Download(uri);
         await using (new FileStream(result.MetaPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
-            result = await httpCache.Download("https://httpbin.org/etag/{etag}");
+            result = await httpCache.Download(uri);
         }
 
         using var httpResponseMessage = await result.AsResponseMessage();
