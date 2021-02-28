@@ -8,6 +8,6 @@ static class Hash
     {
         using SHA1Managed sha = new();
         var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(value));
-        return string.Concat(hash.Take(4).Select(b => b.ToString("x2")));
+        return string.Concat(hash.Select(b => b.ToString("x2")));
     }
 }
