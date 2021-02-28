@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
 
 static class Extensions
 {
@@ -14,6 +16,21 @@ static class Extensions
         }
 
         return contentHeaders.LastModified.Value;
+    }
+
+    public static async Task<HttpResponseMessage> SendAsyncEx(
+        this HttpClient client,
+        HttpRequestMessage request,
+        CancellationToken token)
+    {
+        try
+        {
+            return await client.SendAsync(request, token);
+        }
+        catch (HttpRequestException exception)
+        {
+            throw new HttpRequestException($"{exception.Message}. Uri: {request}", exception.InnerException, exception.StatusCode);
+        }
     }
 
     public static DateTimeOffset? GetExpiry(this HttpResponseMessage response, DateTimeOffset now)

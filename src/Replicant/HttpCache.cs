@@ -182,7 +182,7 @@ namespace Replicant
             {
                 try
                 {
-                    response = await httpClient.SendAsync(request, token);
+                    response = await httpClient.SendAsyncEx(request, token);
                 }
                 catch (TaskCanceledException)
                     when (!token.IsCancellationRequested && useStaleOnError)
@@ -193,10 +193,6 @@ namespace Replicant
                     when (useStaleOnError)
                 {
                     return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
-                }
-                catch (HttpRequestException exception)
-                {
-                    throw new HttpRequestException($"{exception.Message}. Uri: {uri}", exception.InnerException, exception.StatusCode);
                 }
 
                 if (response.StatusCode == HttpStatusCode.NotModified)
@@ -229,7 +225,7 @@ namespace Replicant
         {
             var httpClient = GetClient();
             using var request = BuildRequest(uri, messageCallback);
-            var response = await httpClient.SendAsync(request, token);
+            var response = await httpClient.SendAsyncEx(request, token);
             response.EnsureSuccessStatusCode();
             return await AddItem(response,uri, CacheStatus.Stored, token);
         }
