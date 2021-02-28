@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Replicant;
 using VerifyXunit;
 using Xunit;
@@ -35,6 +36,42 @@ public class HttpCacheTests
 
         // Dispose when finished
         await httpCache.DisposeAsync();
+
+        #endregion
+    }
+
+    [Fact]
+    public void DependencyInjection()
+    {
+        #region DependencyInjection
+
+        ServiceCollection services = new();
+        services.AddSingleton(_ => new HttpCache(CachePath));
+
+        using var provider = services.BuildServiceProvider();
+        var httpCache = provider.GetRequiredService<HttpCache>();
+        Assert.NotNull(httpCache);
+
+        #endregion
+    }
+
+    [Fact]
+    public void DependencyInjectionWithHttpFactory()
+    {
+        #region DependencyInjectionWithHttpFactory
+
+        ServiceCollection services = new();
+        services.AddHttpClient();
+        services.AddSingleton(
+            _ =>
+            {
+                var clientFactory = _.GetRequiredService<IHttpClientFactory>();
+                return new HttpCache(CachePath, () => clientFactory.CreateClient());
+            });
+
+        using var provider = services.BuildServiceProvider();
+        var httpCache = provider.GetRequiredService<HttpCache>();
+        Assert.NotNull(httpCache);
 
         #endregion
     }
@@ -114,7 +151,9 @@ public class HttpCacheTests
 
         var result = await httpCache.Download("https://httpbin.org/status/200");
         using var httpResponseMessage = await result.AsResponseMessage();
+
         #endregion
+
         await Verifier.Verify(httpResponseMessage);
     }
 
@@ -160,8 +199,11 @@ public class HttpCacheTests
     public async Task String()
     {
         #region string
+
         var content = await httpCache.String("https://httpbin.org/json");
+
         #endregion
+
         await Verifier.Verify(content);
     }
 
@@ -169,8 +211,11 @@ public class HttpCacheTests
     public async Task Bytes()
     {
         #region bytes
+
         var bytes = await httpCache.Bytes("https://httpbin.org/json");
+
         #endregion
+
         await Verifier.Verify(bytes);
     }
 
@@ -178,8 +223,11 @@ public class HttpCacheTests
     public async Task Stream()
     {
         #region stream
+
         await using var stream = await httpCache.Stream("https://httpbin.org/json");
+
         #endregion
+
         await Verifier.Verify(stream);
     }
 
@@ -190,8 +238,11 @@ public class HttpCacheTests
         try
         {
             #region ToFile
+
             await httpCache.ToFile("https://httpbin.org/json", targetFile);
+
             #endregion
+
             await Verifier.VerifyFile(targetFile);
         }
         finally
@@ -204,9 +255,13 @@ public class HttpCacheTests
     public async Task ToStream()
     {
         MemoryStream targetStream = new();
+
         #region ToStream
+
         await httpCache.ToStream("https://httpbin.org/json", targetStream);
+
         #endregion
+
         await Verifier.Verify(targetStream);
     }
 
@@ -260,13 +315,17 @@ public class HttpCacheTests
         httpCache = new(CachePath, httpClient);
         httpCache.Purge();
         var uri = "https://httpbin.org/delay/1";
+
         #region AddItem
+
         using HttpResponseMessage response = new(HttpStatusCode.OK)
         {
             Content = new StringContent("the content")
         };
         await httpCache.AddItem(uri, response);
+
         #endregion
+
         await Verifier.Verify(httpCache.Download(uri, true));
     }
 
@@ -297,9 +356,13 @@ public class HttpCacheTests
         };
         var uri = "https://httpbin.org/status/500";
         await httpCache.AddItem(uri, httpResponseMessage);
+
         #region useStaleOnError
+
         var content = httpCache.String(uri, useStaleOnError: true);
+
         #endregion
+
         await Verifier.Verify(content);
     }
 }

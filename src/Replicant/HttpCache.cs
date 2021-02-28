@@ -14,12 +14,16 @@ namespace Replicant
     {
         string directory;
         int maxEntries;
-        HttpClient client;
+        HttpClient? client;
+        Func<HttpClient>? clientFunc;
+
         Timer timer;
         static TimeSpan purgeInterval = TimeSpan.FromMinutes(10);
         static TimeSpan ignoreTimeSpan = TimeSpan.FromMilliseconds(-1);
         public static Action<string> LogError = _ => { };
-        public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000)
+        bool clientIsOwned;
+
+        HttpCache(string directory, int maxEntries = 1000)
         {
             Guard.AgainstNullOrEmpty(directory, nameof(directory));
             if (maxEntries < 100)
@@ -30,11 +34,29 @@ namespace Replicant
             this.directory = directory;
             this.maxEntries = maxEntries;
 
-            this.client = client ?? new();
-
             Directory.CreateDirectory(directory);
 
             timer = new(_ => PauseAndPurgeOld(), null, ignoreTimeSpan, purgeInterval);
+        }
+
+        public HttpCache(string directory, Func<HttpClient> clientFunc, int maxEntries = 1000) :
+            this(directory, maxEntries)
+        {
+            this.clientFunc = clientFunc;
+        }
+
+        public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000) :
+            this(directory, maxEntries)
+        {
+            if (client == null)
+            {
+                clientIsOwned = true;
+                this.client = new();
+            }
+            else
+            {
+                this.client = client;
+            }
         }
 
         void PauseAndPurgeOld()
@@ -79,10 +101,12 @@ namespace Replicant
                     {
                         File.Move(tempContent, contentPath, true);
                     }
+
                     if (File.Exists(tempMeta))
                     {
                         File.Move(tempMeta, metaPath, true);
                     }
+
                     LogError($"Could not purge item due to locked file. Cached item remains. Path: {contentPath}");
                 }
                 catch (Exception e)
@@ -154,7 +178,7 @@ namespace Replicant
             {
                 try
                 {
-                    response = await client.SendAsync(request, token);
+                    response = await GetClient().SendAsync(request, token);
                 }
                 catch (TaskCanceledException)
                 {
@@ -204,9 +228,19 @@ namespace Replicant
 
             using HttpRequestMessage request = new(HttpMethod.Get, uri);
             messageCallback?.Invoke(request);
-            using var response = await client.SendAsync(request, token);
+            using var response = await GetClient().SendAsync(request, token);
             response.EnsureSuccessStatusCode();
             return await AddItem(response, now, hash, CacheStatus.Stored);
+        }
+
+        HttpClient GetClient()
+        {
+            if (client == null)
+            {
+                return clientFunc!();
+            }
+
+            return client;
         }
 
         public Task AddItem(string uri, HttpResponseMessage response)
@@ -267,13 +301,21 @@ namespace Replicant
 
         public void Dispose()
         {
-            client.Dispose();
+            if (clientIsOwned)
+            {
+                client!.Dispose();
+            }
+
             timer.Dispose();
         }
 
         public ValueTask DisposeAsync()
         {
-            client.Dispose();
+            if (clientIsOwned)
+            {
+                client!.Dispose();
+            }
+
             return timer.DisposeAsync();
         }
     }
