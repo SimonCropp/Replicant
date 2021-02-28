@@ -112,8 +112,9 @@ public class HttpCacheTests
     {
         var result = await httpCache.Download("https://httpbin.org/status/200");
 
-        await using (var stream = FileEx.OpenWrite(result.MetaPath))
+        await using (FileStream stream = new(result.MetaPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true))
         {
+            stream.ReadByte();
             HttpCache.PurgeItem(result.ContentPath);
             Assert.True(File.Exists(result.ContentPath));
             Assert.True(File.Exists(result.MetaPath));
