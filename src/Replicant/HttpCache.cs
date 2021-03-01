@@ -161,13 +161,16 @@ namespace Replicant
             {
                 return CacheStatus.Revalidate;
             }
-            if (response.Headers.CacheControl != null)
+
+            var cacheControl = response.Headers.CacheControl;
+            if (cacheControl != null)
             {
-                if (response.Headers.CacheControl.NoStore)
+                if (cacheControl.NoStore)
                 {
                     return CacheStatus.Revalidate;
                 }
-                if (response.Headers.CacheControl.NoCache)
+
+                if (cacheControl.NoCache)
                 {
                     return CacheStatus.NoCache;
                 }
