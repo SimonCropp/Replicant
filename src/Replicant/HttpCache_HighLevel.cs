@@ -38,6 +38,16 @@ namespace Replicant
             return File.OpenRead(result.ContentPath);
         }
 
+        public async Task<HttpResponseMessage> Response(
+            string uri,
+            bool useStaleOnError = false,
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
+        {
+            var result = await Download(uri, useStaleOnError, messageCallback, token);
+            return result.AsResponseMessage();
+        }
+
         public async Task ToStream(
             string uri,
             Stream stream,

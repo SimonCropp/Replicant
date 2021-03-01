@@ -162,12 +162,11 @@ public class HttpCacheTests
     {
         #region FullHttpResponseMessage
 
-        var result = await httpCache.Download("https://httpbin.org/status/200");
-        using var httpResponseMessage = result.AsResponseMessage();
+        using var response = await httpCache.Response("https://httpbin.org/status/200");
 
         #endregion
 
-        await Verifier.Verify(httpResponseMessage);
+        await Verifier.Verify(response);
     }
 
     [Fact]
