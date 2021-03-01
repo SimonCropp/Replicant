@@ -375,9 +375,9 @@ public class HttpCacheTests
         var uri = "https://httpbin.org/status/500";
         await httpCache.AddItem(uri, httpResponseMessage);
 
-        #region useStaleOnError
+        #region staleIfError
 
-        var content = httpCache.String(uri, useStaleOnError: true);
+        var content = httpCache.String(uri, staleIfError: true);
 
         #endregion
 

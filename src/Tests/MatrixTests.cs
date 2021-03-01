@@ -24,15 +24,15 @@ public class MatrixTests
 
     [Theory]
     [MemberData(nameof(StatusForMessageData))]
-    internal async Task StatusForMessage(HttpResponseMessage response, bool useStaleOnError)
+    internal async Task StatusForMessage(HttpResponseMessage response, bool staleIfError)
     {
-        var fileName = BuildStatusForMessageFileName(response, useStaleOnError);
+        var fileName = BuildStatusForMessageFileName(response, staleIfError);
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
         try
         {
-            await Verifier.Verify(HttpCache.StatusForMessage(response, useStaleOnError), settings);
+            await Verifier.Verify(HttpCache.StatusForMessage(response, staleIfError), settings);
         }
         catch (HttpRequestException exception)
         {
@@ -46,13 +46,13 @@ public class MatrixTests
 
     public static IEnumerable<object[]> StatusForMessageData()
     {
-        foreach (var useStaleOnError in new[] {true, false})
+        foreach (var staleIfError in new[] {true, false})
         foreach (var response in Responses())
         {
             yield return new object[]
             {
                 response,
-                useStaleOnError
+                staleIfError
             };
         }
     }
@@ -94,9 +94,9 @@ public class MatrixTests
         }
     }
 
-    static string BuildStatusForMessageFileName(HttpResponseMessage response, bool useStaleOnError)
+    static string BuildStatusForMessageFileName(HttpResponseMessage response, bool staleIfError)
     {
-        var builder = new StringBuilder($"StatusForMessage_status_{response.StatusCode}_staleOnError={useStaleOnError}_");
+        var builder = new StringBuilder($"StatusForMessage_status_{response.StatusCode}_staleIfError={staleIfError}_");
         var cacheControl = response.Headers.CacheControl;
         if (cacheControl == null)
         {

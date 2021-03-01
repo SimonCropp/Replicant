@@ -169,12 +169,12 @@ await httpCache.AddItem(uri, response);
 
 If an error occurs re-validating a potentially stale item, then the fallback can be to use the cached item.
 
-<!-- snippet: useStaleOnError -->
-<a id='snippet-usestaleonerror'></a>
+<!-- snippet: staleIfError -->
+<a id='snippet-staleiferror'></a>
 ```cs
-var content = httpCache.String(uri, useStaleOnError: true);
+var content = httpCache.String(uri, staleIfError: true);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L378-L382' title='Snippet source file'>snippet source</a> | <a href='#snippet-usestaleonerror' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L378-L382' title='Snippet source file'>snippet source</a> | <a href='#snippet-staleiferror' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

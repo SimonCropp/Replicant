@@ -132,7 +132,7 @@ namespace Replicant
 
         internal Task<Result> Download(
             string uri,
-            bool useStaleOnError = false,
+            bool staleIfError = false,
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
@@ -143,7 +143,7 @@ namespace Replicant
                 return HandleFileMissing(uri, messageCallback, token);
             }
 
-            return HandleFileExists(uri, useStaleOnError, messageCallback, token, contentFile);
+            return HandleFileExists(uri, staleIfError, messageCallback, token, contentFile);
         }
 
         FileInfo? FindContentFileForUri(string uri)
@@ -155,7 +155,7 @@ namespace Replicant
                 .FirstOrDefault();
         }
 
-        internal static CacheStatus StatusForMessage(HttpResponseMessage response, bool useStaleOnError)
+        internal static CacheStatus StatusForMessage(HttpResponseMessage response, bool staleIfError)
         {
             if (response.StatusCode == HttpStatusCode.NotModified)
             {
@@ -178,7 +178,7 @@ namespace Replicant
 
             if (!response.IsSuccessStatusCode)
             {
-                if (useStaleOnError)
+                if (staleIfError)
                 {
                     return CacheStatus.UseStaleDueToError;
                 }
@@ -191,7 +191,7 @@ namespace Replicant
 
         async Task<Result> HandleFileExists(
             string uri,
-            bool useStaleOnError,
+            bool staleIfError,
             Action<HttpRequestMessage>? messageCallback,
             CancellationToken token,
             FileInfo contentFile)
@@ -219,17 +219,17 @@ namespace Replicant
                     response = await httpClient.SendAsyncEx(request, token);
                 }
                 catch (TaskCanceledException)
-                    when (!token.IsCancellationRequested && useStaleOnError)
+                    when (!token.IsCancellationRequested && staleIfError)
                 {
                     return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
                 catch (HttpRequestException)
-                    when (useStaleOnError)
+                    when (staleIfError)
                 {
                     return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
 
-                var status = StatusForMessage(response,useStaleOnError);
+                var status = StatusForMessage(response, staleIfError);
                 return status switch
                 {
                     CacheStatus.Hit => new(contentPath, CacheStatus.Hit, metaFile),
