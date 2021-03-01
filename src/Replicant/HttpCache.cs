@@ -155,6 +155,37 @@ namespace Replicant
                 .FirstOrDefault();
         }
 
+        internal static CacheStatus StatusForMessage(HttpResponseMessage response, bool useStaleOnError)
+        {
+            if (response.StatusCode == HttpStatusCode.NotModified)
+            {
+                return CacheStatus.Revalidate;
+            }
+            if (response.Headers.CacheControl != null)
+            {
+                if (response.Headers.CacheControl.NoStore)
+                {
+                    return CacheStatus.Revalidate;
+                }
+                if (response.Headers.CacheControl.NoCache)
+                {
+                    return CacheStatus.NoCache;
+                }
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (useStaleOnError)
+                {
+                    return CacheStatus.UseStaleDueToError;
+                }
+
+                response.EnsureSuccess();
+            }
+
+            return CacheStatus.Stored;
+        }
+
         async Task<Result> HandleFileExists(
             string uri,
             bool useStaleOnError,
