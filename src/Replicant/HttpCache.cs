@@ -312,7 +312,7 @@ namespace Replicant
             var tempMetaFile = FileEx.GetTempFileName();
             try
             {
-                await using var httpStream = await response.Content.ReadAsStreamAsync(default);
+                await using var httpStream = await response.Content.ReadAsStreamAsync(token);
                 await using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
                 await using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 {
