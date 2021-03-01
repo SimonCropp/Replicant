@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -16,6 +17,23 @@ static class Extensions
         }
 
         return contentHeaders.LastModified.Value;
+    }
+
+    public static bool IsNoCache(this HttpResponseMessage message)
+    {
+        var cacheControl = message.Headers.CacheControl;
+        return cacheControl != null && cacheControl.NoCache;
+    }
+
+    public static bool IsNoStore(this HttpResponseMessage message)
+    {
+        var cacheControl = message.Headers.CacheControl;
+        return cacheControl != null && cacheControl.NoStore;
+    }
+
+    public static bool IsNotModified(this HttpResponseMessage message)
+    {
+        return message.StatusCode == HttpStatusCode.NotModified;
     }
 
     public static void EnsureSuccess(this HttpResponseMessage message)
@@ -64,7 +82,7 @@ static class Extensions
         return null;
     }
 
-    public static void AddIfNoneMatch(this  HttpRequestMessage request, Etag etag)
+    public static void AddIfNoneMatch(this HttpRequestMessage request, Etag etag)
     {
         if (!etag.IsEmpty)
         {

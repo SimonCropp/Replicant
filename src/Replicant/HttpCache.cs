@@ -157,23 +157,19 @@ namespace Replicant
 
         internal static CacheStatus StatusForMessage(HttpResponseMessage response, bool staleIfError)
         {
-            if (response.StatusCode == HttpStatusCode.NotModified)
+            if (response.IsNotModified())
             {
                 return CacheStatus.Revalidate;
             }
 
-            var cacheControl = response.Headers.CacheControl;
-            if (cacheControl != null)
+            if (response.IsNoStore())
             {
-                if (cacheControl.NoStore)
-                {
-                    return CacheStatus.Revalidate;
-                }
+                return CacheStatus.Revalidate;
+            }
 
-                if (cacheControl.NoCache)
-                {
-                    return CacheStatus.NoCache;
-                }
+            if (response.IsNoCache())
+            {
+                return CacheStatus.NoCache;
             }
 
             if (!response.IsSuccessStatusCode)
@@ -275,8 +271,7 @@ namespace Replicant
             using var request = BuildRequest(uri, messageCallback);
             var response = await httpClient.SendAsyncEx(request, token);
             response.EnsureSuccess();
-            var cacheControl = response.Headers.CacheControl;
-            if (cacheControl != null && cacheControl.NoCache)
+            if (response.IsNoCache())
             {
                 return new(response, CacheStatus.NoCache);
             }
