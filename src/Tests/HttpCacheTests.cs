@@ -103,13 +103,11 @@ public class HttpCacheTests
     {
         var result = await httpCache.Download("https://httpbin.org/status/200");
 
-        await using (FileStream stream = new(result.ContentPath!, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true))
+        using (result.AsResponseMessage())
         {
-            stream.ReadByte();
             HttpCache.PurgeItem(result.ContentPath);
             Assert.True(File.Exists(result.ContentPath));
             Assert.True(File.Exists(result.MetaPath));
-            stream.ReadByte();
         }
     }
 
@@ -118,13 +116,11 @@ public class HttpCacheTests
     {
         var result = await httpCache.Download("https://httpbin.org/status/200");
 
-        await using (FileStream stream = new(result.MetaPath!, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true))
+        using (result.AsResponseMessage())
         {
-            stream.ReadByte();
             HttpCache.PurgeItem(result.ContentPath!);
             Assert.True(File.Exists(result.ContentPath));
             Assert.True(File.Exists(result.MetaPath));
-            stream.ReadByte();
         }
     }
 #endif
@@ -134,7 +130,7 @@ public class HttpCacheTests
     {
         var uri = "https://httpbin.org/etag/{etag}";
         var result = await httpCache.Download(uri);
-        await using (new FileStream(result.ContentPath!, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        using (result.AsResponseMessage())
         {
             result = await httpCache.Download(uri);
         }

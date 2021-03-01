@@ -325,8 +325,19 @@ namespace Replicant
             // if another thread has downloaded in parallel, the use those files
             if (!File.Exists(contentFile))
             {
-                File.Move(tempContentFile, contentFile, true);
-                File.Move(tempMetaFile, metaFile, true);
+                try
+                {
+                    File.Move(tempContentFile, contentFile, true);
+                    File.Move(tempMetaFile, metaFile, true);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    if (!File.Exists(contentFile))
+                    {
+                        File.Move(tempContentFile, contentFile, true);
+                        File.Move(tempMetaFile, metaFile, true);
+                    }
+                }
             }
 
             return new(contentFile, status, metaFile);
