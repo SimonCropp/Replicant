@@ -9,7 +9,7 @@ static class FileEx
 
     public static FileStream OpenRead(string path)
     {
-        return new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, true);
+        return new(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
     }
 
     public static string GetTempFileName(string? extension = null)

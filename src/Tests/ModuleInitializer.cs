@@ -19,6 +19,7 @@ public static class ModuleInitializer
                     "Report-To",
                     "Connection",
                     "Server-Timing",
+                    "Content-Type",
                     "NEL",
                     "Accept-Ranges",
                     "Age",
