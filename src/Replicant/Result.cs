@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using Replicant;
 
 [DebuggerDisplay("ContentPath={ContentPath}, MetaPath={MetaPath}, Status={Status}")]
@@ -28,29 +27,5 @@ internal readonly struct Result
         message.Content.Headers.AddRange(meta.ContentHeaders);
         message.TrailingHeaders.AddRange(meta.TrailingHeaders);
         return message;
-    }
-
-    public HttpResponseHeaders GetResponseHeaders()
-    {
-        var meta = MetaDataReader.ReadMeta(MetaPath);
-        using HttpResponseMessage message = new();
-        message.Headers.AddRange(meta.ResponseHeaders);
-        return message.Headers;
-    }
-
-    public HttpContentHeaders GetContentHeaders()
-    {
-        var meta = MetaDataReader.ReadMeta(MetaPath);
-        using HttpResponseMessage message = new();
-        message.Content.Headers.AddRange(meta.ContentHeaders);
-        return message.Content.Headers;
-    }
-
-    public HttpResponseHeaders GetTrailingHeaders()
-    {
-        var meta = MetaDataReader.ReadMeta(MetaPath);
-        using HttpResponseMessage message = new();
-        message.TrailingHeaders.AddRange(meta.TrailingHeaders);
-        return message.TrailingHeaders;
     }
 }

@@ -182,12 +182,12 @@ public class HttpCacheTests
     public async Task WeakEtag()
     {
         var uri = "https://www.wikipedia.org/";
-        Result content;
-        content = await httpCache.Download(uri);
+        HttpResponseMessage content;
+        content = await httpCache.Response(uri);
         HttpResponseMessage newMessage = new(HttpStatusCode.OK);
-        newMessage.Headers.ETag = content.GetResponseHeaders().ETag;
+        newMessage.Headers.ETag = content.Headers.ETag;
         await httpCache.AddItem(uri, newMessage);
-        content = await httpCache.Download(uri);
+        content = await httpCache.Response(uri);
         await Verifier.Verify(content);
     }
 
