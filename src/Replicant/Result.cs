@@ -3,7 +3,7 @@ using System.Net.Http;
 using Replicant;
 
 [DebuggerDisplay("ContentPath={ContentPath}, MetaPath={MetaPath}, Status={Status}")]
-internal readonly struct Result
+readonly struct Result
 {
     public string ContentPath { get; }
     public string MetaPath { get; }
