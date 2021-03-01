@@ -17,9 +17,9 @@ readonly struct Etag
 
     public string ForFile { get; }
 
-    static Etag Empty { get; } = new(string.Empty, string.Empty, true);
+    internal static Etag Empty { get; } = new(string.Empty, string.Empty, true);
 
-    Etag(string forWeb, string forFile, bool isEmpty)
+    internal Etag(string forWeb, string forFile, bool isEmpty)
     {
         this.forWeb = forWeb;
         IsEmpty = isEmpty;

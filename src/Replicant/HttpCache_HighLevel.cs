@@ -14,8 +14,8 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, useStaleOnError, messageCallback, token);
-            return await File.ReadAllTextAsync(result.ContentPath, token);
+            using var result = await Download(uri, useStaleOnError, messageCallback, token);
+            return await result.AsText(token);
         }
 
         public async Task<byte[]> Bytes(
@@ -24,8 +24,8 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, useStaleOnError, messageCallback, token);
-            return await File.ReadAllBytesAsync(result.ContentPath, token);
+            using var result = await Download(uri, useStaleOnError, messageCallback, token);
+            return await result.AsBytes(token);
         }
 
         public async Task<Stream> Stream(
@@ -35,7 +35,17 @@ namespace Replicant
             CancellationToken token = default)
         {
             var result = await Download(uri, useStaleOnError, messageCallback, token);
-            return File.OpenRead(result.ContentPath);
+            return await result.AsStream(token);
+        }
+
+        public async Task<HttpResponseMessage> Response(
+            string uri,
+            bool useStaleOnError = false,
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
+        {
+            var result = await Download(uri, useStaleOnError, messageCallback, token);
+            return result.AsResponseMessage();
         }
 
         public async Task ToStream(
@@ -45,9 +55,8 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, useStaleOnError, messageCallback, token);
-            await using var fileStream = FileEx.OpenRead(result.ContentPath);
-            await fileStream.CopyToAsync(stream, token);
+            using var result = await Download(uri, useStaleOnError, messageCallback, token);
+            await result.ToStream(stream, token);
         }
 
         public async Task ToFile(
@@ -57,8 +66,8 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, useStaleOnError, messageCallback, token);
-            File.Copy(result.ContentPath, path, true);
+            using var result = await Download(uri, useStaleOnError, messageCallback, token);
+            await result.ToFile(path, token);
         }
     }
 }

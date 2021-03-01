@@ -130,7 +130,7 @@ namespace Replicant
             }
         }
 
-        public Task<Result> Download(
+        internal Task<Result> Download(
             string uri,
             bool useStaleOnError = false,
             Action<HttpRequestMessage>? messageCallback = null,
@@ -153,6 +153,40 @@ namespace Replicant
                 .GetFiles($"{hash}_*.bin")
                 .OrderBy(x => x.LastWriteTime)
                 .FirstOrDefault();
+        }
+
+        internal static CacheStatus StatusForMessage(HttpResponseMessage response, bool useStaleOnError)
+        {
+            if (response.StatusCode == HttpStatusCode.NotModified)
+            {
+                return CacheStatus.Revalidate;
+            }
+
+            var cacheControl = response.Headers.CacheControl;
+            if (cacheControl != null)
+            {
+                if (cacheControl.NoStore)
+                {
+                    return CacheStatus.Revalidate;
+                }
+
+                if (cacheControl.NoCache)
+                {
+                    return CacheStatus.NoCache;
+                }
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (useStaleOnError)
+                {
+                    return CacheStatus.UseStaleDueToError;
+                }
+
+                response.EnsureSuccess();
+            }
+
+            return CacheStatus.Stored;
         }
 
         async Task<Result> HandleFileExists(
@@ -195,22 +229,16 @@ namespace Replicant
                     return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
 
-                if (response.StatusCode == HttpStatusCode.NotModified)
+                var status = StatusForMessage(response,useStaleOnError);
+                return status switch
                 {
-                    return new(contentPath, CacheStatus.Revalidate, metaFile);
-                }
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    if (useStaleOnError)
-                    {
-                        return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
-                    }
-
-                    response.EnsureSuccess();
-                }
-
-                return await AddItem(response, uri, CacheStatus.Stored, token);
+                    CacheStatus.Hit => new(contentPath, CacheStatus.Hit, metaFile),
+                    CacheStatus.Stored => await AddItem(response, uri, CacheStatus.Stored, token),
+                    CacheStatus.NoCache => new(response, CacheStatus.NoCache),
+                    CacheStatus.Revalidate => await AddItem(response, uri, CacheStatus.Revalidate, token),
+                    CacheStatus.UseStaleDueToError => new(contentPath, CacheStatus.UseStaleDueToError, metaFile),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
             }
             finally
             {
@@ -227,7 +255,12 @@ namespace Replicant
             using var request = BuildRequest(uri, messageCallback);
             var response = await httpClient.SendAsyncEx(request, token);
             response.EnsureSuccess();
-            return await AddItem(response,uri, CacheStatus.Stored, token);
+            var cacheControl = response.Headers.CacheControl;
+            if (cacheControl != null && cacheControl.NoCache)
+            {
+                return new(response, CacheStatus.NoCache);
+            }
+            return await AddItem(response, uri, CacheStatus.Stored, token);
         }
 
         static HttpRequestMessage BuildRequest(string uri, Action<HttpRequestMessage>? messageCallback)
@@ -296,8 +329,19 @@ namespace Replicant
             // if another thread has downloaded in parallel, the use those files
             if (!File.Exists(contentFile))
             {
-                File.Move(tempContentFile, contentFile, true);
-                File.Move(tempMetaFile, metaFile, true);
+                try
+                {
+                    File.Move(tempContentFile, contentFile, true);
+                    File.Move(tempMetaFile, metaFile, true);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    if (!File.Exists(contentFile))
+                    {
+                        File.Move(tempContentFile, contentFile, true);
+                        File.Move(tempMetaFile, metaFile, true);
+                    }
+                }
             }
 
             return new(contentFile, status, metaFile);

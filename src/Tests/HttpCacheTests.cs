@@ -93,7 +93,7 @@ public class HttpCacheTests
 
         await task;
 
-        using var httpResponseMessage = await result.AsResponseMessage();
+        using var httpResponseMessage = result.AsResponseMessage();
         await Verifier.Verify(httpResponseMessage);
     }
 #if DEBUG
@@ -101,15 +101,12 @@ public class HttpCacheTests
     [Fact]
     public async Task PurgeOldWhenContentFileLocked()
     {
-        var result = await httpCache.Download("https://httpbin.org/status/200");
-
-        await using (FileStream stream = new(result.ContentPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true))
+        using var result = await httpCache.Download("https://httpbin.org/status/200");
+        using (result.AsResponseMessage())
         {
-            stream.ReadByte();
-            HttpCache.PurgeItem(result.ContentPath);
+            HttpCache.PurgeItem(result.ContentPath!);
             Assert.True(File.Exists(result.ContentPath));
             Assert.True(File.Exists(result.MetaPath));
-            stream.ReadByte();
         }
     }
 
@@ -118,13 +115,11 @@ public class HttpCacheTests
     {
         var result = await httpCache.Download("https://httpbin.org/status/200");
 
-        await using (FileStream stream = new(result.MetaPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true))
+        using (result.AsResponseMessage())
         {
-            stream.ReadByte();
-            HttpCache.PurgeItem(result.ContentPath);
+            HttpCache.PurgeItem(result.ContentPath!);
             Assert.True(File.Exists(result.ContentPath));
             Assert.True(File.Exists(result.MetaPath));
-            stream.ReadByte();
         }
     }
 #endif
@@ -134,12 +129,12 @@ public class HttpCacheTests
     {
         var uri = "https://httpbin.org/etag/{etag}";
         var result = await httpCache.Download(uri);
-        await using (new FileStream(result.ContentPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        using (result.AsResponseMessage())
         {
             result = await httpCache.Download(uri);
         }
 
-        using var httpResponseMessage = await result.AsResponseMessage();
+        using var httpResponseMessage = result.AsResponseMessage();
         await Verifier.Verify(httpResponseMessage);
     }
 
@@ -148,12 +143,12 @@ public class HttpCacheTests
     {
         var uri = "https://httpbin.org/etag/{etag}";
         var result = await httpCache.Download(uri);
-        await using (new FileStream(result.MetaPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        await using (new FileStream(result.MetaPath!, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
             result = await httpCache.Download(uri);
         }
 
-        using var httpResponseMessage = await result.AsResponseMessage();
+        using var httpResponseMessage = result.AsResponseMessage();
         await Verifier.Verify(httpResponseMessage);
     }
 
@@ -162,12 +157,19 @@ public class HttpCacheTests
     {
         #region FullHttpResponseMessage
 
-        var result = await httpCache.Download("https://httpbin.org/status/200");
-        using var httpResponseMessage = await result.AsResponseMessage();
+        using var response = await httpCache.Response("https://httpbin.org/status/200");
 
         #endregion
 
-        await Verifier.Verify(httpResponseMessage);
+        await Verifier.Verify(response);
+    }
+
+    [Fact]
+    public async Task NoCache()
+    {
+        using var result = await httpCache.Download("https://httpbin.org/response-headers?Cache-Control=no-cache");
+        Assert.NotNull(result.Response);
+        await Verifier.Verify(result);
     }
 
     [Fact]
@@ -183,13 +185,16 @@ public class HttpCacheTests
     public async Task WeakEtag()
     {
         var uri = "https://www.wikipedia.org/";
-        Result content;
-        content = await httpCache.Download(uri);
-        HttpResponseMessage newMessage = new(HttpStatusCode.OK);
-        newMessage.Headers.ETag = (await content.GetResponseHeaders()).ETag;
+        HttpResponseMessage newMessage;
+        using (var content = await httpCache.Response(uri))
+        {
+            newMessage = new(HttpStatusCode.OK);
+            newMessage.Headers.ETag = content.Headers.ETag;
+        }
+
         await httpCache.AddItem(uri, newMessage);
-        content = await httpCache.Download(uri);
-        await Verifier.Verify(content);
+        using var content2 = await httpCache.Response(uri);
+        await Verifier.Verify(content2);
     }
 
     [Fact]

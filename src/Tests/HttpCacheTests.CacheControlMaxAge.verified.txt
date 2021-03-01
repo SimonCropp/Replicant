@@ -2,9 +2,7 @@ Status: Hit,
 Response: {
   Version: 1.1,
   Content: {
-    Headers: {
-      Content-Type: application/json
-    }
+    Headers: {}
   },
   StatusCode: OK,
   ReasonPhrase: OK,
@@ -12,7 +10,6 @@ Response: {
     Access-Control-Allow-Credentials: true,
     Access-Control-Allow-Origin: *,
     Cache-Control: public, max-age=20,
-    Connection: keep-alive,
     Date: DateTime_1
   },
   TrailingHeaders: {},

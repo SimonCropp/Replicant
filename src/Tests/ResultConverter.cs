@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Replicant;
 using VerifyTests;
 
-public class ResultConverter :
+class ResultConverter :
     WriteOnlyJsonConverter<Result>
 {
     public override void WriteJson(
@@ -15,7 +14,7 @@ public class ResultConverter :
         writer.WritePropertyName("Status");
         serializer.Serialize(writer, result.Status.ToString());
         writer.WritePropertyName("Response");
-        using var message = result.AsResponseMessage().GetAwaiter().GetResult();
+        using var message = result.AsResponseMessage();
         serializer.Serialize(writer, message);
     }
 }
