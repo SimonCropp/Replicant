@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using Replicant;
 using VerifyTests;
 
 public static class ModuleInitializer

@@ -130,7 +130,7 @@ namespace Replicant
             }
         }
 
-        public Task<Result> Download(
+        internal Task<Result> Download(
             string uri,
             bool useStaleOnError = false,
             Action<HttpRequestMessage>? messageCallback = null,

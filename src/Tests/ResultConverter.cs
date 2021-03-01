@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Replicant;
 using VerifyTests;
 
-public class ResultConverter :
+class ResultConverter :
     WriteOnlyJsonConverter<Result>
 {
     public override void WriteJson(
