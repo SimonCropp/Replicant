@@ -182,13 +182,16 @@ public class HttpCacheTests
     public async Task WeakEtag()
     {
         var uri = "https://www.wikipedia.org/";
-        HttpResponseMessage content;
-        content = await httpCache.Response(uri);
-        HttpResponseMessage newMessage = new(HttpStatusCode.OK);
-        newMessage.Headers.ETag = content.Headers.ETag;
+        HttpResponseMessage newMessage;
+        using (var content = await httpCache.Response(uri))
+        {
+            newMessage = new(HttpStatusCode.OK);
+            newMessage.Headers.ETag = content.Headers.ETag;
+        }
+
         await httpCache.AddItem(uri, newMessage);
-        content = await httpCache.Response(uri);
-        await Verifier.Verify(content);
+        using var content2 = await httpCache.Response(uri);
+        await Verifier.Verify(content2);
     }
 
     [Fact]
