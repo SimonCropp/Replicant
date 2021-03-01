@@ -71,7 +71,6 @@ public class MatrixTests
         }
 
         return builder.ToString().Trim('_');
-        return fileName;
     }
 
     //https://web.dev/http-cache/
