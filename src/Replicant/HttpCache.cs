@@ -214,35 +214,55 @@ namespace Replicant
             var httpClient = GetClient();
             try
             {
-                try
-                {
-                    response = await httpClient.SendAsyncEx(request, token);
-                }
-                catch (TaskCanceledException)
-                    when (!token.IsCancellationRequested && staleIfError)
-                {
-                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
-                }
-                catch (HttpRequestException)
-                    when (staleIfError)
-                {
-                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
-                }
-
-                var status = StatusForMessage(response, staleIfError);
-                return status switch
-                {
-                    CacheStatus.Hit => new(contentPath, CacheStatus.Hit, metaFile),
-                    CacheStatus.Stored => await AddItem(response, uri, CacheStatus.Stored, token),
-                    CacheStatus.NoCache => new(response, CacheStatus.NoCache),
-                    CacheStatus.Revalidate => await AddItem(response, uri, CacheStatus.Revalidate, token),
-                    CacheStatus.UseStaleDueToError => new(contentPath, CacheStatus.UseStaleDueToError, metaFile),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                response = await httpClient.SendAsyncEx(request, token);
             }
-            finally
+            catch (TaskCanceledException)
+                when (!token.IsCancellationRequested && staleIfError)
             {
-                response?.Dispose();
+                return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+            }
+            catch (HttpRequestException)
+                when (staleIfError)
+            {
+                return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+            }
+
+            var status = StatusForMessage(response, staleIfError);
+            switch (status)
+            {
+                case CacheStatus.Hit:
+                {
+                    response.Dispose();
+                    return new(contentPath, CacheStatus.Hit, metaFile);
+                }
+                case CacheStatus.Stored:
+                {
+                    using (response)
+                    {
+                        return await AddItem(response, uri, CacheStatus.Stored, token);
+                    }
+                }
+                case CacheStatus.NoCache:
+                {
+                    return new(response, CacheStatus.NoCache);
+                }
+                case CacheStatus.Revalidate:
+                {
+                    using (response)
+                    {
+                        return await AddItem(response, uri, CacheStatus.Revalidate, token);
+                    }
+                }
+                case CacheStatus.UseStaleDueToError:
+                {
+                    response.Dispose();
+                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+                }
+                default:
+                {
+                    response.Dispose();
+                    throw new ArgumentOutOfRangeException();
+                }
             }
         }
 
@@ -260,7 +280,11 @@ namespace Replicant
             {
                 return new(response, CacheStatus.NoCache);
             }
-            return await AddItem(response, uri, CacheStatus.Stored, token);
+
+            using (response)
+            {
+                return await AddItem(response, uri, CacheStatus.Stored, token);
+            }
         }
 
         static HttpRequestMessage BuildRequest(string uri, Action<HttpRequestMessage>? messageCallback)
