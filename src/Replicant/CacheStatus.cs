@@ -1,11 +1,8 @@
-﻿namespace Replicant
+﻿enum CacheStatus
 {
-    public enum CacheStatus
-    {
-        Hit,
-        Stored,
-        NoCache,
-        Revalidate,
-        UseStaleDueToError
-    }
+    Hit,
+    Stored,
+    NoCache,
+    Revalidate,
+    UseStaleDueToError
 }
