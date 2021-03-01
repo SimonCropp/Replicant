@@ -167,7 +167,7 @@ await httpCache.AddItem(uri, response);
 
 ### Use stale item on error
 
-If an error occurs re-validating a potentially stale item, then the fallback can be to use the cached item.
+If an error occurs when re-validating a potentially stale item, then the cached item can be used as a fallback.
 
 <!-- snippet: staleIfError -->
 <a id='snippet-staleiferror'></a>
