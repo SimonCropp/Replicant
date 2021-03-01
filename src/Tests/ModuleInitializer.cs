@@ -16,7 +16,18 @@ public static class ModuleInitializer
                     "StackTrace",
                     "Content-Length",
                     "X-Amzn-Trace-Id",
+                    "Set-Cookie",
+                    "Report-To",
+                    "Connection",
+                    "Server-Timing",
+                    "NEL",
+                    "Accept-Ranges",
+                    "Age",
                     "Server",
+                    "X-Client-IP",
+                    "Strict-Transport-Security",
+                    "X-Cache-Status",
+                    "X-Cache",
                     "origin");
             });
     }

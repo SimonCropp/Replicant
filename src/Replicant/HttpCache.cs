@@ -226,22 +226,17 @@ namespace Replicant
                     return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
 
-                if (response.StatusCode == HttpStatusCode.NotModified)
+                var status = StatusForMessage(response,useStaleOnError);
+                return status switch
                 {
-                    return new(contentPath, CacheStatus.Revalidate, metaFile);
-                }
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    if (useStaleOnError)
-                    {
-                        return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
-                    }
-
-                    response.EnsureSuccess();
-                }
-
-                return await AddItem(response, uri, CacheStatus.Stored, token);
+                    CacheStatus.Hit => new(contentPath, CacheStatus.Hit, metaFile),
+                    CacheStatus.Stored => await AddItem(response, uri, CacheStatus.Stored, token),
+                    //TODO: how do we no cache?
+                    CacheStatus.NoCache => new(contentPath, CacheStatus.NoCache, metaFile),
+                    CacheStatus.Revalidate => await AddItem(response, uri, CacheStatus.Revalidate, token),
+                    CacheStatus.UseStaleDueToError => new(contentPath, CacheStatus.UseStaleDueToError, metaFile),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
             }
             finally
             {
