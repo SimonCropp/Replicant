@@ -207,7 +207,7 @@ namespace Replicant
                         return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                     }
 
-                    response.EnsureSuccessStatusCode();
+                    response.EnsureSuccess();
                 }
 
                 return await AddItem(response, uri, CacheStatus.Stored, token);
@@ -226,7 +226,7 @@ namespace Replicant
             var httpClient = GetClient();
             using var request = BuildRequest(uri, messageCallback);
             var response = await httpClient.SendAsyncEx(request, token);
-            response.EnsureSuccessStatusCode();
+            response.EnsureSuccess();
             return await AddItem(response,uri, CacheStatus.Stored, token);
         }
 

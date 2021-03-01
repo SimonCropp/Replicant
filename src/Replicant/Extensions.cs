@@ -18,6 +18,18 @@ static class Extensions
         return contentHeaders.LastModified.Value;
     }
 
+    public static void EnsureSuccess(this HttpResponseMessage message)
+    {
+        try
+        {
+            message.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException exception)
+        {
+            throw new HttpRequestException($"{exception.Message} Uri: {message.RequestMessage?.RequestUri?.OriginalString}", exception.InnerException, exception.StatusCode);
+        }
+    }
+
     public static async Task<HttpResponseMessage> SendAsyncEx(
         this HttpClient client,
         HttpRequestMessage request,
@@ -29,7 +41,7 @@ static class Extensions
         }
         catch (HttpRequestException exception)
         {
-            throw new HttpRequestException($"{exception.Message}. Uri: {request}", exception.InnerException, exception.StatusCode);
+            throw new HttpRequestException($"{exception.Message} Uri: {request}", exception.InnerException, exception.StatusCode);
         }
     }
 
