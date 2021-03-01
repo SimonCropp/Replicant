@@ -93,7 +93,7 @@ public class HttpCacheTests
 
         await task;
 
-        using var httpResponseMessage = await result.AsResponseMessage();
+        using var httpResponseMessage = result.AsResponseMessage();
         await Verifier.Verify(httpResponseMessage);
     }
 #if DEBUG
@@ -139,7 +139,7 @@ public class HttpCacheTests
             result = await httpCache.Download(uri);
         }
 
-        using var httpResponseMessage = await result.AsResponseMessage();
+        using var httpResponseMessage = result.AsResponseMessage();
         await Verifier.Verify(httpResponseMessage);
     }
 
@@ -153,7 +153,7 @@ public class HttpCacheTests
             result = await httpCache.Download(uri);
         }
 
-        using var httpResponseMessage = await result.AsResponseMessage();
+        using var httpResponseMessage = result.AsResponseMessage();
         await Verifier.Verify(httpResponseMessage);
     }
 
@@ -163,7 +163,7 @@ public class HttpCacheTests
         #region FullHttpResponseMessage
 
         var result = await httpCache.Download("https://httpbin.org/status/200");
-        using var httpResponseMessage = await result.AsResponseMessage();
+        using var httpResponseMessage = result.AsResponseMessage();
 
         #endregion
 
@@ -186,7 +186,7 @@ public class HttpCacheTests
         Result content;
         content = await httpCache.Download(uri);
         HttpResponseMessage newMessage = new(HttpStatusCode.OK);
-        newMessage.Headers.ETag = (await content.GetResponseHeaders()).ETag;
+        newMessage.Headers.ETag = content.GetResponseHeaders().ETag;
         await httpCache.AddItem(uri, newMessage);
         content = await httpCache.Download(uri);
         await Verifier.Verify(content);

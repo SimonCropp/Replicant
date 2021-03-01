@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 
 namespace Replicant
 {
@@ -19,37 +18,38 @@ namespace Replicant
             MetaPath = metaPath;
         }
 
-        public async Task<HttpResponseMessage> AsResponseMessage()
+        public HttpResponseMessage AsResponseMessage()
         {
-            var meta = await MetaDataReader.ReadMeta(MetaPath);
+            var meta = MetaDataReader.ReadMeta(MetaPath);
             HttpResponseMessage message = new()
             {
                 Content = new StreamContent(FileEx.OpenRead(ContentPath))
             };
             message.Headers.AddRange(meta.ResponseHeaders);
             message.Content.Headers.AddRange(meta.ContentHeaders);
+            message.TrailingHeaders.AddRange(meta.TrailingHeaders);
             return message;
         }
 
-        public async Task<HttpResponseHeaders> GetResponseHeaders()
+        public HttpResponseHeaders GetResponseHeaders()
         {
-            var meta = await MetaDataReader.ReadMeta(MetaPath);
+            var meta = MetaDataReader.ReadMeta(MetaPath);
             using HttpResponseMessage message = new();
             message.Headers.AddRange(meta.ResponseHeaders);
             return message.Headers;
         }
 
-        public async Task<HttpContentHeaders> GetContentHeaders()
+        public HttpContentHeaders GetContentHeaders()
         {
-            var meta = await MetaDataReader.ReadMeta(MetaPath);
+            var meta = MetaDataReader.ReadMeta(MetaPath);
             using HttpResponseMessage message = new();
             message.Content.Headers.AddRange(meta.ContentHeaders);
             return message.Content.Headers;
         }
 
-        public async Task<HttpResponseHeaders> GetTrailingHeaders()
+        public HttpResponseHeaders GetTrailingHeaders()
         {
-            var meta = await MetaDataReader.ReadMeta(MetaPath);
+            var meta = MetaDataReader.ReadMeta(MetaPath);
             using HttpResponseMessage message = new();
             message.TrailingHeaders.AddRange(meta.TrailingHeaders);
             return message.TrailingHeaders;

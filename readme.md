@@ -205,7 +205,7 @@ An instance of the HttpResponseMessage can be created from a cached item:
 <a id='snippet-fullhttpresponsemessage'></a>
 ```cs
 var result = await httpCache.Download("https://httpbin.org/status/200");
-using var httpResponseMessage = await result.AsResponseMessage();
+using var httpResponseMessage = result.AsResponseMessage();
 ```
 <sup><a href='/src/Tests/HttpCacheTests.cs#L163-L168' title='Snippet source file'>snippet source</a> | <a href='#snippet-fullhttpresponsemessage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
