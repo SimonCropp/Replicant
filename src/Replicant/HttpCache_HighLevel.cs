@@ -14,7 +14,7 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, useStaleOnError, messageCallback, token);
+            using var result = await Download(uri, useStaleOnError, messageCallback, token);
             return await result.AsText(token);
         }
 
@@ -24,7 +24,7 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, useStaleOnError, messageCallback, token);
+            using var result = await Download(uri, useStaleOnError, messageCallback, token);
             return await result.AsBytes(token);
         }
 
@@ -35,7 +35,7 @@ namespace Replicant
             CancellationToken token = default)
         {
             var result = await Download(uri, useStaleOnError, messageCallback, token);
-            return result.AsStream();
+            return await result.AsStream(token);
         }
 
         public async Task<HttpResponseMessage> Response(
@@ -55,9 +55,8 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, useStaleOnError, messageCallback, token);
-            await using var source = result.AsStream();
-            await source.CopyToAsync(stream, token);
+            using var result = await Download(uri, useStaleOnError, messageCallback, token);
+            await result.ToStream(stream, token);
         }
 
         public async Task ToFile(
@@ -67,7 +66,7 @@ namespace Replicant
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, useStaleOnError, messageCallback, token);
+            using var result = await Download(uri, useStaleOnError, messageCallback, token);
             await result.ToFile(path, token);
         }
     }

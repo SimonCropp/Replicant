@@ -234,8 +234,7 @@ namespace Replicant
                 {
                     CacheStatus.Hit => new(contentPath, CacheStatus.Hit, metaFile),
                     CacheStatus.Stored => await AddItem(response, uri, CacheStatus.Stored, token),
-                    //TODO: how do we no cache?
-                    CacheStatus.NoCache => new(contentPath, CacheStatus.NoCache, metaFile),
+                    CacheStatus.NoCache => new(response, CacheStatus.NoCache),
                     CacheStatus.Revalidate => await AddItem(response, uri, CacheStatus.Revalidate, token),
                     CacheStatus.UseStaleDueToError => new(contentPath, CacheStatus.UseStaleDueToError, metaFile),
                     _ => throw new ArgumentOutOfRangeException()
@@ -256,7 +255,12 @@ namespace Replicant
             using var request = BuildRequest(uri, messageCallback);
             var response = await httpClient.SendAsyncEx(request, token);
             response.EnsureSuccess();
-            return await AddItem(response,uri, CacheStatus.Stored, token);
+            var cacheControl = response.Headers.CacheControl;
+            if (cacheControl != null && cacheControl.NoCache)
+            {
+                return new(response, CacheStatus.NoCache);
+            }
+            return await AddItem(response, uri, CacheStatus.Stored, token);
         }
 
         static HttpRequestMessage BuildRequest(string uri, Action<HttpRequestMessage>? messageCallback)

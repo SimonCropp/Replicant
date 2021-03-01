@@ -101,11 +101,10 @@ public class HttpCacheTests
     [Fact]
     public async Task PurgeOldWhenContentFileLocked()
     {
-        var result = await httpCache.Download("https://httpbin.org/status/200");
-
+        using var result = await httpCache.Download("https://httpbin.org/status/200");
         using (result.AsResponseMessage())
         {
-            HttpCache.PurgeItem(result.ContentPath);
+            HttpCache.PurgeItem(result.ContentPath!);
             Assert.True(File.Exists(result.ContentPath));
             Assert.True(File.Exists(result.MetaPath));
         }
@@ -163,6 +162,14 @@ public class HttpCacheTests
         #endregion
 
         await Verifier.Verify(response);
+    }
+
+    [Fact]
+    public async Task NoCache()
+    {
+        using var result = await httpCache.Download("https://httpbin.org/response-headers?Cache-Control=no-cache");
+        Assert.NotNull(result.Response);
+        await Verifier.Verify(result);
     }
 
     [Fact]
