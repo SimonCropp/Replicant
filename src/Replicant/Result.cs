@@ -30,7 +30,7 @@ readonly struct Result :
         MetaPath = null;
     }
 
-    public async Task<Stream> AsStream(CancellationToken token)
+    public async Task<Stream> AsStreamAsync(CancellationToken token)
     {
         if (Response == null)
         {
@@ -41,7 +41,7 @@ readonly struct Result :
         return new StreamWithCleanup(stream);
     }
 
-    public Task<byte[]> AsBytes(CancellationToken token)
+    public Task<byte[]> AsBytesAsync(CancellationToken token)
     {
         if (Response == null)
         {
@@ -51,7 +51,7 @@ readonly struct Result :
         return Response.Content.ReadAsByteArrayAsync(token);
     }
 
-    public Task<string> AsText(CancellationToken token)
+    public Task<string> AsStringAsync(CancellationToken token)
     {
         if (Response == null)
         {
@@ -61,7 +61,7 @@ readonly struct Result :
         return Response.Content.ReadAsStringAsync(token);
     }
 
-    public async Task ToStream(Stream stream, CancellationToken token)
+    public async Task ToStreamAsync(Stream stream, CancellationToken token)
     {
         if (Response == null)
         {
@@ -73,7 +73,7 @@ readonly struct Result :
         await Response.Content.CopyToAsync(stream, token);
     }
 
-    public async Task ToFile(string path, CancellationToken token)
+    public async Task ToFileAsync(string path, CancellationToken token)
     {
         if (Response == null)
         {
@@ -83,6 +83,66 @@ readonly struct Result :
 
         await using var stream = FileEx.OpenWrite(path);
         await Response.Content.CopyToAsync(stream, token);
+    }
+
+    public Stream AsStream()
+    {
+        if (Response == null)
+        {
+            return FileEx.OpenRead(ContentPath!);
+        }
+
+        var stream = Response.Content.ReadAsStream();
+        return new StreamWithCleanup(stream);
+    }
+
+    public byte[] AsBytes()
+    {
+        if (Response == null)
+        {
+            return File.ReadAllBytes(ContentPath!);
+        }
+
+        using var stream = Response.Content.ReadAsStream();
+        using var memoryStream = new MemoryStream();
+        stream.CopyTo(memoryStream);
+        return memoryStream.ToArray();
+    }
+
+    public string AsString()
+    {
+        if (Response == null)
+        {
+            return File.ReadAllText(ContentPath!);
+        }
+
+        using var stream = Response.Content.ReadAsStream();
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
+    public void ToStream(Stream stream)
+    {
+        if (Response == null)
+        {
+            using var openRead = FileEx.OpenRead(ContentPath!);
+            openRead.CopyTo(stream);
+            return;
+        }
+
+        Response.Content.CopyTo(stream, null, default);
+    }
+
+    public void ToFile(string path)
+    {
+        if (Response == null)
+        {
+            File.Copy(ContentPath!, path, true);
+            return;
+        }
+
+        using var stream = FileEx.OpenWrite(path);
+        Response.Content.CopyTo(stream, null, default);
     }
 
     public HttpResponseMessage AsResponseMessage()

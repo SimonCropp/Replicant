@@ -8,66 +8,121 @@ namespace Replicant
 {
     public partial class HttpCache
     {
-        public async Task<string> String(
+        public async Task<string> StringAsync(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            using var result = await Download(uri, staleIfError, messageCallback, token);
-            return await result.AsText(token);
+            using var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
+            return await result.AsStringAsync(token);
         }
 
-        public async Task<byte[]> Bytes(
+        public async Task<byte[]> BytesAsync(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            using var result = await Download(uri, staleIfError, messageCallback, token);
-            return await result.AsBytes(token);
+            using var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
+            return await result.AsBytesAsync(token);
         }
 
-        public async Task<Stream> Stream(
+        public async Task<Stream> StreamAsync(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, staleIfError, messageCallback, token);
-            return await result.AsStream(token);
+            var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
+            return await result.AsStreamAsync(token);
         }
 
-        public async Task<HttpResponseMessage> Response(
+        public async Task<HttpResponseMessage> ResponseAsync(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            var result = await Download(uri, staleIfError, messageCallback, token);
+            var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
             return result.AsResponseMessage();
         }
 
-        public async Task ToStream(
+        public async Task ToStreamAsync(
             string uri,
             Stream stream,
             bool staleIfError = false,
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            using var result = await Download(uri, staleIfError, messageCallback, token);
-            await result.ToStream(stream, token);
+            using var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
+            await result.ToStreamAsync(stream, token);
         }
 
-        public async Task ToFile(
+        public async Task ToFileAsync(
             string uri,
             string path,
             bool staleIfError = false,
             Action<HttpRequestMessage>? messageCallback = null,
             CancellationToken token = default)
         {
-            using var result = await Download(uri, staleIfError, messageCallback, token);
-            await result.ToFile(path, token);
+            using var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
+            await result.ToFileAsync(path, token);
+        }
+        public string String(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            using var result = Download(uri, staleIfError, messageCallback);
+            return result.AsString();
+        }
+
+        public byte[] Bytes(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            using var result = Download(uri, staleIfError, messageCallback);
+            return result.AsBytes();
+        }
+
+        public Stream Stream(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            var result = Download(uri, staleIfError, messageCallback);
+            return result.AsStream();
+        }
+
+        public async Task<HttpResponseMessage> Response(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            var result = await DownloadAsync(uri, staleIfError, messageCallback);
+            return result.AsResponseMessage();
+        }
+
+        public void ToStream(
+            string uri,
+            Stream stream,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            using var result = Download(uri, staleIfError, messageCallback);
+            result.ToStream(stream);
+        }
+
+        public void ToFile(
+            string uri,
+            string path,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            using var result = Download(uri, staleIfError, messageCallback);
+            result.ToFile(path);
         }
     }
 }
