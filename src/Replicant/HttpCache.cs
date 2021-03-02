@@ -204,7 +204,7 @@ namespace Replicant
             using var request = BuildRequest(uri, messageCallback);
             timestamp.ApplyHeadersToRequest(request);
 
-            HttpResponseMessage? response = null;
+            HttpResponseMessage? response;
 
             var httpClient = GetClient();
             try
@@ -226,32 +226,22 @@ namespace Replicant
             switch (status)
             {
                 case CacheStatus.Hit:
+                case CacheStatus.UseStaleDueToError:
                 {
                     response.Dispose();
-                    return new(contentPath, CacheStatus.Hit, metaFile);
+                    return new(contentPath, status, metaFile);
                 }
                 case CacheStatus.Stored:
+                case CacheStatus.Revalidate:
                 {
                     using (response)
                     {
-                        return await AddItem(response, uri, CacheStatus.Stored, token);
+                        return await AddItem(response, uri, status, token);
                     }
                 }
                 case CacheStatus.NoCache:
                 {
                     return new(response, CacheStatus.NoCache);
-                }
-                case CacheStatus.Revalidate:
-                {
-                    using (response)
-                    {
-                        return await AddItem(response, uri, CacheStatus.Revalidate, token);
-                    }
-                }
-                case CacheStatus.UseStaleDueToError:
-                {
-                    response.Dispose();
-                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
                 default:
                 {
