@@ -62,6 +62,20 @@ static class Extensions
             throw new HttpRequestException($"{exception.Message} Uri: {request}", exception.InnerException, exception.StatusCode);
         }
     }
+    
+    public static HttpResponseMessage SendEx(
+        this HttpClient client,
+        HttpRequestMessage request)
+    {
+        try
+        {
+            return client.Send(request);
+        }
+        catch (HttpRequestException exception)
+        {
+            throw new HttpRequestException($"{exception.Message} Uri: {request}", exception.InnerException, exception.StatusCode);
+        }
+    }
 
     public static DateTimeOffset? GetExpiry(this HttpResponseMessage response, DateTimeOffset now)
     {

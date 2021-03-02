@@ -145,6 +145,21 @@ namespace Replicant
             return HandleFileExistsAsync(uri, staleIfError, messageCallback, token, contentFile);
         }
 
+        internal Result Download(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            var contentFile = FindContentFileForUri(uri);
+
+            if (contentFile == null)
+            {
+                return HandleFileMissing(uri, messageCallback);
+            }
+
+            return HandleFileExists(uri, staleIfError, messageCallback, contentFile);
+        }
+
         FileInfo? FindContentFileForUri(string uri)
         {
             var hash = Hash.Compute(uri);
@@ -213,7 +228,7 @@ namespace Replicant
             }
             catch (Exception exception)
             {
-                if (ShouldReturnStaleIfError(staleIfError, token, exception))
+                if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
                     return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
@@ -250,7 +265,72 @@ namespace Replicant
             }
         }
 
-        static bool ShouldReturnStaleIfError(bool staleIfError, CancellationToken token, Exception exception)
+        Result HandleFileExists(
+            string uri,
+            bool staleIfError,
+            Action<HttpRequestMessage>? messageCallback,
+            FileInfo contentFile)
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            var contentPath = contentFile.FullName;
+            var timestamp = Timestamp.FromPath(contentPath);
+            var metaFile = Path.ChangeExtension(contentPath, ".json");
+            if (timestamp.Expiry > now)
+            {
+                return new(contentPath, CacheStatus.Hit, metaFile);
+            }
+
+            using var request = BuildRequest(uri, messageCallback);
+            timestamp.ApplyHeadersToRequest(request);
+
+            HttpResponseMessage? response;
+
+            var httpClient = GetClient();
+            try
+            {
+                response = httpClient.SendEx(request);
+            }
+            catch (Exception exception)
+            {
+                if (ShouldReturnStaleIfError(staleIfError, exception))
+                {
+                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+                }
+
+                throw;
+            }
+
+            var status = StatusForMessage(response, staleIfError);
+            switch (status)
+            {
+                case CacheStatus.Hit:
+                case CacheStatus.UseStaleDueToError:
+                {
+                    response.Dispose();
+                    return new(contentPath, status, metaFile);
+                }
+                case CacheStatus.Stored:
+                case CacheStatus.Revalidate:
+                {
+                    using (response)
+                    {
+                        return AddItem(response, uri, status);
+                    }
+                }
+                case CacheStatus.NoCache:
+                {
+                    return new(response, CacheStatus.NoCache);
+                }
+                default:
+                {
+                    response.Dispose();
+                    throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, CancellationToken token= default)
         {
             return (exception is HttpRequestException || (exception is TaskCanceledException && !token.IsCancellationRequested))
                    && staleIfError;
@@ -276,6 +356,25 @@ namespace Replicant
             }
         }
 
+        Result HandleFileMissing(
+            string uri,
+            Action<HttpRequestMessage>? messageCallback)
+        {
+            var httpClient = GetClient();
+            using var request = BuildRequest(uri, messageCallback);
+            var response = httpClient.SendEx(request);
+            response.EnsureSuccess();
+            if (response.IsNoCache())
+            {
+                return new(response, CacheStatus.NoCache);
+            }
+
+            using (response)
+            {
+                return AddItem(response, uri, CacheStatus.Stored);
+            }
+        }
+
         static HttpRequestMessage BuildRequest(string uri, Action<HttpRequestMessage>? messageCallback)
         {
             HttpRequestMessage request = new(HttpMethod.Get, uri);
@@ -288,10 +387,16 @@ namespace Replicant
             return client ?? clientFunc!();
         }
 
-        public Task AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
+        public Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             return AddItemAsync(response, uri, CacheStatus.Stored, token);
+        }
+
+        public void AddItem(string uri, HttpResponseMessage response)
+        {
+            Guard.AgainstNull(response.Content, nameof(response.Content));
+            AddItem(response, uri, CacheStatus.Stored);
         }
 
         async Task<Result> AddItemAsync(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
@@ -309,6 +414,33 @@ namespace Replicant
                     MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
                     await JsonSerializer.SerializeAsync(metaFileStream, meta, cancellationToken: token);
                     await httpStream.CopyToAsync(contentFileStream, token);
+                }
+
+                return BuildResult(status, timestamp, tempContentFile, tempMetaFile);
+            }
+            finally
+            {
+                File.Delete(tempContentFile);
+                File.Delete(tempMetaFile);
+            }
+        }
+
+        Result AddItem(HttpResponseMessage response, string uri, CacheStatus status)
+        {
+            var timestamp = Timestamp.FromResponse(uri, response);
+
+            var tempContentFile = FileEx.GetTempFileName();
+            var tempMetaFile = FileEx.GetTempFileName();
+            try
+            {
+                using var httpStream = response.Content.ReadAsStream();
+                using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
+                using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
+                using (var writer = new Utf8JsonWriter(metaFileStream))
+                {
+                    MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
+                    JsonSerializer.Serialize(writer, meta);
+                    httpStream.CopyTo(contentFileStream);
                 }
 
                 return BuildResult(status, timestamp, tempContentFile, tempMetaFile);

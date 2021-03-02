@@ -69,5 +69,60 @@ namespace Replicant
             using var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
             await result.ToFileAsync(path, token);
         }
+        public string String(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            using var result = Download(uri, staleIfError, messageCallback);
+            return result.AsString();
+        }
+
+        public byte[] Bytes(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            using var result = Download(uri, staleIfError, messageCallback);
+            return result.AsBytes();
+        }
+
+        public Stream Stream(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            var result = Download(uri, staleIfError, messageCallback);
+            return result.AsStream();
+        }
+
+        public async Task<HttpResponseMessage> Response(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            var result = await DownloadAsync(uri, staleIfError, messageCallback);
+            return result.AsResponseMessage();
+        }
+
+        public void ToStream(
+            string uri,
+            Stream stream,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            using var result = Download(uri, staleIfError, messageCallback);
+            result.ToStream(stream);
+        }
+
+        public void ToFile(
+            string uri,
+            string path,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null)
+        {
+            using var result = Download(uri, staleIfError, messageCallback);
+            result.ToFile(path);
+        }
     }
 }

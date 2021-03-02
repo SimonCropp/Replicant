@@ -153,7 +153,7 @@ public class HttpCacheTests
     }
 
     [Fact]
-    public async Task FullHttpResponseMessage()
+    public async Task FullHttpResponseMessageAsync()
     {
         #region FullHttpResponseMessage
 
@@ -161,6 +161,12 @@ public class HttpCacheTests
 
         #endregion
 
+        await Verifier.Verify(response);
+    }
+    [Fact]
+    public async Task FullHttpResponseMessage()
+    {
+        using var response = httpCache.Response("https://httpbin.org/status/200");
         await Verifier.Verify(response);
     }
 
@@ -192,7 +198,7 @@ public class HttpCacheTests
             newMessage.Headers.ETag = content.Headers.ETag;
         }
 
-        await httpCache.AddItem(uri, newMessage);
+        await httpCache.AddItemAsync(uri, newMessage);
         using var content2 = await httpCache.ResponseAsync(uri);
         await Verifier.Verify(content2);
     }
@@ -340,7 +346,7 @@ public class HttpCacheTests
         {
             Content = new StringContent("the content")
         };
-        await httpCache.AddItem(uri, response);
+        await httpCache.AddItemAsync(uri, response);
 
         #endregion
 
@@ -361,7 +367,7 @@ public class HttpCacheTests
             Content = new StringContent("foo")
         };
         var uri = "https://httpbin.org/status/500";
-        await httpCache.AddItem(uri, response);
+        await httpCache.AddItemAsync(uri, response);
         await Verifier.ThrowsTask(() => httpCache.StringAsync(uri));
     }
 
@@ -373,7 +379,7 @@ public class HttpCacheTests
             Content = new StringContent("content")
         };
         var uri = "https://httpbin.org/status/500";
-        await httpCache.AddItem(uri, httpResponseMessage);
+        await httpCache.AddItemAsync(uri, httpResponseMessage);
 
         #region staleIfError
 
