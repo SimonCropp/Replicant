@@ -211,15 +211,14 @@ namespace Replicant
             {
                 response = await httpClient.SendAsyncEx(request, token);
             }
-            catch (TaskCanceledException)
-                when (!token.IsCancellationRequested && staleIfError)
+            catch (Exception exception)
             {
-                return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
-            }
-            catch (HttpRequestException)
-                when (staleIfError)
-            {
-                return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+                if (ShouldReturnStaleIfError(staleIfError, token, exception))
+                {
+                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+                }
+
+                throw;
             }
 
             var status = StatusForMessage(response, staleIfError);
@@ -249,6 +248,12 @@ namespace Replicant
                     throw new ArgumentOutOfRangeException();
                 }
             }
+        }
+
+        static bool ShouldReturnStaleIfError(bool staleIfError, CancellationToken token, Exception exception)
+        {
+            return (exception is HttpRequestException || (exception is TaskCanceledException && !token.IsCancellationRequested))
+                   && staleIfError;
         }
 
         async Task<Result> HandleFileMissing(
