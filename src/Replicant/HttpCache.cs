@@ -280,12 +280,7 @@ namespace Replicant
 
         HttpClient GetClient()
         {
-            if (client == null)
-            {
-                return clientFunc!();
-            }
-
-            return client;
+            return client ?? clientFunc!();
         }
 
         public Task AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
