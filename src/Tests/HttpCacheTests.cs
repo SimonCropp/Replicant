@@ -80,16 +80,16 @@ public class HttpCacheTests
     [Fact]
     public async Task EmptyContent()
     {
-        var content = await httpCache.Download("https://httpbin.org/status/200");
+        var content = await httpCache.DownloadAsync("https://httpbin.org/status/200");
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task DuplicateSlowDownloads()
     {
-        var task = httpCache.Download("https://httpbin.org/delay/1");
+        var task = httpCache.DownloadAsync("https://httpbin.org/delay/1");
         await Task.Delay(100);
-        var result = await httpCache.Download("https://httpbin.org/delay/1");
+        var result = await httpCache.DownloadAsync("https://httpbin.org/delay/1");
 
         await task;
 
@@ -128,10 +128,10 @@ public class HttpCacheTests
     public async Task LockedContentFile()
     {
         var uri = "https://httpbin.org/etag/{etag}";
-        var result = await httpCache.Download(uri);
+        var result = await httpCache.DownloadAsync(uri);
         using (result.AsResponseMessage())
         {
-            result = await httpCache.Download(uri);
+            result = await httpCache.DownloadAsync(uri);
         }
 
         using var httpResponseMessage = result.AsResponseMessage();
@@ -142,10 +142,10 @@ public class HttpCacheTests
     public async Task LockedMetaFile()
     {
         var uri = "https://httpbin.org/etag/{etag}";
-        var result = await httpCache.Download(uri);
+        var result = await httpCache.DownloadAsync(uri);
         await using (new FileStream(result.MetaPath!, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
-            result = await httpCache.Download(uri);
+            result = await httpCache.DownloadAsync(uri);
         }
 
         using var httpResponseMessage = result.AsResponseMessage();
@@ -157,7 +157,7 @@ public class HttpCacheTests
     {
         #region FullHttpResponseMessage
 
-        using var response = await httpCache.Response("https://httpbin.org/status/200");
+        using var response = await httpCache.ResponseAsync("https://httpbin.org/status/200");
 
         #endregion
 
@@ -167,7 +167,7 @@ public class HttpCacheTests
     [Fact]
     public async Task NoCache()
     {
-        using var result = await httpCache.Download("https://httpbin.org/response-headers?Cache-Control=no-cache");
+        using var result = await httpCache.DownloadAsync("https://httpbin.org/response-headers?Cache-Control=no-cache");
         Assert.NotNull(result.Response);
         await Verifier.Verify(result);
     }
@@ -176,8 +176,8 @@ public class HttpCacheTests
     public async Task Etag()
     {
         var uri = "https://httpbin.org/etag/{etag}";
-        await httpCache.Download(uri);
-        var content = await httpCache.Download(uri);
+        await httpCache.DownloadAsync(uri);
+        var content = await httpCache.DownloadAsync(uri);
         await Verifier.Verify(content);
     }
 
@@ -186,14 +186,14 @@ public class HttpCacheTests
     {
         var uri = "https://www.wikipedia.org/";
         HttpResponseMessage newMessage;
-        using (var content = await httpCache.Response(uri))
+        using (var content = await httpCache.ResponseAsync(uri))
         {
             newMessage = new(HttpStatusCode.OK);
             newMessage.Headers.ETag = content.Headers.ETag;
         }
 
         await httpCache.AddItem(uri, newMessage);
-        using var content2 = await httpCache.Response(uri);
+        using var content2 = await httpCache.ResponseAsync(uri);
         await Verifier.Verify(content2);
     }
 
@@ -201,15 +201,15 @@ public class HttpCacheTests
     public async Task CacheControlMaxAge()
     {
         var uri = "https://httpbin.org/cache/20";
-        await httpCache.Download(uri);
-        var content = await httpCache.Download(uri);
+        await httpCache.DownloadAsync(uri);
+        var content = await httpCache.DownloadAsync(uri);
         await Verifier.Verify(content);
     }
 
     [Fact]
     public async Task WithContent()
     {
-        var content = await httpCache.Download("https://httpbin.org/json");
+        var content = await httpCache.DownloadAsync("https://httpbin.org/json");
         await Verifier.Verify(content);
     }
 
@@ -218,7 +218,7 @@ public class HttpCacheTests
     {
         #region string
 
-        var content = await httpCache.String("https://httpbin.org/json");
+        var content = await httpCache.StringAsync("https://httpbin.org/json");
 
         #endregion
 
@@ -230,7 +230,7 @@ public class HttpCacheTests
     {
         #region bytes
 
-        var bytes = await httpCache.Bytes("https://httpbin.org/json");
+        var bytes = await httpCache.BytesAsync("https://httpbin.org/json");
 
         #endregion
 
@@ -242,7 +242,7 @@ public class HttpCacheTests
     {
         #region stream
 
-        await using var stream = await httpCache.Stream("https://httpbin.org/json");
+        await using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
 
         #endregion
 
@@ -257,7 +257,7 @@ public class HttpCacheTests
         {
             #region ToFile
 
-            await httpCache.ToFile("https://httpbin.org/json", targetFile);
+            await httpCache.ToFileAsync("https://httpbin.org/json", targetFile);
 
             #endregion
 
@@ -276,7 +276,7 @@ public class HttpCacheTests
 
         #region ToStream
 
-        await httpCache.ToStream("https://httpbin.org/json", targetStream);
+        await httpCache.ToStreamAsync("https://httpbin.org/json", targetStream);
 
         #endregion
 
@@ -290,7 +290,7 @@ public class HttpCacheTests
 
         #region Callback
 
-        var content = await httpCache.String(
+        var content = await httpCache.StringAsync(
             uri,
             messageCallback: message =>
             {
@@ -306,7 +306,7 @@ public class HttpCacheTests
     [Fact]
     public Task NotFound()
     {
-        return Verifier.ThrowsTask(() => httpCache.String("https://httpbin.org/status/404"));
+        return Verifier.ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/404"));
     }
 
     [Fact]
@@ -319,7 +319,7 @@ public class HttpCacheTests
         httpCache = new(CachePath, httpClient);
         httpCache.Purge();
         var uri = "https://httpbin.org/delay/1";
-        var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => httpCache.String(uri));
+        var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => httpCache.StringAsync(uri));
         await Verifier.Verify(exception.Message);
     }
 
@@ -344,13 +344,13 @@ public class HttpCacheTests
 
         #endregion
 
-        await Verifier.Verify(httpCache.Download(uri, true));
+        await Verifier.Verify(httpCache.DownloadAsync(uri, true));
     }
 
     [Fact]
     public Task ServerError()
     {
-        return Verifier.ThrowsTask(() => httpCache.String("https://httpbin.org/status/500"));
+        return Verifier.ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/500"));
     }
 
     [Fact]
@@ -362,7 +362,7 @@ public class HttpCacheTests
         };
         var uri = "https://httpbin.org/status/500";
         await httpCache.AddItem(uri, response);
-        await Verifier.ThrowsTask(() => httpCache.String(uri));
+        await Verifier.ThrowsTask(() => httpCache.StringAsync(uri));
     }
 
     [Fact]
@@ -377,7 +377,7 @@ public class HttpCacheTests
 
         #region staleIfError
 
-        var content = httpCache.String(uri, staleIfError: true);
+        var content = httpCache.StringAsync(uri, staleIfError: true);
 
         #endregion
 

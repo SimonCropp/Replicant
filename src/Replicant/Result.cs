@@ -30,7 +30,7 @@ readonly struct Result :
         MetaPath = null;
     }
 
-    public async Task<Stream> AsStream(CancellationToken token)
+    public async Task<Stream> AsStreamAsync(CancellationToken token)
     {
         if (Response == null)
         {
@@ -41,7 +41,7 @@ readonly struct Result :
         return new StreamWithCleanup(stream);
     }
 
-    public Task<byte[]> AsBytes(CancellationToken token)
+    public Task<byte[]> AsBytesAsync(CancellationToken token)
     {
         if (Response == null)
         {
@@ -51,7 +51,7 @@ readonly struct Result :
         return Response.Content.ReadAsByteArrayAsync(token);
     }
 
-    public Task<string> AsText(CancellationToken token)
+    public Task<string> AsStringAsync(CancellationToken token)
     {
         if (Response == null)
         {
@@ -61,7 +61,7 @@ readonly struct Result :
         return Response.Content.ReadAsStringAsync(token);
     }
 
-    public async Task ToStream(Stream stream, CancellationToken token)
+    public async Task ToStreamAsync(Stream stream, CancellationToken token)
     {
         if (Response == null)
         {
@@ -73,7 +73,7 @@ readonly struct Result :
         await Response.Content.CopyToAsync(stream, token);
     }
 
-    public async Task ToFile(string path, CancellationToken token)
+    public async Task ToFileAsync(string path, CancellationToken token)
     {
         if (Response == null)
         {

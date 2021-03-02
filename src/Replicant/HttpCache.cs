@@ -129,7 +129,7 @@ namespace Replicant
             }
         }
 
-        internal Task<Result> Download(
+        internal Task<Result> DownloadAsync(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? messageCallback = null,
@@ -139,10 +139,10 @@ namespace Replicant
 
             if (contentFile == null)
             {
-                return HandleFileMissing(uri, messageCallback, token);
+                return HandleFileMissingAsync(uri, messageCallback, token);
             }
 
-            return HandleFileExists(uri, staleIfError, messageCallback, token, contentFile);
+            return HandleFileExistsAsync(uri, staleIfError, messageCallback, token, contentFile);
         }
 
         FileInfo? FindContentFileForUri(string uri)
@@ -184,7 +184,7 @@ namespace Replicant
             return CacheStatus.Stored;
         }
 
-        async Task<Result> HandleFileExists(
+        async Task<Result> HandleFileExistsAsync(
             string uri,
             bool staleIfError,
             Action<HttpRequestMessage>? messageCallback,
@@ -235,7 +235,7 @@ namespace Replicant
                 {
                     using (response)
                     {
-                        return await AddItem(response, uri, status, token);
+                        return await AddItemAsync(response, uri, status, token);
                     }
                 }
                 case CacheStatus.NoCache:
@@ -256,7 +256,7 @@ namespace Replicant
                    && staleIfError;
         }
 
-        async Task<Result> HandleFileMissing(
+        async Task<Result> HandleFileMissingAsync(
             string uri,
             Action<HttpRequestMessage>? messageCallback,
             CancellationToken token)
@@ -272,7 +272,7 @@ namespace Replicant
 
             using (response)
             {
-                return await AddItem(response, uri, CacheStatus.Stored, token);
+                return await AddItemAsync(response, uri, CacheStatus.Stored, token);
             }
         }
 
@@ -291,10 +291,10 @@ namespace Replicant
         public Task AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
-            return AddItem(response, uri, CacheStatus.Stored, token);
+            return AddItemAsync(response, uri, CacheStatus.Stored, token);
         }
 
-        async Task<Result> AddItem(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
+        async Task<Result> AddItemAsync(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
         {
             var timestamp = Timestamp.FromResponse(uri, response);
 
