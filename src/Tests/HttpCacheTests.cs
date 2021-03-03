@@ -101,7 +101,7 @@ public class HttpCacheTests
     [Fact]
     public async Task PurgeOldWhenContentFileLocked()
     {
-        using var result = await httpCache.Download("https://httpbin.org/status/200");
+        using var result = await httpCache.DownloadAsync("https://httpbin.org/status/200");
         using (result.AsResponseMessage())
         {
             HttpCache.PurgeItem(result.ContentPath!);
@@ -113,7 +113,7 @@ public class HttpCacheTests
     [Fact]
     public async Task PurgeOldWhenMetaFileLocked()
     {
-        var result = await httpCache.Download("https://httpbin.org/status/200");
+        var result = await httpCache.DownloadAsync("https://httpbin.org/status/200");
 
         using (result.AsResponseMessage())
         {
