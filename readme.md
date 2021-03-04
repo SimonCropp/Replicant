@@ -122,7 +122,7 @@ var bytes = await httpCache.BytesAsync("https://httpbin.org/json");
 <!-- snippet: stream -->
 <a id='snippet-stream'></a>
 ```cs
-await using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
+using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
 ```
 <sup><a href='/src/Tests/HttpCacheTests.cs#L256-L260' title='Snippet source file'>snippet source</a> | <a href='#snippet-stream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->

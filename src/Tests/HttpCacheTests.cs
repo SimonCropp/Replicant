@@ -143,7 +143,7 @@ public class HttpCacheTests
     {
         var uri = "https://httpbin.org/etag/{etag}";
         var result = await httpCache.DownloadAsync(uri);
-        await using (new FileStream(result.MetaPath!, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        using (new FileStream(result.MetaPath!, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
             result = await httpCache.DownloadAsync(uri);
         }
@@ -255,7 +255,7 @@ public class HttpCacheTests
     {
         #region stream
 
-        await using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
+        using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
 
         #endregion
 
