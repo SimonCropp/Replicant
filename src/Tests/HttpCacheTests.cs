@@ -220,6 +220,13 @@ public class HttpCacheTests
     }
 
     [Fact]
+    public Task WithContentSync()
+    {
+        var content = httpCache.Download("https://httpbin.org/json");
+        return Verifier.Verify(content);
+    }
+
+    [Fact]
     public async Task String()
     {
         #region string

@@ -69,39 +69,44 @@ namespace Replicant
             using var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
             await result.ToFileAsync(path, token);
         }
+
         public string String(
             string uri,
             bool staleIfError = false,
-            Action<HttpRequestMessage>? messageCallback = null)
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
         {
-            using var result = Download(uri, staleIfError, messageCallback);
+            using var result = Download(uri, staleIfError, messageCallback, token);
             return result.AsString();
         }
 
         public byte[] Bytes(
             string uri,
             bool staleIfError = false,
-            Action<HttpRequestMessage>? messageCallback = null)
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
         {
-            using var result = Download(uri, staleIfError, messageCallback);
+            using var result = Download(uri, staleIfError, messageCallback, token);
             return result.AsBytes();
         }
 
         public Stream Stream(
             string uri,
             bool staleIfError = false,
-            Action<HttpRequestMessage>? messageCallback = null)
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
         {
-            var result = Download(uri, staleIfError, messageCallback);
+            var result = Download(uri, staleIfError, messageCallback, token);
             return result.AsStream();
         }
 
         public async Task<HttpResponseMessage> Response(
             string uri,
             bool staleIfError = false,
-            Action<HttpRequestMessage>? messageCallback = null)
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
         {
-            var result = await DownloadAsync(uri, staleIfError, messageCallback);
+            var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
             return result.AsResponseMessage();
         }
 
@@ -109,20 +114,22 @@ namespace Replicant
             string uri,
             Stream stream,
             bool staleIfError = false,
-            Action<HttpRequestMessage>? messageCallback = null)
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
         {
-            using var result = Download(uri, staleIfError, messageCallback);
-            result.ToStream(stream);
+            using var result = Download(uri, staleIfError, messageCallback, token);
+            result.ToStream(stream, token);
         }
 
         public void ToFile(
             string uri,
             string path,
             bool staleIfError = false,
-            Action<HttpRequestMessage>? messageCallback = null)
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
         {
-            using var result = Download(uri, staleIfError, messageCallback);
-            result.ToFile(path);
+            using var result = Download(uri, staleIfError, messageCallback, token);
+            result.ToFile(path, token);
         }
     }
 }

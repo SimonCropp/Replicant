@@ -97,14 +97,15 @@ namespace Replicant
             {
                 try
                 {
+                    // try move back
                     if (File.Exists(tempContent))
                     {
-                        File.Move(tempContent, contentPath, true);
+                        FileEx.Move(tempContent, contentPath);
                     }
 
                     if (File.Exists(tempMeta))
                     {
-                        File.Move(tempMeta, metaPath, true);
+                        FileEx.Move(tempMeta, metaPath);
                     }
 
                     LogError($"Could not purge item due to locked file. Cached item remains. Path: {contentPath}");
@@ -148,16 +149,17 @@ namespace Replicant
         internal Result Download(
             string uri,
             bool staleIfError = false,
-            Action<HttpRequestMessage>? messageCallback = null)
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
         {
             var contentFile = FindContentFileForUri(uri);
 
             if (contentFile == null)
             {
-                return HandleFileMissing(uri, messageCallback);
+                return HandleFileMissing(uri, messageCallback, token);
             }
 
-            return HandleFileExists(uri, staleIfError, messageCallback, contentFile);
+            return HandleFileExists(uri, staleIfError, messageCallback, contentFile, token);
         }
 
         FileInfo? FindContentFileForUri(string uri)
@@ -269,7 +271,8 @@ namespace Replicant
             string uri,
             bool staleIfError,
             Action<HttpRequestMessage>? messageCallback,
-            FileInfo contentFile)
+            FileInfo contentFile,
+            CancellationToken token)
         {
             var now = DateTimeOffset.UtcNow;
 
@@ -289,7 +292,7 @@ namespace Replicant
             var httpClient = GetClient();
             try
             {
-                response = httpClient.SendEx(request);
+                response = httpClient.SendEx(request, token);
             }
             catch (Exception exception)
             {
@@ -315,7 +318,7 @@ namespace Replicant
                 {
                     using (response)
                     {
-                        return AddItem(response, uri, status);
+                        return AddItem(response, uri, status, token);
                     }
                 }
                 case CacheStatus.NoCache:
@@ -330,7 +333,7 @@ namespace Replicant
             }
         }
 
-        static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, CancellationToken token= default)
+        static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, CancellationToken token = default)
         {
             return (exception is HttpRequestException || (exception is TaskCanceledException && !token.IsCancellationRequested))
                    && staleIfError;
@@ -358,11 +361,12 @@ namespace Replicant
 
         Result HandleFileMissing(
             string uri,
-            Action<HttpRequestMessage>? messageCallback)
+            Action<HttpRequestMessage>? messageCallback,
+            CancellationToken token)
         {
             var httpClient = GetClient();
             using var request = BuildRequest(uri, messageCallback);
-            var response = httpClient.SendEx(request);
+            var response = httpClient.SendEx(request, token);
             response.EnsureSuccess();
             if (response.IsNoCache())
             {
@@ -371,7 +375,7 @@ namespace Replicant
 
             using (response)
             {
-                return AddItem(response, uri, CacheStatus.Stored);
+                return AddItem(response, uri, CacheStatus.Stored, token);
             }
         }
 
@@ -393,10 +397,10 @@ namespace Replicant
             return AddItemAsync(response, uri, CacheStatus.Stored, token);
         }
 
-        public void AddItem(string uri, HttpResponseMessage response)
+        public void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
-            AddItem(response, uri, CacheStatus.Stored);
+            AddItem(response, uri, CacheStatus.Stored, token);
         }
 
         async Task<Result> AddItemAsync(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
@@ -407,11 +411,19 @@ namespace Replicant
             var tempMetaFile = FileEx.GetTempFileName();
             try
             {
+#if NET5_0_OR_GREATER
                 await using var httpStream = await response.Content.ReadAsStreamAsync(token);
                 await using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
                 await using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 {
                     MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
+#else
+                using var httpStream = await response.Content.ReadAsStreamAsync(token);
+                using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
+                using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
+                {
+                    MetaData meta = new(response.Headers, response.Content.Headers);
+#endif
                     await JsonSerializer.SerializeAsync(metaFileStream, meta, cancellationToken: token);
                     await httpStream.CopyToAsync(contentFileStream, token);
                 }
@@ -425,7 +437,7 @@ namespace Replicant
             }
         }
 
-        Result AddItem(HttpResponseMessage response, string uri, CacheStatus status)
+        Result AddItem(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
         {
             var timestamp = Timestamp.FromResponse(uri, response);
 
@@ -433,12 +445,17 @@ namespace Replicant
             var tempMetaFile = FileEx.GetTempFileName();
             try
             {
-                using var httpStream = response.Content.ReadAsStream();
+
+                using var httpStream = response.Content.ReadAsStream(token);
                 using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
                 using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 using (var writer = new Utf8JsonWriter(metaFileStream))
                 {
+#if NET5_0_OR_GREATER
                     MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
+#else
+                    MetaData meta = new(response.Headers, response.Content.Headers);
+#endif
                     JsonSerializer.Serialize(writer, meta);
                     httpStream.CopyTo(contentFileStream);
                 }
@@ -466,20 +483,20 @@ namespace Replicant
             var contentFile = Path.Combine(directory, timestamp.ContentFileName);
             var metaFile = Path.Combine(directory, timestamp.MetaFileName);
 
-            // if another thread has downloaded in parallel, the use those files
+            // if another thread has downloaded in parallel, them use those files
             if (!File.Exists(contentFile))
             {
                 try
                 {
-                    File.Move(tempContentFile, contentFile, true);
-                    File.Move(tempMetaFile, metaFile, true);
+                    FileEx.Move(tempContentFile, contentFile);
+                    FileEx.Move(tempMetaFile, metaFile);
                 }
                 catch (UnauthorizedAccessException)
                 {
                     if (!File.Exists(contentFile))
                     {
-                        File.Move(tempContentFile, contentFile, true);
-                        File.Move(tempMetaFile, metaFile, true);
+                        FileEx.Move(tempContentFile, contentFile);
+                        FileEx.Move(tempMetaFile, metaFile);
                     }
                 }
             }
@@ -503,8 +520,12 @@ namespace Replicant
             {
                 client!.Dispose();
             }
-
+#if NET5_0_OR_GREATER
             return timer.DisposeAsync();
+#else
+            timer.Dispose();
+            return default;
+#endif
         }
     }
 }

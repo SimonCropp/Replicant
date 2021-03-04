@@ -45,7 +45,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            return File.ReadAllBytesAsync(ContentPath!, token);
+            return FileEx.ReadAllBytesAsync(ContentPath!, token);
         }
 
         return Response.Content.ReadAsByteArrayAsync(token);
@@ -55,7 +55,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            return File.ReadAllTextAsync(ContentPath!, token);
+            return FileEx.ReadAllTextAsync(ContentPath!, token);
         }
 
         return Response.Content.ReadAsStringAsync(token);
@@ -65,7 +65,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            await using var openRead = FileEx.OpenRead(ContentPath!);
+            using var openRead = FileEx.OpenRead(ContentPath!);
             await openRead.CopyToAsync(stream, token);
             return;
         }
@@ -81,59 +81,59 @@ readonly struct Result :
             return;
         }
 
-        await using var stream = FileEx.OpenWrite(path);
+        using var stream = FileEx.OpenWrite(path);
         await Response.Content.CopyToAsync(stream, token);
     }
 
-    public Stream AsStream()
+    public Stream AsStream(CancellationToken token = default)
     {
         if (Response == null)
         {
             return FileEx.OpenRead(ContentPath!);
         }
 
-        var stream = Response.Content.ReadAsStream();
+        var stream = Response.Content.ReadAsStream(token);
         return new StreamWithCleanup(stream);
     }
 
-    public byte[] AsBytes()
+    public byte[] AsBytes(CancellationToken token = default)
     {
         if (Response == null)
         {
             return File.ReadAllBytes(ContentPath!);
         }
 
-        using var stream = Response.Content.ReadAsStream();
+        using var stream = Response.Content.ReadAsStream(token);
         using var memoryStream = new MemoryStream();
         stream.CopyTo(memoryStream);
         return memoryStream.ToArray();
     }
 
-    public string AsString()
+    public string AsString(CancellationToken token = default)
     {
         if (Response == null)
         {
             return File.ReadAllText(ContentPath!);
         }
 
-        using var stream = Response.Content.ReadAsStream();
+        using var stream = Response.Content.ReadAsStream(token);
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
 
-    public void ToStream(Stream stream)
+    public void ToStream(Stream stream, CancellationToken token = default)
     {
-        if (Response == null)
+        if (Response != null)
         {
-            using var openRead = FileEx.OpenRead(ContentPath!);
-            openRead.CopyTo(stream);
+            Response.Content.CopyTo(stream, token);
             return;
         }
 
-        Response.Content.CopyTo(stream, null, default);
+        using var openRead = FileEx.OpenRead(ContentPath!);
+        openRead.CopyTo(stream);
     }
 
-    public void ToFile(string path)
+    public void ToFile(string path, CancellationToken token = default)
     {
         if (Response == null)
         {
@@ -142,7 +142,7 @@ readonly struct Result :
         }
 
         using var stream = FileEx.OpenWrite(path);
-        Response.Content.CopyTo(stream, null, default);
+        Response.Content.CopyTo(stream, token);
     }
 
     public HttpResponseMessage AsResponseMessage()
@@ -151,6 +151,7 @@ readonly struct Result :
         {
             return Response;
         }
+
         var meta = MetaDataReader.ReadMeta(MetaPath!);
         HttpResponseMessage message = new()
         {
@@ -158,7 +159,9 @@ readonly struct Result :
         };
         message.Headers.AddRange(meta.ResponseHeaders);
         message.Content.Headers.AddRange(meta.ContentHeaders);
+#if NET5_0_OR_GREATER
         message.TrailingHeaders.AddRange(meta.TrailingHeaders);
+#endif
         return message;
     }
 
