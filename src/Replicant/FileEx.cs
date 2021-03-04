@@ -53,11 +53,7 @@ static class FileEx
 
     public static void Move(string source, string target)
     {
-        if (File.Exists(target))
-        {
-            File.Delete(target);
-        }
-
+        File.Delete(target);
         File.Move(source, target);
     }
 

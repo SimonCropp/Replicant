@@ -495,7 +495,9 @@ namespace Replicant
                     FileEx.Move(tempContentFile, contentFile);
                     FileEx.Move(tempMetaFile, metaFile);
                 }
-                catch (UnauthorizedAccessException)
+                catch (Exception exception)
+                when(exception is IOException ||
+                     exception is UnauthorizedAccessException)
                 {
                     if (!File.Exists(contentFile))
                     {

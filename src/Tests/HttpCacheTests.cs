@@ -96,6 +96,7 @@ public class HttpCacheTests
         using var httpResponseMessage = result.AsResponseMessage();
         await Verifier.Verify(httpResponseMessage);
     }
+
 #if DEBUG
     //TODO: debug these on mac
     [Fact]
