@@ -23,11 +23,6 @@ class StreamWithCleanup :
         return inner.WriteAsync(buffer, offset, count, cancellationToken);
     }
 
-    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
-    {
-        return inner.ReadAsync(buffer, cancellationToken);
-    }
-
     public override void WriteByte(byte value)
     {
         inner.WriteByte(value);
@@ -37,11 +32,6 @@ class StreamWithCleanup :
     {
         get => inner.WriteTimeout;
         set => inner.WriteTimeout = value;
-    }
-
-    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
-    {
-        return inner.WriteAsync(buffer, cancellationToken);
     }
 
     public override int GetHashCode()
@@ -59,10 +49,27 @@ class StreamWithCleanup :
         return inner.ToString()!;
     }
 
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    {
+        return inner.ReadAsync(buffer, offset, count, cancellationToken);
+    }
+
     public override int ReadTimeout
     {
         get => inner.ReadTimeout;
         set => inner.ReadTimeout = value;
+    }
+
+#if !NET472
+
+    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+    {
+        return inner.WriteAsync(buffer, cancellationToken);
+    }
+
+    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+    {
+        return inner.ReadAsync(buffer, cancellationToken);
     }
 
     public override void Write(ReadOnlySpan<byte> buffer)
@@ -70,15 +77,23 @@ class StreamWithCleanup :
         inner.Write(buffer);
     }
 
-    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-    {
-        return inner.ReadAsync(buffer, offset, count, cancellationToken);
-    }
-
     public override int Read(Span<byte> buffer)
     {
         return inner.Read(buffer);
     }
+
+    public override void CopyTo(Stream destination, int bufferSize)
+    {
+        inner.CopyTo(destination, bufferSize);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await inner.DisposeAsync();
+        await base.DisposeAsync();
+    }
+
+#endif
 
     public override Task FlushAsync(CancellationToken cancellationToken)
     {
@@ -93,11 +108,6 @@ class StreamWithCleanup :
     public override int EndRead(IAsyncResult asyncResult)
     {
         return inner.EndRead(asyncResult);
-    }
-
-    public override void CopyTo(Stream destination, int bufferSize)
-    {
-        inner.CopyTo(destination, bufferSize);
     }
 
     public override void Flush()
@@ -143,12 +153,6 @@ class StreamWithCleanup :
     {
         inner.Dispose();
         base.Dispose(disposing);
-    }
-
-    public override async ValueTask DisposeAsync()
-    {
-        await inner.DisposeAsync();
-        await base.DisposeAsync();
     }
 
     public override int ReadByte()
