@@ -296,7 +296,7 @@ namespace Replicant
             }
             catch (Exception exception)
             {
-                if (ShouldReturnStaleIfError(staleIfError, exception))
+                if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
                     return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
                 }
@@ -333,9 +333,13 @@ namespace Replicant
             }
         }
 
-        static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, CancellationToken token = default)
+        static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, CancellationToken token)
         {
-            return (exception is HttpRequestException || (exception is TaskCanceledException && !token.IsCancellationRequested))
+            return (
+                       exception is HttpRequestException ||
+                       exception is TaskCanceledException &&
+                       !token.IsCancellationRequested
+                   )
                    && staleIfError;
         }
 
