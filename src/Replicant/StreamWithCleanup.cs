@@ -60,7 +60,7 @@ class StreamWithCleanup :
         set => inner.ReadTimeout = value;
     }
 
-#if !NET472
+#if !NET472 && !NETSTANDARD2_0
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
     {
