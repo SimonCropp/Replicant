@@ -89,12 +89,12 @@ public class HttpCacheTests
     {
         var task = httpCache.DownloadAsync("https://httpbin.org/delay/1");
         await Task.Delay(100);
-        var result = await httpCache.DownloadAsync("https://httpbin.org/delay/1");
+        var result2 = await httpCache.DownloadAsync("https://httpbin.org/delay/1");
 
-        await task;
+        var result1 = await task;
 
-        using var httpResponseMessage = result.AsResponseMessage();
-        await Verifier.Verify(httpResponseMessage);
+        Assert.True(CacheStatus.Stored == result1.Status ||
+                    CacheStatus.Stored == result2.Status);
     }
 
 #if DEBUG
@@ -192,10 +192,12 @@ public class HttpCacheTests
     public async Task WeakEtag()
     {
         var uri = "https://www.wikipedia.org/";
-        HttpResponseMessage newMessage;
+        HttpResponseMessage newMessage = new(HttpStatusCode.OK)
+        {
+            Content = new StringContent("a"),
+        };
         using (var content = await httpCache.ResponseAsync(uri))
         {
-            newMessage = new(HttpStatusCode.OK);
             newMessage.Headers.ETag = content.Headers.ETag;
         }
 
@@ -334,7 +336,8 @@ public class HttpCacheTests
         httpCache.Purge();
         var uri = "https://httpbin.org/delay/1";
         var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => httpCache.StringAsync(uri));
-        await Verifier.Verify(exception.Message);
+        await Verifier.Verify(exception.Message)
+            .UniqueForRuntime();
     }
 
     [Fact]

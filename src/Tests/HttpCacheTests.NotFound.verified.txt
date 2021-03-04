@@ -1,5 +1,4 @@
 {
   Type: HttpRequestException,
-  StatusCode: NotFound,
   Message: Response status code does not indicate success: 404 (NOT FOUND). Uri: https://httpbin.org/status/404
 }

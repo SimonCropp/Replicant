@@ -12,6 +12,5 @@ Response: {
     Cache-Control: public, max-age=20,
     Date: DateTime_1
   },
-  TrailingHeaders: {},
   IsSuccessStatusCode: true
 }

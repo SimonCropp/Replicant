@@ -7,6 +7,5 @@ Response: {
   StatusCode: OK,
   ReasonPhrase: OK,
   Headers: {},
-  TrailingHeaders: {},
   IsSuccessStatusCode: true
 }

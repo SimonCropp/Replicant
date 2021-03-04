@@ -12,6 +12,5 @@ Response: {
     Date: DateTime_1,
     ETag: {etag}
   },
-  TrailingHeaders: {},
   IsSuccessStatusCode: true
 }

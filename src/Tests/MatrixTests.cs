@@ -24,7 +24,7 @@ public class MatrixTests
 
     [Theory]
     [MemberData(nameof(StatusForMessageData))]
-    internal async Task StatusForMessage(HttpResponseMessage response, bool staleIfError)
+    internal async Task StatusForMessage(HttpResponseMessageEx response, bool staleIfError)
     {
         var fileName = BuildStatusForMessageFileName(response, staleIfError);
         var settings = new VerifySettings(sharedSettings);
@@ -57,7 +57,7 @@ public class MatrixTests
         }
     }
 
-    public static IEnumerable<HttpResponseMessage> Responses()
+    public static IEnumerable<HttpResponseMessageEx> Responses()
     {
         DateTimeOffset now = new(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var inPast = now.AddDays(-1);
@@ -66,7 +66,7 @@ public class MatrixTests
         foreach (var webEtag in etags)
         foreach (var cacheControl in cacheControls)
         {
-            HttpResponseMessage response = new(HttpStatusCode.NotModified);
+            HttpResponseMessageEx response = new(HttpStatusCode.NotModified);
             if (!webEtag.IsEmpty)
             {
                 response.Headers.TryAddWithoutValidation("ETag", webEtag.ForWeb);
@@ -81,7 +81,10 @@ public class MatrixTests
         foreach (var webEtag in etags)
         foreach (var cacheControl in cacheControls)
         {
-            HttpResponseMessage response = new(HttpStatusCode.OK);
+            HttpResponseMessageEx response = new(HttpStatusCode.OK)
+            {
+                Content = new StringContent("a")
+            };
             response.Content.Headers.LastModified = webMod;
             response.Content.Headers.Expires = webExpiry;
             if (!webEtag.IsEmpty)
@@ -96,56 +99,7 @@ public class MatrixTests
 
     static string BuildStatusForMessageFileName(HttpResponseMessage response, bool staleIfError)
     {
-        var builder = new StringBuilder($"StatusForMessage_status_{response.StatusCode}_staleIfError={staleIfError}_");
-        var cacheControl = response.Headers.CacheControl;
-        if (cacheControl == null)
-        {
-            builder.Append("cache=null_");
-        }
-        else
-        {
-            builder.Append($"cache={cacheControl.ToString().Replace(", ", ",")}_");
-        }
-
-        var webExpires = response.Content.Headers.Expires;
-        if (webExpires == null)
-        {
-            builder.Append("expires=null_");
-        }
-        else
-        {
-            builder.Append($"expires={webExpires.Value:yyyyMMdd}_");
-        }
-
-        var webMod = response.Content.Headers.LastModified;
-        if (webMod == null)
-        {
-            builder.Append("mod=null_");
-        }
-        else
-        {
-            builder.Append($"mod={webMod.Value:yyyyMMdd}_");
-        }
-
-        var webEtag = response.Headers.ETag;
-        if (webEtag == null)
-        {
-            builder.Append("mod=null_");
-        }
-        else
-        {
-            var etag = Etag.FromResponse(response);
-            if (etag.IsEmpty)
-            {
-                builder.Append("mod=empty_");
-            }
-            else
-            {
-                builder.Append($"mod={etag.ForFile.Substring(1)}_");
-            }
-        }
-
-        return builder.ToString().Trim('_');
+        return $"StatusForMessage_{response}_staleIfError={staleIfError}";
     }
 
     //[Theory]
@@ -330,4 +284,66 @@ public class MatrixTests
             NoStore = true,
         }
     };
+}
+
+public class HttpResponseMessageEx : HttpResponseMessage
+{
+    public HttpResponseMessageEx(HttpStatusCode code) :
+        base(code)
+    {
+    }
+
+    public override string ToString()
+    {
+        var builder = new StringBuilder($"{StatusCode}_");
+        var cacheControl = Headers.CacheControl;
+        if (cacheControl == null)
+        {
+            builder.Append("cache=null_");
+        }
+        else
+        {
+            builder.Append($"cache={cacheControl.ToString().Replace(", ", ",")}_");
+        }
+
+        var webExpires = Content?.Headers.Expires;
+        if (webExpires == null)
+        {
+            builder.Append("expires=null_");
+        }
+        else
+        {
+            builder.Append($"expires={webExpires.Value:yyyyMMdd}_");
+        }
+
+        var webMod = Content?.Headers.LastModified;
+        if (webMod == null)
+        {
+            builder.Append("mod=null_");
+        }
+        else
+        {
+            builder.Append($"mod={webMod.Value:yyyyMMdd}_");
+        }
+
+        var webEtag = Headers.ETag;
+        if (webEtag == null)
+        {
+            builder.Append("mod=null_");
+        }
+        else
+        {
+            var etag = Etag.FromResponse(this);
+            if (etag.IsEmpty)
+            {
+                builder.Append("mod=empty_");
+            }
+            else
+            {
+                builder.Append($"mod={etag.ForFile.Substring(1)}_");
+            }
+        }
+
+        return builder.ToString().Trim('_');
+    }
 }

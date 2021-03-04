@@ -1,5 +1,4 @@
 {
   Type: HttpRequestException,
-  StatusCode: InternalServerError,
   Message: Response status code does not indicate success: 500 (INTERNAL SERVER ERROR). Uri: https://httpbin.org/status/500
 }

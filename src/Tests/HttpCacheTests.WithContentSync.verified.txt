@@ -11,6 +11,5 @@ Response: {
     Access-Control-Allow-Origin: *,
     Date: DateTime_1
   },
-  TrailingHeaders: {},
   IsSuccessStatusCode: true
 }

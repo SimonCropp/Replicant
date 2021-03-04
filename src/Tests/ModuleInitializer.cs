@@ -10,10 +10,14 @@ public static class ModuleInitializer
             settings =>
             {
                 settings.AddExtraSettings(x => x.Converters.Add(new ResultConverter()));
+#if NET5_0_OR_GREATER
+                settings.IgnoreMember<System.Net.Http.HttpRequestException>(x => x.StatusCode);
+#endif
                 settings.IgnoreMember<Result>(x => x.ContentPath);
                 settings.IgnoreMembers(
                     "StackTrace",
                     "Content-Length",
+                    "TrailingHeaders",
                     "X-Amzn-Trace-Id",
                     "Set-Cookie",
                     "Report-To",
@@ -32,7 +36,6 @@ public static class ModuleInitializer
             });
     }
 }
-
 
 //Only required if using a legacy version of .net
 #if(!NET5_0)

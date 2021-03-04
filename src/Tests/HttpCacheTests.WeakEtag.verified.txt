@@ -13,6 +13,5 @@
     ETag: W/"104a8-5bc82b0e6bd90",
     Vary: Accept-Encoding
   },
-  TrailingHeaders: {},
   IsSuccessStatusCode: true
 }
