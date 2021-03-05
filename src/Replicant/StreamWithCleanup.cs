@@ -7,10 +7,12 @@ class StreamWithCleanup :
     Stream
 {
     Stream inner;
+    IDisposable disposable;
 
-    public StreamWithCleanup(Stream inner)
+    public StreamWithCleanup(Stream inner, IDisposable disposable)
     {
         this.inner = inner;
+        this.disposable = disposable;
     }
 
     public override void EndWrite(IAsyncResult asyncResult)
@@ -90,6 +92,7 @@ class StreamWithCleanup :
     public override async ValueTask DisposeAsync()
     {
         await inner.DisposeAsync();
+        disposable.Dispose();
         await base.DisposeAsync();
     }
 
@@ -152,6 +155,7 @@ class StreamWithCleanup :
     protected override void Dispose(bool disposing)
     {
         inner.Dispose();
+        disposable.Dispose();
         base.Dispose(disposing);
     }
 

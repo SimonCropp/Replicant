@@ -38,7 +38,7 @@ readonly struct Result :
         }
 
         var stream = await Response.Content.ReadAsStreamAsync(token);
-        return new StreamWithCleanup(stream);
+        return new StreamWithCleanup(stream, this);
     }
 
     public Task<byte[]> AsBytesAsync(CancellationToken token)
@@ -93,7 +93,7 @@ readonly struct Result :
         }
 
         var stream = Response.Content.ReadAsStream(token);
-        return new StreamWithCleanup(stream);
+        return new StreamWithCleanup(stream, this);
     }
 
     public byte[] AsBytes(CancellationToken token = default)
