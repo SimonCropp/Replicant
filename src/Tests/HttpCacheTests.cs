@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -239,6 +240,22 @@ public class HttpCacheTests
         #endregion
 
         await Verifier.Verify(content);
+    }
+
+    [Fact]
+    public async Task Lines()
+    {
+        #region string
+
+        List<string> lines = new();
+        await foreach (var line in httpCache.LinesAsync("https://httpbin.org/json"))
+        {
+            lines.Add(line);
+        }
+
+        #endregion
+
+        await Verifier.Verify(lines);
     }
 
     [Fact]

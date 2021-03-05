@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -78,6 +80,38 @@ namespace Replicant
         {
             using var result = Download(uri, staleIfError, messageCallback, token);
             return result.AsString();
+        }
+
+        public async IAsyncEnumerable<string> LinesAsync(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null,
+            [EnumeratorCancellation] CancellationToken token = default)
+        {
+            using var result = await DownloadAsync(uri, staleIfError, messageCallback, token);
+            using var stream = result.AsStream(token);
+            using var reader = new StreamReader(stream);
+            string? line;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                yield return line;
+            }
+        }
+
+        public IEnumerable<string> Lines(
+            string uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? messageCallback = null,
+            CancellationToken token = default)
+        {
+            using var result = Download(uri, staleIfError, messageCallback, token);
+            using var stream = result.AsStream(token);
+            using var reader = new StreamReader(stream);
+            string? line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                yield return line;
+            }
         }
 
         public byte[] Bytes(
