@@ -13,12 +13,16 @@ using Xunit;
 [UsesVerify]
 public class HttpCacheTests
 {
-    HttpCache httpCache;
+    static HttpCache httpCache;
     static string CachePath = Path.Combine(Path.GetTempPath(), "DownloadTests");
+
+    static HttpCacheTests()
+    {
+        httpCache = new(CachePath);
+    }
 
     public HttpCacheTests()
     {
-        httpCache = new(CachePath);
         httpCache.Purge();
     }
 
