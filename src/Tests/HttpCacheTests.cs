@@ -317,15 +317,15 @@ public class HttpCacheTests
     }
 
     [Fact]
-    public async Task Callback()
+    public async Task ModifyRequest()
     {
         var uri = "https://httpbin.org/json";
 
-        #region Callback
+        #region ModifyRequest
 
         var content = await httpCache.StringAsync(
             uri,
-            messageCallback: message =>
+            modifyRequest: message =>
             {
                 message.Headers.Add("Key1", "Value1");
                 message.Headers.Add("Key2", "Value2");

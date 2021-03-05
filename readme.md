@@ -191,18 +191,18 @@ var content = httpCache.StringAsync(uri, staleIfError: true);
 
 The HttpRequestMessage used can be customized using a callback.
 
-<!-- snippet: Callback -->
-<a id='snippet-callback'></a>
+<!-- snippet: ModifyRequest -->
+<a id='snippet-modifyrequest'></a>
 ```cs
 var content = await httpCache.StringAsync(
     uri,
-    messageCallback: message =>
+    modifyRequest: message =>
     {
         message.Headers.Add("Key1", "Value1");
         message.Headers.Add("Key2", "Value2");
     });
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L324-L334' title='Snippet source file'>snippet source</a> | <a href='#snippet-callback' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L324-L334' title='Snippet source file'>snippet source</a> | <a href='#snippet-modifyrequest' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

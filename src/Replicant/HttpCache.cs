@@ -97,16 +97,7 @@ namespace Replicant
             {
                 try
                 {
-                    // try move back
-                    if (File.Exists(tempContent))
-                    {
-                        FileEx.Move(tempContent, contentPath);
-                    }
-
-                    if (File.Exists(tempMeta))
-                    {
-                        FileEx.Move(tempMeta, metaPath);
-                    }
+                    TryMoveTempFilesBack(contentPath, tempContent, tempMeta, metaPath);
 
                     LogError($"Could not purge item due to locked file. Cached item remains. Path: {contentPath}");
                 }
@@ -122,6 +113,19 @@ namespace Replicant
             }
         }
 
+        static void TryMoveTempFilesBack(string contentPath, string tempContent, string tempMeta, string metaPath)
+        {
+            if (File.Exists(tempContent))
+            {
+                FileEx.Move(tempContent, contentPath);
+            }
+
+            if (File.Exists(tempMeta))
+            {
+                FileEx.Move(tempMeta, metaPath);
+            }
+        }
+
         public void Purge()
         {
             foreach (var file in Directory.EnumerateFiles(directory))
@@ -133,33 +137,33 @@ namespace Replicant
         internal Task<Result> DownloadAsync(
             string uri,
             bool staleIfError = false,
-            Action<HttpRequestMessage>? messageCallback = null,
+            Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
             var contentFile = FindContentFileForUri(uri);
 
             if (contentFile == null)
             {
-                return HandleFileMissingAsync(uri, messageCallback, token);
+                return HandleFileMissingAsync(uri, modifyRequest, token);
             }
 
-            return HandleFileExistsAsync(uri, staleIfError, messageCallback, token, contentFile);
+            return HandleFileExistsAsync(uri, staleIfError, modifyRequest, token, contentFile);
         }
 
         internal Result Download(
             string uri,
             bool staleIfError = false,
-            Action<HttpRequestMessage>? messageCallback = null,
+            Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
             var contentFile = FindContentFileForUri(uri);
 
             if (contentFile == null)
             {
-                return HandleFileMissing(uri, messageCallback, token);
+                return HandleFileMissing(uri, modifyRequest, token);
             }
 
-            return HandleFileExists(uri, staleIfError, messageCallback, contentFile, token);
+            return HandleFileExists(uri, staleIfError, modifyRequest, contentFile, token);
         }
 
         FileInfo? FindContentFileForUri(string uri)
@@ -204,7 +208,7 @@ namespace Replicant
         async Task<Result> HandleFileExistsAsync(
             string uri,
             bool staleIfError,
-            Action<HttpRequestMessage>? messageCallback,
+            Action<HttpRequestMessage>? modifyRequest,
             CancellationToken token,
             FileInfo contentFile)
         {
@@ -218,7 +222,7 @@ namespace Replicant
                 return new(contentPath, CacheStatus.Hit, metaFile);
             }
 
-            using var request = BuildRequest(uri, messageCallback);
+            using var request = BuildRequest(uri, modifyRequest);
             timestamp.ApplyHeadersToRequest(request);
 
             HttpResponseMessage? response;
@@ -270,7 +274,7 @@ namespace Replicant
         Result HandleFileExists(
             string uri,
             bool staleIfError,
-            Action<HttpRequestMessage>? messageCallback,
+            Action<HttpRequestMessage>? modifyRequest,
             FileInfo contentFile,
             CancellationToken token)
         {
@@ -284,7 +288,7 @@ namespace Replicant
                 return new(contentPath, CacheStatus.Hit, metaFile);
             }
 
-            using var request = BuildRequest(uri, messageCallback);
+            using var request = BuildRequest(uri, modifyRequest);
             timestamp.ApplyHeadersToRequest(request);
 
             HttpResponseMessage? response;
@@ -345,11 +349,11 @@ namespace Replicant
 
         async Task<Result> HandleFileMissingAsync(
             string uri,
-            Action<HttpRequestMessage>? messageCallback,
+            Action<HttpRequestMessage>? modifyRequest,
             CancellationToken token)
         {
             var httpClient = GetClient();
-            using var request = BuildRequest(uri, messageCallback);
+            using var request = BuildRequest(uri, modifyRequest);
             var response = await httpClient.SendAsyncEx(request, token);
             response.EnsureSuccess();
             if (response.IsNoCache())
@@ -365,11 +369,11 @@ namespace Replicant
 
         Result HandleFileMissing(
             string uri,
-            Action<HttpRequestMessage>? messageCallback,
+            Action<HttpRequestMessage>? modifyRequest,
             CancellationToken token)
         {
             var httpClient = GetClient();
-            using var request = BuildRequest(uri, messageCallback);
+            using var request = BuildRequest(uri, modifyRequest);
             var response = httpClient.SendEx(request, token);
             response.EnsureSuccess();
             if (response.IsNoCache())
@@ -383,10 +387,10 @@ namespace Replicant
             }
         }
 
-        static HttpRequestMessage BuildRequest(string uri, Action<HttpRequestMessage>? messageCallback)
+        static HttpRequestMessage BuildRequest(string uri, Action<HttpRequestMessage>? modifyRequest)
         {
             HttpRequestMessage request = new(HttpMethod.Get, uri);
-            messageCallback?.Invoke(request);
+            modifyRequest?.Invoke(request);
             return request;
         }
 
@@ -487,7 +491,7 @@ namespace Replicant
             var contentFile = Path.Combine(directory, timestamp.ContentFileName);
             var metaFile = Path.Combine(directory, timestamp.MetaFileName);
 
-            // if another thread has downloaded in parallel, them use those files
+            // if another thread has downloaded in parallel, then use those files
             if (!File.Exists(contentFile))
             {
                 try
@@ -496,8 +500,8 @@ namespace Replicant
                     FileEx.Move(tempMetaFile, metaFile);
                 }
                 catch (Exception exception)
-                when(exception is IOException ||
-                     exception is UnauthorizedAccessException)
+                    when (exception is IOException ||
+                          exception is UnauthorizedAccessException)
                 {
                     if (!File.Exists(contentFile))
                     {

@@ -24,7 +24,7 @@ public class MatrixTests
 
     [Theory]
     [MemberData(nameof(StatusForMessageData))]
-    internal async Task StatusForMessage(HttpResponseMessageEx response, bool staleIfError)
+    public async Task StatusForMessage(HttpResponseMessageEx response, bool staleIfError)
     {
         var fileName = BuildStatusForMessageFileName(response, staleIfError);
         var settings = new VerifySettings(sharedSettings);
