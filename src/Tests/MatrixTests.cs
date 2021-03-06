@@ -16,6 +16,8 @@ public class MatrixTests
     static DateTimeOffset now = new(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
     static DateTimeOffset inPast = now.AddDays(-1);
     static DateTimeOffset inFuture = now.AddDays(1);
+    static DateTimeOffset?[] expiries = {null, inFuture};
+    static DateTimeOffset?[] mods = {null, now, inPast};
 
     static MatrixTests()
     {
@@ -73,9 +75,6 @@ public class MatrixTests
 
     public static IEnumerable<HttpResponseMessageEx> Responses()
     {
-        DateTimeOffset now = new(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        var inPast = now.AddDays(-1);
-        var inFuture = now.AddDays(1);
         yield return new(HttpStatusCode.BadRequest);
         foreach (var webEtag in etags)
         foreach (var cacheControl in cacheControls)
@@ -90,24 +89,26 @@ public class MatrixTests
             yield return response;
         }
 
-        foreach (var webExpiry in new DateTimeOffset?[] {null, inFuture})
-        foreach (var webMod in new DateTimeOffset?[] {null, now, inPast})
-        foreach (var webEtag in etags)
-        foreach (var cacheControl in cacheControls)
+        foreach (var webExpiry in expiries)
         {
-            HttpResponseMessageEx response = new(HttpStatusCode.OK)
+            foreach (var webMod in mods)
+            foreach (var webEtag in etags)
+            foreach (var cacheControl in cacheControls)
             {
-                Content = new StringContent("a")
-            };
-            response.Content.Headers.LastModified = webMod;
-            response.Content.Headers.Expires = webExpiry;
-            if (!webEtag.IsEmpty)
-            {
-                response.Headers.TryAddWithoutValidation("ETag", webEtag.ForWeb);
-            }
+                HttpResponseMessageEx response = new(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("a")
+                };
+                response.Content.Headers.LastModified = webMod;
+                response.Content.Headers.Expires = webExpiry;
+                if (!webEtag.IsEmpty)
+                {
+                    response.Headers.TryAddWithoutValidation("ETag", webEtag.ForWeb);
+                }
 
-            response.Headers.CacheControl = cacheControl;
-            yield return response;
+                response.Headers.CacheControl = cacheControl;
+                yield return response;
+            }
         }
     }
 
