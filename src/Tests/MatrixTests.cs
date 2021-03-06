@@ -51,7 +51,7 @@ public class MatrixTests
         HttpResponseMessageEx response,
         bool useStale)
     {
-        var fileName = $"Int_{response}_staleIfError={useStale}_expiry={data.Expiry:yyyyMMdd}_modified={data.Modified:yyyyMMdd}_etag={data.Etag?.Replace('/','_').Replace('"','_')}";
+        var fileName = $"Int_{response}_useStale={useStale}_exp={data.Expiry:yyyyMMdd}_mod={data.Modified:yyyyMMdd}_tag={data.Etag?.Replace('/','_').Replace('"','_')}";
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
@@ -76,15 +76,15 @@ public class MatrixTests
 
     [Theory]
     [MemberData(nameof(StatusForMessageData))]
-    public async Task StatusForMessage(HttpResponseMessageEx response, bool staleIfError)
+    public async Task StatusForMessage(HttpResponseMessageEx response, bool useStale)
     {
-        var fileName = $"StatusForMessage_{response}_staleIfError={staleIfError}";
+        var fileName = $"Status_{response}_useStale={useStale}";
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
         try
         {
-            await Verifier.Verify(response.CacheStatus(staleIfError), settings);
+            await Verifier.Verify(response.CacheStatus(useStale), settings);
         }
         catch (HttpRequestException exception)
         {
