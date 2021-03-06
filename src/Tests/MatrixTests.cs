@@ -49,9 +49,9 @@ public class MatrixTests
     public async Task Integration(
         StoredData data,
         HttpResponseMessageEx response,
-        bool staleIfError)
+        bool useStale)
     {
-        var fileName = $"Int_{response}_staleIfError={staleIfError}_expiry={data.Expiry:yyyyMMdd}_modified={data.Modified:yyyyMMdd}_etag={data.Etag?.Replace('/','_').Replace('"','_')}";
+        var fileName = $"Int_{response}_staleIfError={useStale}_expiry={data.Expiry:yyyyMMdd}_modified={data.Modified:yyyyMMdd}_etag={data.Etag?.Replace('/','_').Replace('"','_')}";
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
@@ -61,7 +61,7 @@ public class MatrixTests
             await using var cache = new HttpCache(directory, new MockHttpClient(response));
             cache.Purge();
             await cache.AddItemAsync("uri", "content", data.Expiry, data.Modified, data.Etag);
-            var result = await cache.DownloadAsync("uri", staleIfError);
+            var result = await cache.DownloadAsync("uri", useStale);
             await Verifier.Verify(result, settings);
         }
         catch (HttpRequestException exception)
