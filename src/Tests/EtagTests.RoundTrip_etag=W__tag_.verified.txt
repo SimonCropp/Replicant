@@ -1,0 +1,10 @@
+{
+  fromHeader: {
+    ForWeb: W/"tag",
+    ForFile: Wtag
+  },
+  fromFilePath: {
+    ForWeb: W/"tag",
+    ForFile: Wtag
+  }
+}

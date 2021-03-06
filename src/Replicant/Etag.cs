@@ -39,7 +39,7 @@ readonly struct Etag
             return new Etag($"W/\"{tag}\"", value, false);
         }
 
-        return new Etag($"\"{tag}\"", tag, false);
+        return new Etag($"\"{tag}\"", value, false);
     }
 
     public static Etag FromResponse(HttpResponseMessage response)

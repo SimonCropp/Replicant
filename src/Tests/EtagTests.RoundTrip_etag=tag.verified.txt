@@ -1,0 +1,10 @@
+{
+  fromHeader: {
+    ForWeb: tag,
+    ForFile: Stag
+  },
+  fromFilePath: {
+    ForWeb: "tag",
+    ForFile: Stag
+  }
+}
