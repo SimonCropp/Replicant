@@ -502,7 +502,6 @@ namespace Replicant
             var tempMetaFile = FileEx.GetTempFileName();
             try
             {
-
                 using var httpStream = response.Content.ReadAsStream(token);
                 using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
                 using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))

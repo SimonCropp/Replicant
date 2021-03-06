@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Replicant;
 using VerifyTests;
 using VerifyXunit;
 using Xunit;
@@ -75,7 +74,7 @@ public class MatrixTests
 
         try
         {
-            await Verifier.Verify(HttpCache.StatusForMessage(response, staleIfError), settings);
+            await Verifier.Verify(response.CacheStatus(staleIfError), settings);
         }
         catch (HttpRequestException exception)
         {
