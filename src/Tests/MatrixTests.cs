@@ -37,24 +37,21 @@ public class MatrixTests
         {
             yield return new object?[]
             {
-                expiry,
-                modDate,
-                etag,
+                new StoredData(expiry, modDate, etag),
                 response,
                 staleIfError
             };
         }
     }
+
     [Theory]
     [MemberData(nameof(DataForIntegration))]
     public async Task Integration(
-        DateTimeOffset? expiry,
-        DateTimeOffset? modified,
-        string? etag,
+        StoredData storedData,
         HttpResponseMessageEx response,
         bool staleIfError)
     {
-        var fileName = $"Integration_{response}_staleIfError={staleIfError}_expiry={expiry:yyyyMMdd}_modified={modified:yyyyMMdd}_etag={etag?.Replace('/','_').Replace('"','_')}";
+        var fileName = $"Integration_{response}_staleIfError={staleIfError}_expiry={storedData.Expiry:yyyyMMdd}_modified={storedData.Modified:yyyyMMdd}_etag={storedData.Etag?.Replace('/','_').Replace('"','_')}";
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
@@ -63,7 +60,7 @@ public class MatrixTests
         {
             await using var cache = new HttpCache(directory, new MockHttpClient(response));
             cache.Purge();
-            await cache.AddItemAsync("uri", "content", expiry, modified, etag);
+            await cache.AddItemAsync("uri", "content", storedData.Expiry, storedData.Modified, storedData.Etag);
             var result = await cache.DownloadAsync("uri", staleIfError);
             await Verifier.Verify(result, settings);
         }
