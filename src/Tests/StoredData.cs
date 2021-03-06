@@ -22,29 +22,29 @@ public class StoredData
         var builder = new StringBuilder();
         if (Expiry == null)
         {
-            builder.Append("expiry=null_");
+            builder.Append("exp=null_");
         }
         else
         {
-            builder.Append($"expiry={Expiry:yyyyMMdd}_");
+            builder.Append($"exp={Expiry:yyyyMMdd}_");
         }
 
         if (Modified == null)
         {
-            builder.Append("modified=null_");
+            builder.Append("mod=null_");
         }
         else
         {
-            builder.Append($"modified={Modified:yyyyMMdd}_");
+            builder.Append($"mod={Modified:yyyyMMdd}_");
         }
 
         if (Etag == null)
         {
-            builder.Append("etag=null_");
+            builder.Append("tag=null_");
         }
         else
         {
-            builder.Append($"etag={Etag}_");
+            builder.Append($"tag={Etag}_");
         }
 
         return builder.ToString().Trim('_');

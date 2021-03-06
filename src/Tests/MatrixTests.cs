@@ -47,11 +47,11 @@ public class MatrixTests
     [Theory]
     [MemberData(nameof(DataForIntegration))]
     public async Task Integration(
-        StoredData storedData,
+        StoredData data,
         HttpResponseMessageEx response,
         bool staleIfError)
     {
-        var fileName = $"Integration_{response}_staleIfError={staleIfError}_expiry={storedData.Expiry:yyyyMMdd}_modified={storedData.Modified:yyyyMMdd}_etag={storedData.Etag?.Replace('/','_').Replace('"','_')}";
+        var fileName = $"Int_{response}_staleIfError={staleIfError}_expiry={data.Expiry:yyyyMMdd}_modified={data.Modified:yyyyMMdd}_etag={data.Etag?.Replace('/','_').Replace('"','_')}";
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
