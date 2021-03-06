@@ -36,36 +36,6 @@ public class MatrixTests
         }
     }
 
-    //[Theory]
-    //[MemberData(nameof(DataForIntegration))]
-    //public async Task Integration(
-    //    DateTimeOffset? expiry,
-    //    DateTimeOffset? modified,
-    //    string? etag,
-    //    HttpResponseMessage response,
-    //    bool staleIfError,
-    //    [CallerMemberName] string member = "")
-    //{
-    //    var directory = Path.Combine(Path.GetTempPath(), member);
-
-    //    try
-    //    {
-    //        await using var cache = new HttpCache(directory, new MockHttpClient(response));
-
-    //        await cache.AddItemAsync("uri", "content", expiry, modified, etag);
-    //        var result = await cache.DownloadAsync("uri", staleIfError);
-    //        await Verifier.Verify(result, sharedSettings);
-    //    }
-    //    catch (HttpRequestException exception)
-    //    {
-    //        await Verifier.Verify(exception, sharedSettings);
-    //    }
-    //    finally
-    //    {
-    //        Directory.Delete(directory, true);
-    //    }
-    //}
-
     [Theory]
     [MemberData(nameof(StatusForMessageData))]
     public async Task StatusForMessage(HttpResponseMessageEx response, bool staleIfError)
