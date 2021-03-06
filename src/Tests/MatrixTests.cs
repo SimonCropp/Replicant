@@ -60,7 +60,7 @@ public class MatrixTests
         {
             await using var cache = new HttpCache(directory, new MockHttpClient(response));
             cache.Purge();
-            await cache.AddItemAsync("uri", "content", storedData.Expiry, storedData.Modified, storedData.Etag);
+            await cache.AddItemAsync("uri", "content", data.Expiry, data.Modified, data.Etag);
             var result = await cache.DownloadAsync("uri", staleIfError);
             await Verifier.Verify(result, settings);
         }
