@@ -177,36 +177,6 @@ namespace Replicant
                 .FirstOrDefault();
         }
 
-        internal static CacheStatus StatusForMessage(HttpResponseMessage response, bool staleIfError)
-        {
-            if (response.IsNotModified())
-            {
-                return CacheStatus.Revalidate;
-            }
-
-            if (response.IsNoStore())
-            {
-                return CacheStatus.Revalidate;
-            }
-
-            if (response.IsNoCache())
-            {
-                return CacheStatus.NoCache;
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                if (staleIfError)
-                {
-                    return CacheStatus.UseStaleDueToError;
-                }
-
-                response.EnsureSuccess();
-            }
-
-            return CacheStatus.Stored;
-        }
-
         async Task<Result> HandleFileExistsAsync(
             string uri,
             bool staleIfError,
@@ -244,7 +214,7 @@ namespace Replicant
                 throw;
             }
 
-            var status = StatusForMessage(response, staleIfError);
+            var status = DeriveCacheStatus.CacheStatus(response, staleIfError);
             switch (status)
             {
                 case CacheStatus.Hit:
@@ -310,7 +280,7 @@ namespace Replicant
                 throw;
             }
 
-            var status = StatusForMessage(response, staleIfError);
+            var status = DeriveCacheStatus.CacheStatus(response, staleIfError);
             switch (status)
             {
                 case CacheStatus.Hit:
