@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Replicant;
 using VerifyTests;
 using VerifyXunit;
 using Xunit;
@@ -25,16 +27,53 @@ public class MatrixTests
         sharedSettings.UseDirectory("../MatrixResults");
     }
 
-    public static IEnumerable<object[]> DataForIntegration()
+    public static IEnumerable<object?[]> DataForIntegration()
     {
         foreach (var staleIfError in new[] {true, false})
+        foreach (var modDate in mods)
+        foreach (var expiry in expiries)
+        foreach (var etag in etagStrings)
         foreach (var response in Responses())
         {
-            yield return new object[]
+            yield return new object?[]
             {
+                expiry,
+                modDate,
+                etag,
                 response,
                 staleIfError
             };
+        }
+    }
+    [Theory]
+    [MemberData(nameof(DataForIntegration))]
+    public async Task Integration(
+        DateTimeOffset? expiry,
+        DateTimeOffset? modified,
+        string? etag,
+        HttpResponseMessageEx response,
+        bool staleIfError)
+    {
+        var fileName = $"Integration_{response}_staleIfError={staleIfError}_expiry={expiry:yyyyMMdd}_modified={modified:yyyyMMdd}_etag={etag?.Replace('/','_').Replace('"','_')}";
+        var settings = new VerifySettings(sharedSettings);
+        settings.UseFileName(fileName);
+
+        var directory = Path.Combine(Path.GetTempPath(),"HttpClientIntegrationTests");
+        try
+        {
+            await using var cache = new HttpCache(directory, new MockHttpClient(response));
+            cache.Purge();
+            await cache.AddItemAsync("uri", "content", expiry, modified, etag);
+            var result = await cache.DownloadAsync("uri", staleIfError);
+            await Verifier.Verify(result, settings);
+        }
+        catch (HttpRequestException exception)
+        {
+            await Verifier.Verify(exception, settings);
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
         }
     }
 
@@ -42,7 +81,7 @@ public class MatrixTests
     [MemberData(nameof(StatusForMessageData))]
     public async Task StatusForMessage(HttpResponseMessageEx response, bool staleIfError)
     {
-        var fileName = BuildStatusForMessageFileName(response, staleIfError);
+        var fileName = $"StatusForMessage_{response}_staleIfError={staleIfError}";
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
@@ -73,13 +112,19 @@ public class MatrixTests
         }
     }
 
-    public static IEnumerable<HttpResponseMessageEx> Responses()
+    static IEnumerable<HttpResponseMessageEx> Responses()
     {
-        yield return new(HttpStatusCode.BadRequest);
+        yield return new(HttpStatusCode.BadRequest)
+        {
+            Content = new StringContent("")
+        };
         foreach (var webEtag in etags)
         foreach (var cacheControl in cacheControls)
         {
-            HttpResponseMessageEx response = new(HttpStatusCode.NotModified);
+            HttpResponseMessageEx response = new(HttpStatusCode.NotModified)
+            {
+                Content = new StringContent("")
+            };
             if (!webEtag.IsEmpty)
             {
                 response.Headers.TryAddWithoutValidation("ETag", webEtag.ForWeb);
@@ -112,15 +157,17 @@ public class MatrixTests
         }
     }
 
-    static string BuildStatusForMessageFileName(HttpResponseMessage response, bool staleIfError)
-    {
-        return $"StatusForMessage_{response}_staleIfError={staleIfError}";
-    }
-
     static Etag[] etags = new Etag[]
     {
         new("\"tag\"", "Stag", false),
         Etag.Empty,
+    };
+
+    static string?[] etagStrings = new string?[]
+    {
+        "\"tag\"",
+        "W/\"tag\"",
+        null
     };
 
     static CacheControlHeaderValue[] cacheControls = new CacheControlHeaderValue[]
@@ -144,4 +191,5 @@ public class MatrixTests
             NoStore = true,
         }
     };
+
 }

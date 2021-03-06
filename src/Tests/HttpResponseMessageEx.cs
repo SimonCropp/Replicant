@@ -10,6 +10,10 @@ public class HttpResponseMessageEx :
     {
     }
 
+    protected override void Dispose(bool disposing)
+    {
+    }
+
     public override string ToString()
     {
         var builder = new StringBuilder($"{StatusCode}_");

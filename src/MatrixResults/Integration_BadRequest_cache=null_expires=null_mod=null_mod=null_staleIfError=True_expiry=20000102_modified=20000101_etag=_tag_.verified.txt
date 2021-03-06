@@ -1,0 +1,15 @@
+Status: UseStaleDueToError,
+Response: {
+  Version: 1.1,
+  Content: {
+    Headers: {
+      Expires: DateTime_1
+    }
+  },
+  StatusCode: OK,
+  ReasonPhrase: OK,
+  Headers: {
+    LastModified: Sat, 01 Jan 2000 00:00:00 GMT
+  },
+  IsSuccessStatusCode: true
+}

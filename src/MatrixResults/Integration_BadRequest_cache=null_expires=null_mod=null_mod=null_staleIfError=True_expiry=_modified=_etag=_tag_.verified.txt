@@ -1,0 +1,11 @@
+Status: UseStaleDueToError,
+Response: {
+  Version: 1.1,
+  Content: {
+    Headers: {}
+  },
+  StatusCode: OK,
+  ReasonPhrase: OK,
+  Headers: {},
+  IsSuccessStatusCode: true
+}
