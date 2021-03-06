@@ -51,6 +51,16 @@ readonly struct Etag
 
         var tag = values.First();
 
+        return FromHeader(tag);
+    }
+
+    public static Etag FromHeader(string? tag)
+    {
+        if (tag == null)
+        {
+            return Empty;
+        }
+
         if (tag.StartsWith("W/"))
         {
             return new Etag(tag, $"W{tag.Substring(2).Trim('"')}", false);

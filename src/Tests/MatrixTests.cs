@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using Replicant;
 using VerifyTests;
@@ -21,6 +20,50 @@ public class MatrixTests
         sharedSettings = new VerifySettings();
         sharedSettings.UseDirectory("../MatrixResults");
     }
+
+
+    public static IEnumerable<object[]> DataForIntegration()
+    {
+        foreach (var staleIfError in new[] {true, false})
+        foreach (var response in Responses())
+        {
+            yield return new object[]
+            {
+                response,
+                staleIfError
+            };
+        }
+    }
+
+    //[Theory]
+    //[MemberData(nameof(DataForIntegration))]
+    //public async Task Integration(
+    //    DateTimeOffset? expiry,
+    //    DateTimeOffset? modified,
+    //    string? etag,
+    //    HttpResponseMessage response,
+    //    bool staleIfError,
+    //    [CallerMemberName] string member = "")
+    //{
+    //    var directory = Path.Combine(Path.GetTempPath(), member);
+
+    //    try
+    //    {
+    //        await using var cache = new HttpCache(directory, new MockHttpClient(response));
+
+    //        await cache.AddItemAsync("uri", "content", expiry, modified, etag);
+    //        var result = await cache.DownloadAsync("uri", staleIfError);
+    //        await Verifier.Verify(result, sharedSettings);
+    //    }
+    //    catch (HttpRequestException exception)
+    //    {
+    //        await Verifier.Verify(exception, sharedSettings);
+    //    }
+    //    finally
+    //    {
+    //        Directory.Delete(directory, true);
+    //    }
+    //}
 
     [Theory]
     [MemberData(nameof(StatusForMessageData))]
@@ -284,66 +327,4 @@ public class MatrixTests
             NoStore = true,
         }
     };
-}
-
-public class HttpResponseMessageEx : HttpResponseMessage
-{
-    public HttpResponseMessageEx(HttpStatusCode code) :
-        base(code)
-    {
-    }
-
-    public override string ToString()
-    {
-        var builder = new StringBuilder($"{StatusCode}_");
-        var cacheControl = Headers.CacheControl;
-        if (cacheControl == null)
-        {
-            builder.Append("cache=null_");
-        }
-        else
-        {
-            builder.Append($"cache={cacheControl.ToString().Replace(", ", ",")}_");
-        }
-
-        var webExpires = Content?.Headers.Expires;
-        if (webExpires == null)
-        {
-            builder.Append("expires=null_");
-        }
-        else
-        {
-            builder.Append($"expires={webExpires.Value:yyyyMMdd}_");
-        }
-
-        var webMod = Content?.Headers.LastModified;
-        if (webMod == null)
-        {
-            builder.Append("mod=null_");
-        }
-        else
-        {
-            builder.Append($"mod={webMod.Value:yyyyMMdd}_");
-        }
-
-        var webEtag = Headers.ETag;
-        if (webEtag == null)
-        {
-            builder.Append("mod=null_");
-        }
-        else
-        {
-            var etag = Etag.FromResponse(this);
-            if (etag.IsEmpty)
-            {
-                builder.Append("mod=empty_");
-            }
-            else
-            {
-                builder.Append($"mod={etag.ForFile.Substring(1)}_");
-            }
-        }
-
-        return builder.ToString().Trim('_');
-    }
 }

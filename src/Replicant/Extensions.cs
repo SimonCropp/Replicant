@@ -176,6 +176,27 @@ static class Extensions
             throw BuildHttpException(request, exception);
         }
     }
+
+    public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> TrailingHeaders(
+        this HttpResponseMessage response)
+    {
+#if NET5_0_OR_GREATER
+        return response.TrailingHeaders;
+#else
+        return new List<KeyValuePair<string, IEnumerable<string>>>();
+#endif
+    }
+
+    public static Stream AsStream(this string value)
+    {
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.Write(value);
+        writer.Flush();
+        stream.Position = 0;
+        return stream;
+    }
+
     public static DateTimeOffset? GetExpiry(this HttpResponseMessage response, DateTimeOffset now)
     {
         var responseHeaders = response.Headers;

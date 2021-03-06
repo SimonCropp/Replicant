@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -405,33 +407,110 @@ namespace Replicant
             return AddItemAsync(response, uri, CacheStatus.Stored, token);
         }
 
+        public async Task AddItemAsync(
+            string uri,
+            string content,
+            DateTimeOffset? expiry = null,
+            DateTimeOffset? modified = null,
+            string? etag = null,
+            Headers? responseHeaders = null,
+            Headers? contentHeaders = null,
+            Headers? trailingHeaders = null,
+            CancellationToken token = default)
+        {
+            using var contentStream = content.AsStream();
+            await AddItemAsync(
+                uri,
+                contentStream,
+                expiry,
+                modified,
+                etag,
+                responseHeaders,
+                contentHeaders,
+                trailingHeaders,
+                token);
+        }
+
+        public Task AddItemAsync(
+            string uri,
+            Stream stream,
+            DateTimeOffset? expiry = null,
+            DateTimeOffset? modified = null,
+            string? etag = null,
+            Headers? responseHeaders = null,
+            Headers? contentHeaders = null,
+            Headers? trailingHeaders = null,
+            CancellationToken token = default)
+        {
+            var hash = Hash.Compute(uri);
+            var now = DateTimeOffset.Now;
+
+            var timestamp = new Timestamp(
+                expiry,
+                modified.GetValueOrDefault(now),
+                Etag.FromHeader(etag),
+                hash);
+
+            responseHeaders ??= new Headers();
+            contentHeaders ??= new Headers();
+            trailingHeaders ??= new Headers();
+
+            if (expiry != null)
+            {
+                contentHeaders.Add(
+                    HttpResponseHeader.Expires.ToString(),
+                    expiry.Value.ToUniversalTime().ToString("r"));
+            }
+
+            if (modified != null)
+            {
+                responseHeaders.Add(
+                    HttpResponseHeader.LastModified.ToString(),
+                    modified.Value.ToUniversalTime().ToString("r"));
+            }
+
+            return AddItemAsync(CacheStatus.Stored, token, _ => Task.FromResult(stream), responseHeaders, contentHeaders, trailingHeaders, timestamp);
+        }
+
         public void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             AddItem(response, uri, CacheStatus.Stored, token);
         }
 
-        async Task<Result> AddItemAsync(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
+        Task<Result> AddItemAsync(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
         {
             var timestamp = Timestamp.FromResponse(uri, response);
+            Task<Stream> ContentFunc(CancellationToken cancellationToken) => response.Content.ReadAsStreamAsync(cancellationToken);
 
+            return AddItemAsync(status, token, ContentFunc, response.Headers, response.Content.Headers, response.TrailingHeaders(), timestamp);
+        }
+
+        async Task<Result> AddItemAsync(
+            CacheStatus status,
+            CancellationToken token,
+            Func<CancellationToken, Task<Stream>> httpContentFunc,
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>> httpResponseHeaders,
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>> contentHeaders,
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>> trailingHeaders,
+            Timestamp timestamp)
+        {
             var tempContentFile = FileEx.GetTempFileName();
             var tempMetaFile = FileEx.GetTempFileName();
             try
             {
 #if NET5_0_OR_GREATER
-                await using var httpStream = await response.Content.ReadAsStreamAsync(token);
+                await using var httpStream = await httpContentFunc(token);
                 await using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
                 await using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 {
-                    MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
 #else
-                using var httpStream = await response.Content.ReadAsStreamAsync(token);
+                using var httpStream = await httpContentFunc(token);
                 using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
                 using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 {
-                    MetaData meta = new(response.Headers, response.Content.Headers);
 #endif
+                    MetaData meta = new(httpResponseHeaders, contentHeaders, trailingHeaders);
                     await JsonSerializer.SerializeAsync(metaFileStream, meta, cancellationToken: token);
                     await httpStream.CopyToAsync(contentFileStream, token);
                 }

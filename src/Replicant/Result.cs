@@ -152,17 +152,12 @@ readonly struct Result :
             return Response;
         }
 
-        var meta = MetaDataReader.ReadMeta(MetaPath!);
-        HttpResponseMessage message = new()
+        HttpResponseMessage response = new()
         {
             Content = new StreamContent(FileEx.OpenRead(ContentPath!))
         };
-        message.Headers.AddRange(meta.ResponseHeaders);
-        message.Content.Headers.AddRange(meta.ContentHeaders);
-#if NET5_0_OR_GREATER
-        message.TrailingHeaders.AddRange(meta.TrailingHeaders);
-#endif
-        return message;
+        MetaData.ApplyToResponse(MetaPath!, response);
+        return response;
     }
 
     public void Dispose()
