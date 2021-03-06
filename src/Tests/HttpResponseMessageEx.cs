@@ -30,11 +30,11 @@ public class HttpResponseMessageEx :
         var webExpires = Content?.Headers.Expires;
         if (webExpires == null)
         {
-            builder.Append("expires=null_");
+            builder.Append("exp=null_");
         }
         else
         {
-            builder.Append($"expires={webExpires.Value:yyyyMMdd}_");
+            builder.Append($"exp={webExpires.Value:yyyyMMdd}_");
         }
 
         var webMod = Content?.Headers.LastModified;
