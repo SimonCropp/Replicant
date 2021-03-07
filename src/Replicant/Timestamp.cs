@@ -9,6 +9,7 @@ readonly struct Timestamp
     public DateTimeOffset Modified { get; }
     public Etag Etag { get; }
     public string UriHash { get; }
+    public string Prefix { get; }
     public string ContentFileName { get; }
     public string MetaFileName { get; }
 
@@ -18,9 +19,9 @@ readonly struct Timestamp
         Modified = modified;
         Etag = etag;
         UriHash = uriHash;
-        var prefix = $"{uriHash}_{modified:yyyy-MM-ddTHHmmss}_{etag.ForFile}.";
-        ContentFileName = $"{prefix}bin";
-        MetaFileName = $"{prefix}json";
+        Prefix = $"{uriHash}_{modified:yyyy-MM-ddTHHmmss}_{etag.ForFile}.";
+        ContentFileName = $"{Prefix}bin";
+        MetaFileName = $"{Prefix}json";
     }
 
     public void ApplyHeadersToRequest(HttpRequestMessage request)
