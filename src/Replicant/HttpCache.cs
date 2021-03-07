@@ -467,7 +467,7 @@ namespace Replicant
         {
             var tempContentFile = FileEx.GetTempFileName();
             var tempMetaFile = FileEx.GetTempFileName();
-            MetaData meta = new(httpResponseHeaders, contentHeaders, trailingHeaders);
+            var meta = MetaData.FromEnumerables(httpResponseHeaders, contentHeaders, trailingHeaders);
             try
             {
 #if NET5_0
@@ -499,9 +499,9 @@ namespace Replicant
             var timestamp = Timestamp.FromResponse(uri, response);
 
 #if NET5_0
-                    MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
+            var meta = MetaData.FromEnumerables(response.Headers, response.Content.Headers, response.TrailingHeaders);
 #else
-                    MetaData meta = new(response.Headers, response.Content.Headers);
+            var meta = MetaData.FromEnumerables(response.Headers, response.Content.Headers);
 #endif
 
             var tempContentFile = FileEx.GetTempFileName();

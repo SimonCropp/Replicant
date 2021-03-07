@@ -224,7 +224,7 @@ static class Extensions
         }
     }
 
-    public static void AddRange(this HttpHeaders to, IEnumerable<KeyValuePair<string, IEnumerable<string>>> from)
+    public static void AddRange(this HttpHeaders to, List<KeyValuePair<string, List<string>>> from)
     {
         foreach (var keyValue in from)
         {
