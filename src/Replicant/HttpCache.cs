@@ -9,18 +9,12 @@ using System.Threading.Tasks;
 
 namespace Replicant
 {
-    public partial class HttpCache :
-        IAsyncDisposable,
-        IDisposable
+    public partial class HttpCache
     {
         string directory;
-        int maxEntries;
         HttpClient? client;
         Func<HttpClient>? clientFunc;
 
-        Timer timer;
-        static TimeSpan purgeInterval = TimeSpan.FromMinutes(10);
-        static TimeSpan ignoreTimeSpan = TimeSpan.FromMilliseconds(-1);
         public static Action<string> LogError = _ => { };
         bool clientIsOwned;
 
@@ -57,40 +51,6 @@ namespace Replicant
             else
             {
                 this.client = client;
-            }
-        }
-
-        void PauseAndPurgeOld()
-        {
-            timer.Change(ignoreTimeSpan, ignoreTimeSpan);
-            try
-            {
-                PurgeOld();
-            }
-            finally
-            {
-                timer.Change(purgeInterval, ignoreTimeSpan);
-            }
-        }
-
-        public void Purge()
-        {
-            foreach (var file in Directory.EnumerateFiles(directory))
-            {
-                var pair = FilePair.FromContentFile(file!);
-                pair.PurgeItem();
-            }
-        }
-
-        public void PurgeOld()
-        {
-            foreach (var file in new DirectoryInfo(directory)
-                .GetFiles("*_*_*.bin")
-                .OrderByDescending(x => x.LastAccessTime)
-                .Skip(maxEntries))
-            {
-                var pair = FilePair.FromContentFile(file!);
-                pair.PurgeItem();
             }
         }
 
@@ -134,10 +94,11 @@ namespace Replicant
                 .GetFiles($"{hash}_*.bin")
                 .OrderBy(x => x.LastWriteTime)
                 .FirstOrDefault();
-            if(fileInfo == null)
+            if (fileInfo == null)
             {
                 return null;
             }
+
             return FilePair.FromContentFile(fileInfo);
         }
 
@@ -331,27 +292,6 @@ namespace Replicant
             return client ?? clientFunc!();
         }
 
-        public Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
-        {
-            Guard.AgainstNull(response.Content, nameof(response.Content));
-            return AddItemAsync(response, uri, CacheStatus.Stored, token);
-        }
-
-        public async Task AddItemAsync(
-            string uri,
-            string content,
-            DateTimeOffset? expiry = null,
-            DateTimeOffset? modified = null,
-            string? etag = null,
-            Headers? responseHeaders = null,
-            Headers? contentHeaders = null,
-            Headers? trailingHeaders = null,
-            CancellationToken token = default)
-        {
-            using var stream = content.AsStream();
-            await AddItemAsync(uri, stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
-        }
-
         public Task AddItemAsync(
             string uri,
             Stream stream,
@@ -392,12 +332,6 @@ namespace Replicant
 
             var meta = MetaData.FromEnumerables(responseHeaders, contentHeaders, trailingHeaders);
             return InnerAddItemAsync(CacheStatus.Stored, token, _ => Task.FromResult(stream), meta, timestamp);
-        }
-
-        public void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
-        {
-            Guard.AgainstNull(response.Content, nameof(response.Content));
-            AddItem(response, uri, CacheStatus.Stored, token);
         }
 
         Task<Result> AddItemAsync(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
@@ -503,34 +437,9 @@ namespace Replicant
                 {
                     return new(new FilePair(contentFile, newMeta), status);
                 }
-
             }
 
             return new(new FilePair(contentFile, metaFile), status);
-        }
-
-        public void Dispose()
-        {
-            if (clientIsOwned)
-            {
-                client!.Dispose();
-            }
-
-            timer.Dispose();
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            if (clientIsOwned)
-            {
-                client!.Dispose();
-            }
-#if NET5_0
-            return timer.DisposeAsync();
-#else
-            timer.Dispose();
-            return default;
-#endif
         }
     }
 }

@@ -10,6 +10,34 @@ namespace Replicant
 {
     public partial class HttpCache
     {
+
+        public void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
+        {
+            Guard.AgainstNull(response.Content, nameof(response.Content));
+            AddItem(response, uri, CacheStatus.Stored, token);
+        }
+
+        public Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
+        {
+            Guard.AgainstNull(response.Content, nameof(response.Content));
+            return AddItemAsync(response, uri, CacheStatus.Stored, token);
+        }
+
+        public async Task AddItemAsync(
+            string uri,
+            string content,
+            DateTimeOffset? expiry = null,
+            DateTimeOffset? modified = null,
+            string? etag = null,
+            Headers? responseHeaders = null,
+            Headers? contentHeaders = null,
+            Headers? trailingHeaders = null,
+            CancellationToken token = default)
+        {
+            using var stream = content.AsStream();
+            await AddItemAsync(uri, stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
+        }
+
         public async Task<string> StringAsync(
             string uri,
             bool staleIfError = false,
