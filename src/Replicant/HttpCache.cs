@@ -249,7 +249,7 @@ namespace Replicant
             using var request = BuildRequest(uri, modifyRequest);
             var response = await httpClient.SendAsyncEx(request, token);
             response.EnsureSuccess();
-            if (response.IsNoCache())
+            if (response.IsNoStore())
             {
                 return new(response, CacheStatus.NoStore);
             }
@@ -269,7 +269,7 @@ namespace Replicant
             using var request = BuildRequest(uri, modifyRequest);
             var response = httpClient.SendEx(request, token);
             response.EnsureSuccess();
-            if (response.IsNoCache())
+            if (response.IsNoStore())
             {
                 return new(response, CacheStatus.NoStore);
             }

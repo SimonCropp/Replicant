@@ -1,0 +1,29 @@
+Status: NoStore,
+Response: {
+  Version: 1.1,
+  Content: {
+    Headers: {}
+  },
+  StatusCode: OK,
+  ReasonPhrase: OK,
+  Headers: {
+    Access-Control-Allow-Credentials: true,
+    Access-Control-Allow-Origin: *,
+    Cache-Control: no-store,
+    Date: DateTime_1
+  },
+  RequestMessage: {
+    Version: 1.1,
+    Method: {
+      Method: GET
+    },
+    RequestUri: {
+      Path: https://httpbin.org/response-headers,
+      Query: {
+        Cache-Control: no-store
+      }
+    },
+    Headers: {}
+  },
+  IsSuccessStatusCode: true
+}

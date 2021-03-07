@@ -176,6 +176,13 @@ public class HttpCacheTests
     public async Task NoCache()
     {
         using var result = await httpCache.DownloadAsync("https://httpbin.org/response-headers?Cache-Control=no-cache");
+        await Verifier.Verify(result);
+    }
+
+    [Fact]
+    public async Task NoStore()
+    {
+        using var result = await httpCache.DownloadAsync("https://httpbin.org/response-headers?Cache-Control=no-store");
         Assert.NotNull(result.Response);
         await Verifier.Verify(result);
     }
