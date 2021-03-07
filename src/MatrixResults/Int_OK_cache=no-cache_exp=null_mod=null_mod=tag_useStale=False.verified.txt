@@ -1,0 +1,14 @@
+Status: Stored,
+Response: {
+  Version: 1.1,
+  Content: {
+    Headers: {}
+  },
+  StatusCode: OK,
+  ReasonPhrase: OK,
+  Headers: {
+    Cache-Control: no-cache,
+    ETag: "tag"
+  },
+  IsSuccessStatusCode: true
+}

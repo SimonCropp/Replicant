@@ -42,16 +42,34 @@ public class MatrixTests
                 staleIfError
             };
         }
+        foreach (var staleIfError in new[] {true, false})
+        foreach (var response in Responses())
+        {
+            yield return new object?[]
+            {
+                null,
+                response,
+                staleIfError
+            };
+        }
     }
 
     [Theory]
     [MemberData(nameof(DataForIntegration))]
     public async Task Integration(
-        StoredData data,
+        StoredData? data,
         HttpResponseMessageEx response,
         bool useStale)
     {
-        var fileName = $"Int_{response}_useStale={useStale}_exp={data.Expiry:yyyyMMdd}_mod={data.Modified:yyyyMMdd}_tag={data.Etag?.Replace('/', '_').Replace('"', '_')}";
+        string fileName;
+        if(data == null)
+        {
+            fileName = $"Int_{response}_useStale={useStale}";
+        }
+        else
+        {
+            fileName = $"Int_{response}_useStale={useStale}_exp={data.Expiry:yyyyMMdd}_mod={data.Modified:yyyyMMdd}_tag={data.Etag?.Replace('/', '_').Replace('"', '_')}";
+        }
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
@@ -65,7 +83,10 @@ public class MatrixTests
         {
             await using var cache = new HttpCache(directory, new MockHttpClient(response));
             cache.Purge();
-            await cache.AddItemAsync("uri", "content", data.Expiry, data.Modified, data.Etag);
+            if (data != null)
+            {
+                await cache.AddItemAsync("uri", "content", data.Expiry, data.Modified, data.Etag);
+            }
             var result = await cache.DownloadAsync("uri", useStale);
             await Verifier.Verify(result, settings);
         }
