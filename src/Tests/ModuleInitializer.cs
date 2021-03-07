@@ -13,7 +13,7 @@ public static class ModuleInitializer
 #if NET5_0
                 settings.IgnoreMember<System.Net.Http.HttpRequestException>(x => x.StatusCode);
 #endif
-                settings.IgnoreMember<Result>(x => x.ContentPath);
+                settings.IgnoreMember<Result>(x => x.File);
                 settings.IgnoreMembers(
                     "StackTrace",
                     "Content-Length",

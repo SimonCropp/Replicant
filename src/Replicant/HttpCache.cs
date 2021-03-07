@@ -149,11 +149,11 @@ namespace Replicant
             FilePair file)
         {
             var now = DateTimeOffset.UtcNow;
-            
+
             var timestamp = Timestamp.FromPath(file.Content);
             if (timestamp.Expiry > now)
             {
-                return new(file.Meta, CacheStatus.Hit, file.Meta);
+                return new(file, CacheStatus.Hit);
             }
 
             using var request = BuildRequest(uri, modifyRequest);
@@ -170,7 +170,7 @@ namespace Replicant
             {
                 if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
-                    return new(file.Content, CacheStatus.UseStaleDueToError, file.Meta);
+                    return new(file, CacheStatus.UseStaleDueToError);
                 }
 
                 throw;
@@ -183,7 +183,7 @@ namespace Replicant
                 case CacheStatus.UseStaleDueToError:
                 {
                     response.Dispose();
-                    return new(file.Content, status, file.Meta);
+                    return new(file, status);
                 }
                 case CacheStatus.Stored:
                 case CacheStatus.Revalidate:
@@ -217,7 +217,7 @@ namespace Replicant
             var timestamp = Timestamp.FromPath(contentFile.Content);
             if (timestamp.Expiry > now)
             {
-                return new(contentFile.Content, CacheStatus.Hit, contentFile.Meta);
+                return new(contentFile, CacheStatus.Hit);
             }
 
             using var request = BuildRequest(uri, modifyRequest);
@@ -234,7 +234,7 @@ namespace Replicant
             {
                 if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
-                    return new(contentFile.Content, CacheStatus.UseStaleDueToError, contentFile.Meta);
+                    return new(contentFile, CacheStatus.UseStaleDueToError);
                 }
 
                 throw;
@@ -247,7 +247,7 @@ namespace Replicant
                 case CacheStatus.UseStaleDueToError:
                 {
                     response.Dispose();
-                    return new(contentFile.Content, status, contentFile.Meta);
+                    return new(contentFile, status);
                 }
                 case CacheStatus.Stored:
                 case CacheStatus.Revalidate:
@@ -425,31 +425,29 @@ namespace Replicant
             MetaData meta,
             Timestamp timestamp)
         {
-            var tempContentFile = FileEx.GetTempFileName();
-            var tempMetaFile = FileEx.GetTempFileName();
+            var tempFile = FilePair.GetTemp();
             try
             {
 #if NET5_0
                 await using var httpStream = await httpContentFunc(token);
-                await using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
-                await using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
+                await using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
+                await using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
                 {
 #else
                 using var httpStream = await httpContentFunc(token);
-                using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
-                using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
+                using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
+                using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
                 {
 #endif
                     await JsonSerializer.SerializeAsync(metaFileStream, meta, cancellationToken: token);
                     await httpStream.CopyToAsync(contentFileStream, token);
                 }
 
-                return BuildResult(status, timestamp, tempContentFile, tempMetaFile);
+                return BuildResult(status, timestamp, tempFile);
             }
             finally
             {
-                File.Delete(tempContentFile);
-                File.Delete(tempMetaFile);
+                tempFile.Delete();
             }
         }
 
@@ -462,39 +460,29 @@ namespace Replicant
 #else
             var meta = MetaData.FromEnumerables(response.Headers, response.Content.Headers);
 #endif
-
-            var tempContentFile = FileEx.GetTempFileName();
-            var tempMetaFile = FileEx.GetTempFileName();
+            var tempFile = FilePair.GetTemp();
             try
             {
                 using var httpStream = response.Content.ReadAsStream(token);
-                using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
-                using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
+                using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
+                using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
                 using (var writer = new Utf8JsonWriter(metaFileStream))
                 {
                     JsonSerializer.Serialize(writer, meta);
                     httpStream.CopyTo(contentFileStream);
                 }
 
-                return BuildResult(status, timestamp, tempContentFile, tempMetaFile);
+                return BuildResult(status, timestamp, tempFile);
             }
             finally
             {
-                File.Delete(tempContentFile);
-                File.Delete(tempMetaFile);
+                tempFile.Delete();
             }
         }
 
-        Result BuildResult(CacheStatus status, Timestamp timestamp, string tempContentFile, string tempMetaFile)
+        Result BuildResult(CacheStatus status, Timestamp timestamp, FilePair tempFile)
         {
-            if (timestamp.Expiry == null)
-            {
-                File.SetLastWriteTimeUtc(tempContentFile, FileEx.MinFileDate);
-            }
-            else
-            {
-                File.SetLastWriteTimeUtc(tempContentFile, timestamp.Expiry.Value.UtcDateTime);
-            }
+            tempFile.SetExpiry(timestamp.Expiry);
 
             var contentFile = Path.Combine(directory, timestamp.ContentFileName);
             var metaFile = Path.Combine(directory, timestamp.MetaFileName);
@@ -504,8 +492,8 @@ namespace Replicant
             {
                 try
                 {
-                    FileEx.Move(tempContentFile, contentFile);
-                    FileEx.Move(tempMetaFile, metaFile);
+                    FileEx.Move(tempFile.Content, contentFile);
+                    FileEx.Move(tempFile.Meta, metaFile);
                 }
                 catch (Exception exception)
                     when (exception is IOException ||
@@ -513,13 +501,13 @@ namespace Replicant
                 {
                     if (!File.Exists(contentFile))
                     {
-                        FileEx.Move(tempContentFile, contentFile);
-                        FileEx.Move(tempMetaFile, metaFile);
+                        FileEx.Move(tempFile.Content, contentFile);
+                        FileEx.Move(tempFile.Meta, metaFile);
                     }
                 }
             }
 
-            return new(contentFile, status, metaFile);
+            return new(new FilePair(contentFile,metaFile), status);
         }
 
         public void Dispose()

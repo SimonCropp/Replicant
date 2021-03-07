@@ -1,40 +1,35 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-[DebuggerDisplay("ContentPath={ContentPath}, MetaPath={MetaPath}, Status={Status}")]
 readonly struct Result :
     IDisposable
 {
-    public string? ContentPath { get; }
-    public string? MetaPath { get; }
+    public FilePair? File { get; }
     public HttpResponseMessage? Response { get; }
     public CacheStatus Status { get; }
 
-    public Result(string contentPath, CacheStatus status, string metaPath)
+    public Result(FilePair file, CacheStatus status)
     {
-        ContentPath = contentPath;
+        File = file;
         Status = status;
         Response = null;
-        MetaPath = metaPath;
     }
 
     public Result(HttpResponseMessage response, CacheStatus status)
     {
-        ContentPath = null;
+        File = null;
         Response = response;
         Status = status;
-        MetaPath = null;
     }
 
     public async Task<Stream> AsStreamAsync(CancellationToken token)
     {
         if (Response == null)
         {
-            return FileEx.OpenRead(ContentPath!);
+            return FileEx.OpenRead(File!.Value.Content);
         }
 
         var stream = await Response.Content.ReadAsStreamAsync(token);
@@ -45,7 +40,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            return FileEx.ReadAllBytesAsync(ContentPath!, token);
+            return FileEx.ReadAllBytesAsync(File!.Value.Content, token);
         }
 
         return Response.Content.ReadAsByteArrayAsync(token);
@@ -55,7 +50,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            return FileEx.ReadAllTextAsync(ContentPath!, token);
+            return FileEx.ReadAllTextAsync(File!.Value.Content, token);
         }
 
         return Response.Content.ReadAsStringAsync(token);
@@ -65,7 +60,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            using var openRead = FileEx.OpenRead(ContentPath!);
+            using var openRead = FileEx.OpenRead(File!.Value.Content);
             await openRead.CopyToAsync(stream, token);
             return;
         }
@@ -77,7 +72,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            File.Copy(ContentPath!, path, true);
+            System.IO.File.Copy(File!.Value.Content, path, true);
             return;
         }
 
@@ -89,7 +84,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            return FileEx.OpenRead(ContentPath!);
+            return FileEx.OpenRead(File!.Value.Content);
         }
 
         var stream = Response.Content.ReadAsStream(token);
@@ -100,7 +95,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            return File.ReadAllBytes(ContentPath!);
+            return System.IO.File.ReadAllBytes(File!.Value.Content);
         }
 
         using var stream = Response.Content.ReadAsStream(token);
@@ -113,7 +108,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            return File.ReadAllText(ContentPath!);
+            return System.IO.File.ReadAllText(File!.Value.Content);
         }
 
         using var stream = Response.Content.ReadAsStream(token);
@@ -129,7 +124,7 @@ readonly struct Result :
             return;
         }
 
-        using var openRead = FileEx.OpenRead(ContentPath!);
+        using var openRead = FileEx.OpenRead(File!.Value.Content);
         openRead.CopyTo(stream);
     }
 
@@ -137,7 +132,7 @@ readonly struct Result :
     {
         if (Response == null)
         {
-            File.Copy(ContentPath!, path, true);
+            System.IO.File.Copy(File!.Value.Content, path, true);
             return;
         }
 
@@ -154,9 +149,9 @@ readonly struct Result :
 
         HttpResponseMessage response = new()
         {
-            Content = new StreamContent(FileEx.OpenRead(ContentPath!))
+            Content = new StreamContent(FileEx.OpenRead(File!.Value.Content))
         };
-        MetaData.ApplyToResponse(MetaPath!, response);
+        MetaData.ApplyToResponse(File!.Value.Meta, response);
         return response;
     }
 

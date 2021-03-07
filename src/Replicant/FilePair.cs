@@ -30,7 +30,11 @@ readonly struct FilePair
     {
         return FromContentFile(path.FullName);
     }
-
+    public void Delete()
+    {
+        File.Delete(Content);
+        File.Delete(Meta);
+    }
     public void SetExpiry(DateTimeOffset? expiry)
     {
         if (expiry == null)
@@ -93,12 +97,12 @@ readonly struct FilePair
         return new(tempContent, tempMeta);
     }
 
-    //public void GetTemp(DateTimeOffset? expiry)
-    //{
-    //    var tempContent = FileEx.GetTempFileName();
-    //    var tempMeta = FileEx.GetTempFileName();
-    //    var metaPath = Path.ChangeExtension(contentPath, "json");
-    //}
+    public static FilePair GetTemp()
+    {
+        var tempContent = FileEx.GetTempFileName();
+        var tempMeta = FileEx.GetTempFileName();
+        return new(tempContent, tempMeta);
+    }
 
 
 }
