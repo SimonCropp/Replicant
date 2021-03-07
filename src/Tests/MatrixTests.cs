@@ -51,11 +51,11 @@ public class MatrixTests
         HttpResponseMessageEx response,
         bool useStale)
     {
-        var fileName = $"Int_{response}_useStale={useStale}_exp={data.Expiry:yyyyMMdd}_mod={data.Modified:yyyyMMdd}_tag={data.Etag?.Replace('/','_').Replace('"','_')}";
+        var fileName = $"Int_{response}_useStale={useStale}_exp={data.Expiry:yyyyMMdd}_mod={data.Modified:yyyyMMdd}_tag={data.Etag?.Replace('/', '_').Replace('"', '_')}";
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
-        var directory = Path.Combine(Path.GetTempPath(),"HttpClientIntegrationTests"+Namer.Runtime);
+        var directory = Path.Combine(Path.GetTempPath(), "HttpClientIntegrationTests" + Namer.Runtime);
         try
         {
             await using var cache = new HttpCache(directory, new MockHttpClient(response));
@@ -154,20 +154,20 @@ public class MatrixTests
         }
     }
 
-    static Etag[] etags = new Etag[]
+    static Etag[] etags =
     {
         new("\"tag\"", "Stag", false),
         Etag.Empty,
     };
 
-    static string?[] etagStrings = new string?[]
+    static string?[] etagStrings =
     {
         "\"tag\"",
         "W/\"tag\"",
         null
     };
 
-    static CacheControlHeaderValue[] cacheControls = new CacheControlHeaderValue[]
+    static CacheControlHeaderValue[] cacheControls =
     {
         new()
         {
@@ -188,5 +188,4 @@ public class MatrixTests
             NoStore = true,
         }
     };
-
 }
