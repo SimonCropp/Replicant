@@ -487,10 +487,23 @@ namespace Replicant
                 when (exception is IOException ||
                       exception is UnauthorizedAccessException)
             {
+                //Failed to move files, so use temp files instead
                 var newName = Path.GetFileNameWithoutExtension(contentFile);
                 newName += Guid.NewGuid();
-                FileEx.Move(tempFile.Content, $"{newName}.bin");
-                FileEx.Move(tempFile.Meta, $"{newName}.json");
+
+                var newMeta = $"{newName}.json";
+                FileEx.Move(tempFile.Meta, newMeta);
+                if (File.Exists(tempFile.Content))
+                {
+                    var newContent = $"{newName}.bin";
+                    FileEx.Move(tempFile.Content, newContent);
+                    return new(new FilePair(newContent, newMeta), status);
+                }
+                else
+                {
+                    return new(new FilePair(contentFile, newMeta), status);
+                }
+
             }
 
             return new(new FilePair(contentFile, metaFile), status);
