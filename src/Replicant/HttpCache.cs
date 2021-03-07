@@ -107,7 +107,7 @@ namespace Replicant
                 return HandleFileMissingAsync(uri, modifyRequest, token);
             }
 
-            return HandleFileExistsAsync(uri, staleIfError, modifyRequest, token, contentFile);
+            return HandleFileExistsAsync(uri, staleIfError, modifyRequest, token, contentFile.Value);
         }
 
         internal Result Download(
@@ -123,16 +123,22 @@ namespace Replicant
                 return HandleFileMissing(uri, modifyRequest, token);
             }
 
-            return HandleFileExists(uri, staleIfError, modifyRequest, contentFile, token);
+            return HandleFileExists(uri, staleIfError, modifyRequest, contentFile.Value, token);
         }
 
-        FileInfo? FindContentFileForUri(string uri)
+        FilePair? FindContentFileForUri(string uri)
         {
             var hash = Hash.Compute(uri);
-            return new DirectoryInfo(directory)
+            var directoryInfo = new DirectoryInfo(directory);
+            var fileInfo = directoryInfo
                 .GetFiles($"{hash}_*.bin")
                 .OrderBy(x => x.LastWriteTime)
                 .FirstOrDefault();
+            if(fileInfo == null)
+            {
+                return null;
+            }
+            return FilePair.FromContentFile(fileInfo);
         }
 
         async Task<Result> HandleFileExistsAsync(
@@ -140,16 +146,14 @@ namespace Replicant
             bool staleIfError,
             Action<HttpRequestMessage>? modifyRequest,
             CancellationToken token,
-            FileInfo contentFile)
+            FilePair file)
         {
             var now = DateTimeOffset.UtcNow;
-
-            var contentPath = contentFile.FullName;
-            var timestamp = Timestamp.FromPath(contentPath);
-            var metaFile = Path.ChangeExtension(contentPath, ".json");
+            
+            var timestamp = Timestamp.FromPath(file.Content);
             if (timestamp.Expiry > now)
             {
-                return new(contentPath, CacheStatus.Hit, metaFile);
+                return new(file.Meta, CacheStatus.Hit, file.Meta);
             }
 
             using var request = BuildRequest(uri, modifyRequest);
@@ -166,7 +170,7 @@ namespace Replicant
             {
                 if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
-                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+                    return new(file.Content, CacheStatus.UseStaleDueToError, file.Meta);
                 }
 
                 throw;
@@ -179,7 +183,7 @@ namespace Replicant
                 case CacheStatus.UseStaleDueToError:
                 {
                     response.Dispose();
-                    return new(contentPath, status, metaFile);
+                    return new(file.Content, status, file.Meta);
                 }
                 case CacheStatus.Stored:
                 case CacheStatus.Revalidate:
@@ -205,17 +209,15 @@ namespace Replicant
             string uri,
             bool staleIfError,
             Action<HttpRequestMessage>? modifyRequest,
-            FileInfo contentFile,
+            FilePair contentFile,
             CancellationToken token)
         {
             var now = DateTimeOffset.UtcNow;
 
-            var contentPath = contentFile.FullName;
-            var timestamp = Timestamp.FromPath(contentPath);
-            var metaFile = Path.ChangeExtension(contentPath, ".json");
+            var timestamp = Timestamp.FromPath(contentFile.Content);
             if (timestamp.Expiry > now)
             {
-                return new(contentPath, CacheStatus.Hit, metaFile);
+                return new(contentFile.Content, CacheStatus.Hit, contentFile.Meta);
             }
 
             using var request = BuildRequest(uri, modifyRequest);
@@ -232,20 +234,20 @@ namespace Replicant
             {
                 if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
-                    return new(contentPath, CacheStatus.UseStaleDueToError, metaFile);
+                    return new(contentFile.Content, CacheStatus.UseStaleDueToError, contentFile.Meta);
                 }
 
                 throw;
             }
 
-            var status = DeriveCacheStatus.CacheStatus(response, staleIfError);
+            var status = response.CacheStatus(staleIfError);
             switch (status)
             {
                 case CacheStatus.Hit:
                 case CacheStatus.UseStaleDueToError:
                 {
                     response.Dispose();
-                    return new(contentPath, status, metaFile);
+                    return new(contentFile.Content, status, contentFile.Meta);
                 }
                 case CacheStatus.Stored:
                 case CacheStatus.Revalidate:

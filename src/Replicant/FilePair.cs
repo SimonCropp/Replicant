@@ -19,6 +19,13 @@ readonly struct FilePair
     {
         return new(path, Path.ChangeExtension(path, "json"));
     }
+
+    public bool Exists()
+    {
+        return File.Exists(Content) &&
+               File.Exists(Meta);
+    }
+
     public static FilePair FromContentFile(FileInfo path)
     {
         return FromContentFile(path.FullName);
