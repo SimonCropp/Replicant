@@ -348,17 +348,8 @@ namespace Replicant
             Headers? trailingHeaders = null,
             CancellationToken token = default)
         {
-            using var contentStream = content.AsStream();
-            await AddItemAsync(
-                uri,
-                contentStream,
-                expiry,
-                modified,
-                etag,
-                responseHeaders,
-                contentHeaders,
-                trailingHeaders,
-                token);
+            using var stream = content.AsStream();
+            await AddItemAsync(uri, stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
         }
 
         public Task AddItemAsync(
