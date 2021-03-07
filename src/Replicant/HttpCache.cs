@@ -469,7 +469,7 @@ namespace Replicant
             var tempMetaFile = FileEx.GetTempFileName();
             try
             {
-#if NET5_0_OR_GREATER
+#if NET5_0
                 await using var httpStream = await httpContentFunc(token);
                 await using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
                 await using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
@@ -507,7 +507,7 @@ namespace Replicant
                 using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 using (var writer = new Utf8JsonWriter(metaFileStream))
                 {
-#if NET5_0_OR_GREATER
+#if NET5_0
                     MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
 #else
                     MetaData meta = new(response.Headers, response.Content.Headers);
@@ -578,7 +578,7 @@ namespace Replicant
             {
                 client!.Dispose();
             }
-#if NET5_0_OR_GREATER
+#if NET5_0
             return timer.DisposeAsync();
 #else
             timer.Dispose();

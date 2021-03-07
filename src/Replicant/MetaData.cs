@@ -29,7 +29,7 @@ class MetaData
 
         response.Headers.AddRange(meta.ResponseHeaders);
         response.Content.Headers.AddRange(meta.ContentHeaders);
-#if NET5_0_OR_GREATER || NETSTANDARD2_1
+#if NET5_0 || NETSTANDARD2_1
         if (meta.TrailingHeaders != null)
         {
             response.TrailingHeaders.AddRange(meta.TrailingHeaders);

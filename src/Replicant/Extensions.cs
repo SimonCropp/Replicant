@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 static class Extensions
 {
-#if NET5_0_OR_GREATER
+#if NET5_0
 
     public static void CopyTo(this HttpContent content, Stream target, CancellationToken token)
     {
@@ -144,7 +144,7 @@ static class Extensions
     {
         var uri = response.RequestMessage?.RequestUri?.OriginalString;
         var message = $"{exception.Message} Uri: {uri}";
-#if NET5_0_OR_GREATER
+#if NET5_0
         return new HttpRequestException(message, exception.InnerException, exception.StatusCode);
 #else
         return new HttpRequestException(message, exception.InnerException);
@@ -155,7 +155,7 @@ static class Extensions
     {
         var uri = request.RequestUri?.OriginalString;
         var message = $"{exception.Message} Uri: {uri}";
-#if NET5_0_OR_GREATER
+#if NET5_0
         return new HttpRequestException(message, exception.InnerException, exception.StatusCode);
 #else
         return new HttpRequestException(message, exception.InnerException);
@@ -180,7 +180,7 @@ static class Extensions
     public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> TrailingHeaders(
         this HttpResponseMessage response)
     {
-#if NET5_0_OR_GREATER
+#if NET5_0
         return response.TrailingHeaders;
 #else
         return new List<KeyValuePair<string, IEnumerable<string>>>();

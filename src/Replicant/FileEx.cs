@@ -14,7 +14,6 @@ static class FileEx
         return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
     }
 
-
     public static string GetTempFileName(string? extension = null)
     {
         var tempPath = Path.GetTempPath();
@@ -32,7 +31,7 @@ static class FileEx
         return new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
     }
 
-#if NET5_0_OR_GREATER
+#if NET5_0
 
     public static void Move(string source, string target)
     {

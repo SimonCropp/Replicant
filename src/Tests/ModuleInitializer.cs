@@ -10,7 +10,7 @@ public static class ModuleInitializer
             settings =>
             {
                 settings.AddExtraSettings(x => x.Converters.Add(new ResultConverter()));
-#if NET5_0_OR_GREATER
+#if NET5_0
                 settings.IgnoreMember<System.Net.Http.HttpRequestException>(x => x.StatusCode);
 #endif
                 settings.IgnoreMember<Result>(x => x.ContentPath);
