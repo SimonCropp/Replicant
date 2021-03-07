@@ -469,6 +469,7 @@ namespace Replicant
             try
             {
 #if NET5_0
+                await using var httpStream = await httpContentFunc(token);
                 await using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
                 await using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 {
