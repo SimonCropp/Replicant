@@ -478,27 +478,22 @@ namespace Replicant
             var contentFile = Path.Combine(directory, timestamp.ContentFileName);
             var metaFile = Path.Combine(directory, timestamp.MetaFileName);
 
-            // if another thread has downloaded in parallel, then use those files
-            if (!File.Exists(contentFile))
+            try
             {
-                try
-                {
-                    FileEx.Move(tempFile.Content, contentFile);
-                    FileEx.Move(tempFile.Meta, metaFile);
-                }
-                catch (Exception exception)
-                    when (exception is IOException ||
-                          exception is UnauthorizedAccessException)
-                {
-                    if (!File.Exists(contentFile))
-                    {
-                        FileEx.Move(tempFile.Content, contentFile);
-                        FileEx.Move(tempFile.Meta, metaFile);
-                    }
-                }
+                FileEx.Move(tempFile.Content, contentFile);
+                FileEx.Move(tempFile.Meta, metaFile);
+            }
+            catch (Exception exception)
+                when (exception is IOException ||
+                      exception is UnauthorizedAccessException)
+            {
+                var newName = Path.GetFileNameWithoutExtension(contentFile);
+                newName += Guid.NewGuid();
+                FileEx.Move(tempFile.Content, $"{newName}.bin");
+                FileEx.Move(tempFile.Meta, $"{newName}.json");
             }
 
-            return new(new FilePair(contentFile,metaFile), status);
+            return new(new FilePair(contentFile, metaFile), status);
         }
 
         public void Dispose()
