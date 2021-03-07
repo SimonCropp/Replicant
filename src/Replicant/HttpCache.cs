@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -439,7 +438,8 @@ namespace Replicant
                     modified.Value.ToUniversalTime().ToString("r"));
             }
 
-            return InnerAddItemAsync(CacheStatus.Stored, token, _ => Task.FromResult(stream), responseHeaders, contentHeaders, trailingHeaders, timestamp);
+            var meta = MetaData.FromEnumerables(responseHeaders, contentHeaders, trailingHeaders);
+            return InnerAddItemAsync(CacheStatus.Stored, token, _ => Task.FromResult(stream), meta, timestamp);
         }
 
         public void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
@@ -453,25 +453,22 @@ namespace Replicant
             var timestamp = Timestamp.FromResponse(uri, response);
             Task<Stream> ContentFunc(CancellationToken cancellationToken) => response.Content.ReadAsStreamAsync(cancellationToken);
 
-            return InnerAddItemAsync(status, token, ContentFunc, response.Headers, response.Content.Headers, response.TrailingHeaders(), timestamp);
+            var meta = MetaData.FromEnumerables(response.Headers, response.Content.Headers, response.TrailingHeaders());
+            return InnerAddItemAsync(status, token, ContentFunc, meta, timestamp);
         }
 
         async Task<Result> InnerAddItemAsync(
             CacheStatus status,
             CancellationToken token,
             Func<CancellationToken, Task<Stream>> httpContentFunc,
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>> httpResponseHeaders,
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>> contentHeaders,
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>> trailingHeaders,
+            MetaData meta,
             Timestamp timestamp)
         {
             var tempContentFile = FileEx.GetTempFileName();
             var tempMetaFile = FileEx.GetTempFileName();
-            var meta = MetaData.FromEnumerables(httpResponseHeaders, contentHeaders, trailingHeaders);
             try
             {
 #if NET5_0
-                await using var httpStream = await httpContentFunc(token);
                 await using (var contentFileStream = FileEx.OpenWrite(tempContentFile))
                 await using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 {
