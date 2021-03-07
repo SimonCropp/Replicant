@@ -73,6 +73,15 @@ namespace Replicant
             }
         }
 
+        public void Purge()
+        {
+            foreach (var file in Directory.EnumerateFiles(directory))
+            {
+                var pair = FilePair.FromContentFile(file!);
+                pair.PurgeItem();
+            }
+        }
+
         public void PurgeOld()
         {
             foreach (var file in new DirectoryInfo(directory)
@@ -80,58 +89,8 @@ namespace Replicant
                 .OrderByDescending(x => x.LastAccessTime)
                 .Skip(maxEntries))
             {
-                PurgeItem(file.FullName);
-            }
-        }
-
-        internal static void PurgeItem(string contentPath)
-        {
-            var tempContent = FileEx.GetTempFileName();
-            var tempMeta = FileEx.GetTempFileName();
-            var metaPath = Path.ChangeExtension(contentPath, "json");
-            try
-            {
-                File.Move(contentPath, tempContent);
-                File.Move(metaPath, tempMeta);
-            }
-            catch (Exception)
-            {
-                try
-                {
-                    TryMoveTempFilesBack(contentPath, tempContent, tempMeta, metaPath);
-
-                    LogError($"Could not purge item due to locked file. Cached item remains. Path: {contentPath}");
-                }
-                catch (Exception e)
-                {
-                    throw new Exception($"Could not purge item due to locked file. Cached item is in a corrupted state. Path: {contentPath}", e);
-                }
-            }
-            finally
-            {
-                File.Delete(tempContent);
-                File.Delete(tempMeta);
-            }
-        }
-
-        static void TryMoveTempFilesBack(string contentPath, string tempContent, string tempMeta, string metaPath)
-        {
-            if (File.Exists(tempContent))
-            {
-                FileEx.Move(tempContent, contentPath);
-            }
-
-            if (File.Exists(tempMeta))
-            {
-                FileEx.Move(tempMeta, metaPath);
-            }
-        }
-
-        public void Purge()
-        {
-            foreach (var file in Directory.EnumerateFiles(directory))
-            {
-                File.Delete(file);
+                var pair = FilePair.FromContentFile(file!);
+                pair.PurgeItem();
             }
         }
 

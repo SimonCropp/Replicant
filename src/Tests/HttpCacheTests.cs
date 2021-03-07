@@ -106,7 +106,7 @@ public class HttpCacheTests
         using var result = await httpCache.DownloadAsync("https://httpbin.org/status/200");
         using (result.AsResponseMessage())
         {
-            HttpCache.PurgeItem(result.ContentPath!);
+            FilePair.FromContentFile(result.ContentPath!).PurgeItem();
             Assert.True(File.Exists(result.ContentPath));
             Assert.True(File.Exists(result.MetaPath));
         }
@@ -119,7 +119,7 @@ public class HttpCacheTests
 
         using (result.AsResponseMessage())
         {
-            HttpCache.PurgeItem(result.ContentPath!);
+            FilePair.FromContentFile(result.ContentPath!).PurgeItem();
             Assert.True(File.Exists(result.ContentPath));
             Assert.True(File.Exists(result.MetaPath));
         }
