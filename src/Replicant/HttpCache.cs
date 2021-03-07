@@ -467,6 +467,7 @@ namespace Replicant
         {
             var tempContentFile = FileEx.GetTempFileName();
             var tempMetaFile = FileEx.GetTempFileName();
+            MetaData meta = new(httpResponseHeaders, contentHeaders, trailingHeaders);
             try
             {
 #if NET5_0
@@ -480,7 +481,6 @@ namespace Replicant
                 using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 {
 #endif
-                    MetaData meta = new(httpResponseHeaders, contentHeaders, trailingHeaders);
                     await JsonSerializer.SerializeAsync(metaFileStream, meta, cancellationToken: token);
                     await httpStream.CopyToAsync(contentFileStream, token);
                 }
@@ -498,6 +498,12 @@ namespace Replicant
         {
             var timestamp = Timestamp.FromResponse(uri, response);
 
+#if NET5_0
+                    MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
+#else
+                    MetaData meta = new(response.Headers, response.Content.Headers);
+#endif
+
             var tempContentFile = FileEx.GetTempFileName();
             var tempMetaFile = FileEx.GetTempFileName();
             try
@@ -507,11 +513,6 @@ namespace Replicant
                 using (var metaFileStream = FileEx.OpenWrite(tempMetaFile))
                 using (var writer = new Utf8JsonWriter(metaFileStream))
                 {
-#if NET5_0
-                    MetaData meta = new(response.Headers, response.Content.Headers, response.TrailingHeaders);
-#else
-                    MetaData meta = new(response.Headers, response.Content.Headers);
-#endif
                     JsonSerializer.Serialize(writer, meta);
                     httpStream.CopyTo(contentFileStream);
                 }

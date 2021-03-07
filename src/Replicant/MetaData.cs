@@ -13,16 +13,18 @@ class MetaData
         IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders,
         IEnumerable<KeyValuePair<string, IEnumerable<string>>> contentHeaders,
         IEnumerable<KeyValuePair<string, IEnumerable<string>>>? trailingHeaders = null
-        )
+    )
     {
         ResponseHeaders = responseHeaders;
         ContentHeaders = contentHeaders;
         TrailingHeaders = trailingHeaders;
     }
+
     public static MetaData ReadMeta(string path)
     {
         return JsonSerializer.Deserialize<MetaData>(File.ReadAllText(path))!;
     }
+
     public static void ApplyToResponse(string path, HttpResponseMessage response)
     {
         var meta = ReadMeta(path);
