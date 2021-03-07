@@ -4,17 +4,17 @@ static class DeriveCacheStatus
 {
     public static CacheStatus CacheStatus(this HttpResponseMessage response, bool staleIfError)
     {
-        if (response.IsNoCache())
+        if (response.IsNoStore())
         {
-            return global::CacheStatus.NoCache;
+            return global::CacheStatus.NoStore;
         }
 
-        if (response.IsNotModified())
+        if (response.IsNoCache())
         {
             return global::CacheStatus.Revalidate;
         }
 
-        if (response.IsNoStore())
+        if (response.IsNotModified())
         {
             return global::CacheStatus.Revalidate;
         }

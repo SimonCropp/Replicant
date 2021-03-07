@@ -1,1 +1,1 @@
-Revalidate
+NoStore

@@ -1,1 +1,1 @@
-NoCache
+Revalidate

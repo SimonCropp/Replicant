@@ -231,9 +231,9 @@ namespace Replicant
                         return await AddItemAsync(response, uri, status, token);
                     }
                 }
-                case CacheStatus.NoCache:
+                case CacheStatus.NoStore:
                 {
-                    return new(response, CacheStatus.NoCache);
+                    return new(response, CacheStatus.NoStore);
                 }
                 default:
                 {
@@ -297,9 +297,9 @@ namespace Replicant
                         return AddItem(response, uri, status, token);
                     }
                 }
-                case CacheStatus.NoCache:
+                case CacheStatus.NoStore:
                 {
-                    return new(response, CacheStatus.NoCache);
+                    return new(response, CacheStatus.NoStore);
                 }
                 default:
                 {
@@ -330,7 +330,7 @@ namespace Replicant
             response.EnsureSuccess();
             if (response.IsNoCache())
             {
-                return new(response, CacheStatus.NoCache);
+                return new(response, CacheStatus.NoStore);
             }
 
             using (response)
@@ -350,7 +350,7 @@ namespace Replicant
             response.EnsureSuccess();
             if (response.IsNoCache())
             {
-                return new(response, CacheStatus.NoCache);
+                return new(response, CacheStatus.NoStore);
             }
 
             using (response)

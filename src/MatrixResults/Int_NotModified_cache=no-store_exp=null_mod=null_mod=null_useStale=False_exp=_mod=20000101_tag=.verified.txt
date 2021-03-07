@@ -1,13 +1,12 @@
-Status: Revalidate,
+Status: NoStore,
 Response: {
   Version: 1.1,
   Content: {
     Headers: {}
   },
-  StatusCode: OK,
-  ReasonPhrase: OK,
+  StatusCode: NotModified,
+  ReasonPhrase: Not Modified,
   Headers: {
     Cache-Control: no-store
-  },
-  IsSuccessStatusCode: true
+  }
 }

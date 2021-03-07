@@ -2,7 +2,7 @@
 {
     Hit,
     Stored,
-    NoCache,
+    NoStore,
     Revalidate,
     UseStaleDueToError
 }

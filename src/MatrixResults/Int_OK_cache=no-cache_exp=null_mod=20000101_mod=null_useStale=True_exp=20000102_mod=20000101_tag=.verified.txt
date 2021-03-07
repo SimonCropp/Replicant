@@ -1,15 +1,15 @@
-Status: NoCache,
+Status: Revalidate,
 Response: {
   Version: 1.1,
   Content: {
     Headers: {
-      Last-Modified: DateTime_1
+      Expires: DateTime_1
     }
   },
   StatusCode: OK,
   ReasonPhrase: OK,
   Headers: {
-    Cache-Control: no-cache
+    LastModified: Sat, 01 Jan 2000 00:00:00 GMT
   },
   IsSuccessStatusCode: true
 }

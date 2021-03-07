@@ -1,17 +1,13 @@
-Status: NoCache,
+Status: Revalidate,
 Response: {
   Version: 1.1,
   Content: {
-    Headers: {
-      Expires: DateTime_1,
-      Last-Modified: DateTime_2
-    }
+    Headers: {}
   },
   StatusCode: OK,
   ReasonPhrase: OK,
   Headers: {
-    Cache-Control: no-cache,
-    ETag: "tag"
+    LastModified: Fri, 31 Dec 1999 00:00:00 GMT
   },
   IsSuccessStatusCode: true
 }

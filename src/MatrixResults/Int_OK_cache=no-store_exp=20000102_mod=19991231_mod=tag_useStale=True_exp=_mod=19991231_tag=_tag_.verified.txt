@@ -1,13 +1,17 @@
-Status: Revalidate,
+Status: NoStore,
 Response: {
   Version: 1.1,
   Content: {
-    Headers: {}
+    Headers: {
+      Expires: DateTime_1,
+      Last-Modified: DateTime_2
+    }
   },
   StatusCode: OK,
   ReasonPhrase: OK,
   Headers: {
-    LastModified: Fri, 31 Dec 1999 00:00:00 GMT
+    Cache-Control: no-store,
+    ETag: "tag"
   },
   IsSuccessStatusCode: true
 }
