@@ -114,7 +114,7 @@ namespace Replicant
             var timestamp = Timestamp.FromPath(file.Content);
             if (timestamp.Expiry > now)
             {
-                return new(file, false, false, true);
+                return new(file, false, false);
             }
 
             using var request = BuildRequest(uri, modifyRequest);
@@ -131,7 +131,7 @@ namespace Replicant
             {
                 if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
-                    return new(file, true, false, true);
+                    return new(file, true, false);
                 }
 
                 throw;
@@ -144,7 +144,7 @@ namespace Replicant
                 case CacheStatus.UseStaleDueToError:
                 {
                     response.Dispose();
-                    return new(file, true, false, true);
+                    return new(file, true, false);
                 }
                 case CacheStatus.Stored:
                 case CacheStatus.Revalidate:
@@ -156,7 +156,7 @@ namespace Replicant
                 }
                 case CacheStatus.NoStore:
                 {
-                    return new(response, true, false, false);
+                    return new(response);
                 }
                 default:
                 {
@@ -178,7 +178,7 @@ namespace Replicant
             var timestamp = Timestamp.FromPath(contentFile.Content);
             if (timestamp.Expiry > now)
             {
-                return new(contentFile, false, false, true);
+                return new(contentFile, false, false);
             }
 
             using var request = BuildRequest(uri, modifyRequest);
@@ -195,7 +195,7 @@ namespace Replicant
             {
                 if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
-                    return new(contentFile, true, false, true);
+                    return new(contentFile, true, false);
                 }
 
                 throw;
@@ -208,7 +208,7 @@ namespace Replicant
                 case CacheStatus.UseStaleDueToError:
                 {
                     response.Dispose();
-                    return new(contentFile, true, false, true);
+                    return new(contentFile, true, false);
                 }
                 case CacheStatus.Stored:
                 case CacheStatus.Revalidate:
@@ -220,7 +220,7 @@ namespace Replicant
                 }
                 case CacheStatus.NoStore:
                 {
-                    return new(response, true, false, true);
+                    return new(response);
                 }
                 default:
                 {
@@ -251,7 +251,7 @@ namespace Replicant
             response.EnsureSuccess();
             if (response.IsNoStore())
             {
-                return new(response, true, false, false);
+                return new(response);
             }
 
             using (response)
@@ -271,7 +271,7 @@ namespace Replicant
             response.EnsureSuccess();
             if (response.IsNoStore())
             {
-                return new(response, true, false, false);
+                return new(response);
             }
 
             using (response)
@@ -431,15 +431,15 @@ namespace Replicant
                 {
                     var newContent = $"{newName}.bin";
                     FileEx.Move(tempFile.Content, newContent);
-                    return new(new FilePair(newContent, newMeta), true, true, true);
+                    return new(new FilePair(newContent, newMeta), true, true);
                 }
                 else
                 {
-                    return new(new FilePair(contentFile, newMeta), true, true, true);
+                    return new(new FilePair(contentFile, newMeta), true, true);
                 }
             }
 
-            return new(new FilePair(contentFile, metaFile), true, true, true);
+            return new(new FilePair(contentFile, metaFile), true, true);
         }
     }
 }

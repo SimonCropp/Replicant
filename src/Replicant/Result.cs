@@ -13,22 +13,22 @@ readonly struct Result :
     public bool Stored { get; }
     public bool FromDisk { get; }
 
-    public Result(FilePair file, bool revalidated, bool stored, bool fromDisk)
+    public Result(FilePair file, bool revalidated, bool stored)
     {
         File = file;
         Revalidated = revalidated;
         Stored = stored;
-        FromDisk = fromDisk;
+        FromDisk = true;
         Response = null;
     }
 
-    public Result(HttpResponseMessage response, bool revalidated, bool stored, bool fromDisk)
+    public Result(HttpResponseMessage response)
     {
         File = null;
         Response = response;
-        Revalidated = revalidated;
-        Stored = stored;
-        FromDisk = fromDisk;
+        Revalidated = true;
+        Stored = false;
+        FromDisk = false;
     }
 
     public async Task<Stream> AsStreamAsync(CancellationToken token)
