@@ -1,4 +1,6 @@
-Status: Stored,
+FromDisk: true,
+Stored: true,
+Revalidated: true,
 Response: {
   Version: 1.1,
   Content: {
