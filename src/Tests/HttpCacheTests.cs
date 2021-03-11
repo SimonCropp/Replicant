@@ -94,8 +94,7 @@ public class HttpCacheTests
 
         var result1 = await task;
 
-        Assert.True(CacheStatus.Stored == result1.Status ||
-                    CacheStatus.Stored == result2.Status);
+        Assert.True(result1.Stored || result2.Stored);
     }
 
 #if DEBUG

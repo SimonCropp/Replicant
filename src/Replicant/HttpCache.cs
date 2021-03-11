@@ -114,7 +114,7 @@ namespace Replicant
             var timestamp = Timestamp.FromPath(file.Content);
             if (timestamp.Expiry > now)
             {
-                return new(file, CacheStatus.Hit);
+                return new(file, false, false, true);
             }
 
             using var request = BuildRequest(uri, modifyRequest);
@@ -131,7 +131,7 @@ namespace Replicant
             {
                 if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
-                    return new(file, CacheStatus.UseStaleDueToError);
+                    return new(file, true, false, true);
                 }
 
                 throw;
@@ -144,7 +144,7 @@ namespace Replicant
                 case CacheStatus.UseStaleDueToError:
                 {
                     response.Dispose();
-                    return new(file, status);
+                    return new(file, true, false, true);
                 }
                 case CacheStatus.Stored:
                 case CacheStatus.Revalidate:
@@ -156,7 +156,7 @@ namespace Replicant
                 }
                 case CacheStatus.NoStore:
                 {
-                    return new(response, CacheStatus.NoStore);
+                    return new(response, true, false, false);
                 }
                 default:
                 {
@@ -178,7 +178,7 @@ namespace Replicant
             var timestamp = Timestamp.FromPath(contentFile.Content);
             if (timestamp.Expiry > now)
             {
-                return new(contentFile, CacheStatus.Hit);
+                return new(contentFile, false, false, true);
             }
 
             using var request = BuildRequest(uri, modifyRequest);
@@ -195,7 +195,7 @@ namespace Replicant
             {
                 if (ShouldReturnStaleIfError(staleIfError, exception, token))
                 {
-                    return new(contentFile, CacheStatus.UseStaleDueToError);
+                    return new(contentFile, true, false, true);
                 }
 
                 throw;
@@ -208,7 +208,7 @@ namespace Replicant
                 case CacheStatus.UseStaleDueToError:
                 {
                     response.Dispose();
-                    return new(contentFile, status);
+                    return new(contentFile, true, false, true);
                 }
                 case CacheStatus.Stored:
                 case CacheStatus.Revalidate:
@@ -220,7 +220,7 @@ namespace Replicant
                 }
                 case CacheStatus.NoStore:
                 {
-                    return new(response, CacheStatus.NoStore);
+                    return new(response, true, false, true);
                 }
                 default:
                 {
@@ -251,7 +251,7 @@ namespace Replicant
             response.EnsureSuccess();
             if (response.IsNoStore())
             {
-                return new(response, CacheStatus.NoStore);
+                return new(response, true, false, false);
             }
 
             using (response)
@@ -271,7 +271,7 @@ namespace Replicant
             response.EnsureSuccess();
             if (response.IsNoStore())
             {
-                return new(response, CacheStatus.NoStore);
+                return new(response, true, false, false);
             }
 
             using (response)
@@ -431,15 +431,15 @@ namespace Replicant
                 {
                     var newContent = $"{newName}.bin";
                     FileEx.Move(tempFile.Content, newContent);
-                    return new(new FilePair(newContent, newMeta), status);
+                    return new(new FilePair(newContent, newMeta), true, true, true);
                 }
                 else
                 {
-                    return new(new FilePair(contentFile, newMeta), status);
+                    return new(new FilePair(contentFile, newMeta), true, true, true);
                 }
             }
 
-            return new(new FilePair(contentFile, metaFile), status);
+            return new(new FilePair(contentFile, metaFile), true, true, true);
         }
     }
 }

@@ -9,20 +9,26 @@ readonly struct Result :
 {
     public FilePair? File { get; }
     public HttpResponseMessage? Response { get; }
-    public CacheStatus Status { get; }
+    public bool Revalidated { get; }
+    public bool Stored { get; }
+    public bool FromDisk { get; }
 
-    public Result(FilePair file, CacheStatus status)
+    public Result(FilePair file, bool revalidated, bool stored, bool fromDisk)
     {
         File = file;
-        Status = status;
+        Revalidated = revalidated;
+        Stored = stored;
+        FromDisk = fromDisk;
         Response = null;
     }
 
-    public Result(HttpResponseMessage response, CacheStatus status)
+    public Result(HttpResponseMessage response, bool revalidated, bool stored, bool fromDisk)
     {
         File = null;
         Response = response;
-        Status = status;
+        Revalidated = revalidated;
+        Stored = stored;
+        FromDisk = fromDisk;
     }
 
     public async Task<Stream> AsStreamAsync(CancellationToken token)
