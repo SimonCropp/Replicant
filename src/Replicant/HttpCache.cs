@@ -151,7 +151,7 @@ namespace Replicant
                 {
                     using (response)
                     {
-                        return await AddItemAsync(response, uri, status, token);
+                        return await AddItemAsync(response, uri, token);
                     }
                 }
                 case CacheStatus.NoStore:
@@ -215,7 +215,7 @@ namespace Replicant
                 {
                     using (response)
                     {
-                        return AddItem(response, uri, status, token);
+                        return AddItem(response, uri, token);
                     }
                 }
                 case CacheStatus.NoStore:
@@ -256,7 +256,7 @@ namespace Replicant
 
             using (response)
             {
-                return await AddItemAsync(response, uri, CacheStatus.Stored, token);
+                return await AddItemAsync(response, uri, token);
             }
         }
 
@@ -276,7 +276,7 @@ namespace Replicant
 
             using (response)
             {
-                return AddItem(response, uri, CacheStatus.Stored, token);
+                return AddItem(response, uri, token);
             }
         }
 
@@ -331,20 +331,19 @@ namespace Replicant
             }
 
             var meta = MetaData.FromEnumerables(responseHeaders, contentHeaders, trailingHeaders);
-            return InnerAddItemAsync(CacheStatus.Stored, token, _ => Task.FromResult(stream), meta, timestamp);
+            return InnerAddItemAsync(token, _ => Task.FromResult(stream), meta, timestamp);
         }
 
-        Task<Result> AddItemAsync(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
+        Task<Result> AddItemAsync(HttpResponseMessage response, string uri, CancellationToken token)
         {
             var timestamp = Timestamp.FromResponse(uri, response);
             Task<Stream> ContentFunc(CancellationToken cancellationToken) => response.Content.ReadAsStreamAsync(cancellationToken);
 
             var meta = MetaData.FromEnumerables(response.Headers, response.Content.Headers, response.TrailingHeaders());
-            return InnerAddItemAsync(status, token, ContentFunc, meta, timestamp);
+            return InnerAddItemAsync(token, ContentFunc, meta, timestamp);
         }
 
         async Task<Result> InnerAddItemAsync(
-            CacheStatus status,
             CancellationToken token,
             Func<CancellationToken, Task<Stream>> httpContentFunc,
             MetaData meta,
@@ -368,7 +367,7 @@ namespace Replicant
                     await httpStream.CopyToAsync(contentFileStream, token);
                 }
 
-                return BuildResult(status, timestamp, tempFile);
+                return BuildResult(timestamp, tempFile);
             }
             finally
             {
@@ -376,7 +375,7 @@ namespace Replicant
             }
         }
 
-        Result AddItem(HttpResponseMessage response, string uri, CacheStatus status, CancellationToken token)
+        Result AddItem(HttpResponseMessage response, string uri, CancellationToken token)
         {
             var timestamp = Timestamp.FromResponse(uri, response);
 
@@ -397,7 +396,7 @@ namespace Replicant
                     httpStream.CopyTo(contentFileStream);
                 }
 
-                return BuildResult(status, timestamp, tempFile);
+                return BuildResult(timestamp, tempFile);
             }
             finally
             {
@@ -405,7 +404,7 @@ namespace Replicant
             }
         }
 
-        Result BuildResult(CacheStatus status, Timestamp timestamp, FilePair tempFile)
+        Result BuildResult(Timestamp timestamp, FilePair tempFile)
         {
             tempFile.SetExpiry(timestamp.Expiry);
 

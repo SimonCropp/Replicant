@@ -14,13 +14,13 @@ namespace Replicant
         public void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
-            AddItem(response, uri, CacheStatus.Stored, token);
+            AddItem(response, uri, token);
         }
 
         public Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
-            return AddItemAsync(response, uri, CacheStatus.Stored, token);
+            return AddItemAsync(response, uri, token);
         }
 
         public async Task AddItemAsync(
