@@ -196,24 +196,6 @@ public class HttpCacheTests
     }
 
     [Fact]
-    public async Task WeakEtag()
-    {
-        var uri = "https://www.wikipedia.org/";
-        HttpResponseMessage newMessage = new(HttpStatusCode.OK)
-        {
-            Content = new StringContent("a"),
-        };
-        using (var content = await httpCache.ResponseAsync(uri))
-        {
-            newMessage.Headers.ETag = content.Headers.ETag;
-        }
-
-        await httpCache.AddItemAsync(uri, newMessage);
-        using var content2 = await httpCache.ResponseAsync(uri);
-        await Verifier.Verify(content2);
-    }
-
-    [Fact]
     public async Task CacheControlMaxAge()
     {
         var uri = "https://httpbin.org/cache/20";

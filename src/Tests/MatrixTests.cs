@@ -183,6 +183,7 @@ public class MatrixTests
     static Etag[] etags =
     {
         new("\"tag\"", "Stag", false),
+        new("W/\"tag\"", "Wtag", false),
         Etag.Empty,
     };
 

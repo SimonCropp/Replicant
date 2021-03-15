@@ -61,7 +61,7 @@ public class HttpResponseMessageEx :
             }
             else
             {
-                builder.Append($"mod={etag.ForFile.Substring(1)}_");
+                builder.Append($"mod={etag.ForFile}_");
             }
         }
 
