@@ -10,19 +10,27 @@ namespace Replicant
 {
     public partial class HttpCache
     {
-
+        /// <summary>
+        /// Manually add an item to the cache.
+        /// </summary>
         public void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             AddItem(response, uri, token);
         }
 
+        /// <summary>
+        /// Manually add an item to the cache.
+        /// </summary>
         public Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             return AddItemAsync(response, uri, token);
         }
 
+        /// <summary>
+        /// Manually add an item to the cache.
+        /// </summary>
         public async Task AddItemAsync(
             string uri,
             string content,
@@ -38,6 +46,9 @@ namespace Replicant
             await AddItemAsync(uri, stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
         }
 
+        /// <summary>
+        /// Download a resource an return the result as a string.
+        /// </summary>
         public async Task<string> StringAsync(
             string uri,
             bool staleIfError = false,
@@ -48,6 +59,9 @@ namespace Replicant
             return await result.AsStringAsync(token);
         }
 
+        /// <summary>
+        /// Download a resource an return the result as byte array.
+        /// </summary>
         public async Task<byte[]> BytesAsync(
             string uri,
             bool staleIfError = false,
@@ -58,6 +72,9 @@ namespace Replicant
             return await result.AsBytesAsync(token);
         }
 
+        /// <summary>
+        /// Download a resource an return the result as <see cref="Stream"/>.
+        /// </summary>
         public async Task<Stream> StreamAsync(
             string uri,
             bool staleIfError = false,
@@ -68,6 +85,9 @@ namespace Replicant
             return await result.AsStreamAsync(token);
         }
 
+        /// <summary>
+        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
+        /// </summary>
         public async Task<HttpResponseMessage> ResponseAsync(
             string uri,
             bool staleIfError = false,
@@ -78,6 +98,9 @@ namespace Replicant
             return result.AsResponseMessage();
         }
 
+        /// <summary>
+        /// Download a resource and store the result in <paramref name="stream"/>.
+        /// </summary>
         public async Task ToStreamAsync(
             string uri,
             Stream stream,
@@ -89,6 +112,9 @@ namespace Replicant
             await result.ToStreamAsync(stream, token);
         }
 
+        /// <summary>
+        /// Download a resource and store the result in <paramref name="path"/>.
+        /// </summary>
         public async Task ToFileAsync(
             string uri,
             string path,
@@ -100,6 +126,9 @@ namespace Replicant
             await result.ToFileAsync(path, token);
         }
 
+        /// <summary>
+        /// Download a resource an return the result as a string.
+        /// </summary>
         public string String(
             string uri,
             bool staleIfError = false,
@@ -142,6 +171,9 @@ namespace Replicant
             }
         }
 
+        /// <summary>
+        /// Download a resource an return the result as a byte array.
+        /// </summary>
         public byte[] Bytes(
             string uri,
             bool staleIfError = false,
@@ -152,6 +184,9 @@ namespace Replicant
             return result.AsBytes();
         }
 
+        /// <summary>
+        /// Download a resource an return the result as <see cref="Stream"/>.
+        /// </summary>
         public Stream Stream(
             string uri,
             bool staleIfError = false,
@@ -162,6 +197,9 @@ namespace Replicant
             return result.AsStream();
         }
 
+        /// <summary>
+        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
+        /// </summary>
         public async Task<HttpResponseMessage> Response(
             string uri,
             bool staleIfError = false,
@@ -172,6 +210,9 @@ namespace Replicant
             return result.AsResponseMessage();
         }
 
+        /// <summary>
+        /// Download a resource and store the result in <paramref name="stream"/>.
+        /// </summary>
         public void ToStream(
             string uri,
             Stream stream,
@@ -183,6 +224,9 @@ namespace Replicant
             result.ToStream(stream, token);
         }
 
+        /// <summary>
+        /// Download a resource and store the result in <paramref name="path"/>.
+        /// </summary>
         public void ToFile(
             string uri,
             string path,
