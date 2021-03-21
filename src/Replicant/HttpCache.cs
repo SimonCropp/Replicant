@@ -72,6 +72,15 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
+            return DownloadAsync(BuildUri(uri), staleIfError, modifyRequest, token);
+        }
+
+        internal Task<Result> DownloadAsync(
+            Uri uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? modifyRequest = null,
+            CancellationToken token = default)
+        {
             var contentFile = FindContentFileForUri(uri);
 
             if (contentFile == null)
@@ -88,6 +97,15 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
+            return Download(BuildUri(uri), staleIfError, modifyRequest, token);
+        }
+
+        internal Result Download(
+            Uri uri,
+            bool staleIfError = false,
+            Action<HttpRequestMessage>? modifyRequest = null,
+            CancellationToken token = default)
+        {
             var contentFile = FindContentFileForUri(uri);
 
             if (contentFile == null)
@@ -98,9 +116,9 @@ namespace Replicant
             return HandleFileExists(uri, staleIfError, modifyRequest, contentFile.Value, token);
         }
 
-        FilePair? FindContentFileForUri(string uri)
+        FilePair? FindContentFileForUri(Uri uri)
         {
-            var hash = Hash.Compute(uri);
+            var hash = Hash.Compute(uri.AbsoluteUri);
             var directoryInfo = new DirectoryInfo(directory);
             var fileInfo = directoryInfo
                 .GetFiles($"{hash}_*.bin")
@@ -115,7 +133,7 @@ namespace Replicant
         }
 
         async Task<Result> HandleFileExistsAsync(
-            string uri,
+            Uri uri,
             bool staleIfError,
             Action<HttpRequestMessage>? modifyRequest,
             CancellationToken token,
@@ -179,7 +197,7 @@ namespace Replicant
         }
 
         Result HandleFileExists(
-            string uri,
+            Uri uri,
             bool staleIfError,
             Action<HttpRequestMessage>? modifyRequest,
             FilePair contentFile,
@@ -253,7 +271,7 @@ namespace Replicant
         }
 
         async Task<Result> HandleFileMissingAsync(
-            string uri,
+            Uri uri,
             Action<HttpRequestMessage>? modifyRequest,
             CancellationToken token)
         {
@@ -273,7 +291,7 @@ namespace Replicant
         }
 
         Result HandleFileMissing(
-            string uri,
+            Uri uri,
             Action<HttpRequestMessage>? modifyRequest,
             CancellationToken token)
         {
@@ -292,7 +310,7 @@ namespace Replicant
             }
         }
 
-        static HttpRequestMessage BuildRequest(string uri, Action<HttpRequestMessage>? modifyRequest)
+        static HttpRequestMessage BuildRequest(Uri uri, Action<HttpRequestMessage>? modifyRequest)
         {
             HttpRequestMessage request = new(HttpMethod.Get, uri);
             modifyRequest?.Invoke(request);
@@ -308,7 +326,7 @@ namespace Replicant
         /// Manually add an item to the cache.
         /// </summary>
         public Task AddItemAsync(
-            string uri,
+            Uri uri,
             Stream stream,
             DateTimeOffset? expiry = null,
             DateTimeOffset? modified = null,
@@ -318,7 +336,7 @@ namespace Replicant
             Headers? trailingHeaders = null,
             CancellationToken token = default)
         {
-            var hash = Hash.Compute(uri);
+            var hash = Hash.Compute(uri.AbsoluteUri);
             var now = DateTimeOffset.Now;
 
             var timestamp = new Timestamp(
@@ -349,7 +367,7 @@ namespace Replicant
             return InnerAddItemAsync(token, _ => Task.FromResult(stream), meta, timestamp);
         }
 
-        Task<Result> AddItemAsync(HttpResponseMessage response, string uri, CancellationToken token)
+        Task<Result> AddItemAsync(HttpResponseMessage response, Uri uri, CancellationToken token)
         {
             var timestamp = Timestamp.FromResponse(uri, response);
             Task<Stream> ContentFunc(CancellationToken cancellationToken) => response.Content.ReadAsStreamAsync(cancellationToken);
@@ -390,7 +408,7 @@ namespace Replicant
             }
         }
 
-        Result AddItem(HttpResponseMessage response, string uri, CancellationToken token)
+        Result AddItem(HttpResponseMessage response, Uri uri, CancellationToken token)
         {
             var timestamp = Timestamp.FromResponse(uri, response);
 
@@ -454,6 +472,23 @@ namespace Replicant
             }
 
             return new(new FilePair(contentFile, metaFile), true, true);
+        }
+
+        Uri BuildUri(string uri)
+        {
+            var result = new Uri(uri);
+
+            if (result.AbsoluteUri != uri)
+            {
+                throw new($"AbsoluteUri({result.AbsoluteUri}) must match Uri({uri}).");
+            }
+
+            if (!result.IsAbsoluteUri)
+            {
+                throw new($"Uri({uri}) must be absolute.");
+            }
+
+            return result;
         }
     }
 }

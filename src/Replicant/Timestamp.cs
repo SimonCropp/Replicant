@@ -30,10 +30,10 @@ readonly struct Timestamp
         request.AddIfNoneMatch(Etag);
     }
 
-    public static Timestamp FromResponse(string uri, HttpResponseMessage response)
+    public static Timestamp FromResponse(Uri uri, HttpResponseMessage response)
     {
         var now = DateTime.UtcNow;
-        var hash = Hash.Compute(uri);
+        var hash = Hash.Compute(uri.AbsoluteUri);
         var etag = Etag.FromResponse(response);
         var expiry = response.GetExpiry(now);
         var modified = response.GetLastModified(now);
