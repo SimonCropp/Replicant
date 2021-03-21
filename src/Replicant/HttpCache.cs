@@ -478,11 +478,6 @@ namespace Replicant
         {
             var result = new Uri(uri);
 
-            if (result.AbsoluteUri != uri)
-            {
-                throw new($"AbsoluteUri({result.AbsoluteUri}) must match Uri({uri}).");
-            }
-
             if (!result.IsAbsoluteUri)
             {
                 throw new($"Uri({uri}) must be absolute.");

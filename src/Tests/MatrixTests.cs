@@ -85,9 +85,9 @@ public class MatrixTests
             cache.Purge();
             if (data != null)
             {
-                await cache.AddItemAsync("uri", "content", data.Expiry, data.Modified, data.Etag);
+                await cache.AddItemAsync("http://uri", "content", data.Expiry, data.Modified, data.Etag);
             }
-            var result = await cache.DownloadAsync("uri", useStale);
+            var result = await cache.DownloadAsync("http://uri", useStale);
             await Verifier.Verify(result, settings);
         }
         catch (HttpRequestException exception)
