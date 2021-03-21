@@ -5,6 +5,15 @@
 
 A wrapper for HttpClient that caches to disk. Cached files, over the max specified, are deleted based on the last access times.
 
+Headers/Responses respected in caching decisions:
+
+ * [Expires](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires)
+ * [Cache-Control max-age](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#expiration)
+ * [Cache-Control no-store](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#cacheability)
+ * [Cache-Control no-cache](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#cacheability)
+ * [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified)
+ * [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag)
+
 
 ## NuGet package
 
