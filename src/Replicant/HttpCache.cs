@@ -34,12 +34,24 @@ namespace Replicant
             timer = new(_ => PauseAndPurgeOld(), null, ignoreTimeSpan, purgeInterval);
         }
 
+        /// <summary>
+        /// Instantiate a new instance of <see cref="HttpCache"/>.
+        /// </summary>
+        /// <param name="directory">The directory to store the cache files.</param>
+        /// <param name="clientFunc">A factory to retrieve a <see cref="HttpClient"/> each time a resource is downloaded.</param>
+        /// <param name="maxEntries">The maximum entries to store in the cache.</param>
         public HttpCache(string directory, Func<HttpClient> clientFunc, int maxEntries = 1000) :
             this(directory, maxEntries)
         {
             this.clientFunc = clientFunc;
         }
 
+        /// <summary>
+        /// Instantiate a new instance of <see cref="HttpCache"/>.
+        /// </summary>
+        /// <param name="directory">The directory to store the cache files.</param>
+        /// <param name="client">The <see cref="HttpCache"/> to use do web calls. If not supplied an instance will be instantiate.</param>
+        /// <param name="maxEntries">The maximum entries to store in the cache.</param>
         public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000) :
             this(directory, maxEntries)
         {
@@ -292,6 +304,9 @@ namespace Replicant
             return client ?? clientFunc!();
         }
 
+        /// <summary>
+        /// Manually add an item to the cache.
+        /// </summary>
         public Task AddItemAsync(
             string uri,
             Stream stream,

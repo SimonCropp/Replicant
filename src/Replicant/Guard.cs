@@ -10,14 +10,6 @@ static class Guard
         }
     }
 
-    public static void AgainstNegative(int value, string argumentName)
-    {
-        if (value < 0)
-        {
-            throw new ArgumentNullException(argumentName);
-        }
-    }
-
     public static void AgainstNullOrEmpty(string value, string argumentName)
     {
         if (string.IsNullOrWhiteSpace(value))

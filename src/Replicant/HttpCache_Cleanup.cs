@@ -26,6 +26,9 @@ namespace Replicant
             }
         }
 
+        /// <summary>
+        /// Purge all items from the cache.
+        /// </summary>
         public void Purge()
         {
             foreach (var file in Directory.EnumerateFiles(directory))
@@ -35,6 +38,9 @@ namespace Replicant
             }
         }
 
+        /// <summary>
+        /// Purge old items based on maxEntries.
+        /// </summary>
         public void PurgeOld()
         {
             foreach (var file in new DirectoryInfo(directory)
