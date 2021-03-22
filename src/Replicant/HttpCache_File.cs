@@ -17,7 +17,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return ToFileAsync(BuildUri(uri), path, staleIfError, modifyRequest, token);
+            return ToFileAsync(new Uri(uri), path, staleIfError, modifyRequest, token);
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            ToFile(BuildUri(uri), path, staleIfError, modifyRequest, token);
+            ToFile(new Uri(uri), path, staleIfError, modifyRequest, token);
         }
 
         /// <summary>

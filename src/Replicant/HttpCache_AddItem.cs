@@ -14,7 +14,7 @@ namespace Replicant
         public void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
-            AddItem(response, BuildUri(uri), token);
+            AddItem(response, new Uri(uri), token);
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Replicant
         public Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
-            return AddItemAsync(response, BuildUri(uri), token);
+            return AddItemAsync(response, new Uri(uri), token);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Replicant
             Headers? trailingHeaders = null,
             CancellationToken token = default)
         {
-            return AddItemAsync(BuildUri(uri), stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
+            return AddItemAsync(new Uri(uri), stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
         }
 
         /// <summary>

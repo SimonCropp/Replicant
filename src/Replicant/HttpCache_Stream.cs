@@ -17,7 +17,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return StreamAsync(BuildUri(uri), staleIfError, modifyRequest, token);
+            return StreamAsync(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return Stream(BuildUri(uri), staleIfError, modifyRequest, token);
+            return Stream(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return ToStreamAsync(BuildUri(uri), stream, staleIfError, modifyRequest, token);
+            return ToStreamAsync(new Uri(uri), stream, staleIfError, modifyRequest, token);
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            ToStream(BuildUri(uri), stream, staleIfError, modifyRequest, token);
+            ToStream(new Uri(uri), stream, staleIfError, modifyRequest, token);
         }
 
         /// <summary>

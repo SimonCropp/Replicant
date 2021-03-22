@@ -16,7 +16,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return StringAsync(BuildUri(uri), staleIfError, modifyRequest, token);
+            return StringAsync(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return String(BuildUri(uri), staleIfError, modifyRequest, token);
+            return String(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         /// <summary>

@@ -15,7 +15,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return LinesAsync(BuildUri(uri), staleIfError, modifyRequest, token);
+            return LinesAsync(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         public async IAsyncEnumerable<string> LinesAsync(
@@ -40,7 +40,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return Lines(BuildUri(uri), staleIfError, modifyRequest, token);
+            return Lines(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         public IEnumerable<string> Lines(

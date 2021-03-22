@@ -72,7 +72,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return DownloadAsync(BuildUri(uri), staleIfError, modifyRequest, token);
+            return DownloadAsync(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         internal Task<Result> DownloadAsync(
@@ -97,7 +97,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return Download(BuildUri(uri), staleIfError, modifyRequest, token);
+            return Download(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         internal Result Download(
@@ -472,18 +472,6 @@ namespace Replicant
             }
 
             return new(new FilePair(contentFile, metaFile), true, true);
-        }
-
-        Uri BuildUri(string uri)
-        {
-            var result = new Uri(uri);
-
-            if (!result.IsAbsoluteUri)
-            {
-                throw new($"Uri({uri}) must be absolute.");
-            }
-
-            return result;
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return BytesAsync(BuildUri(uri), staleIfError, modifyRequest, token);
+            return BytesAsync(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Replicant
             Action<HttpRequestMessage>? modifyRequest = null,
             CancellationToken token = default)
         {
-            return Bytes(BuildUri(uri), staleIfError, modifyRequest, token);
+            return Bytes(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
         /// <summary>
