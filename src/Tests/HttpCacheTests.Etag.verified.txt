@@ -1,18 +1,20 @@
-FromDisk: true,
-Stored: true,
-Revalidated: true,
-Response: {
-  Version: 1.1,
-  Content: {
-    Headers: {}
-  },
-  StatusCode: OK,
-  ReasonPhrase: OK,
-  Headers: {
-    Access-Control-Allow-Credentials: true,
-    Access-Control-Allow-Origin: *,
-    Date: DateTime_1,
-    ETag: {etag}
-  },
-  IsSuccessStatusCode: true
+{
+  FromDisk: true,
+  Stored: true,
+  Revalidated: true,
+  Response: {
+    Version: 1.1,
+    Content: {
+      Headers: {}
+    },
+    StatusCode: OK,
+    ReasonPhrase: OK,
+    Headers: {
+      Access-Control-Allow-Credentials: true,
+      Access-Control-Allow-Origin: *,
+      Date: DateTime_1,
+      ETag: {etag}
+    },
+    IsSuccessStatusCode: true
+  }
 }

@@ -1,17 +1,19 @@
-FromDisk: true,
-Stored: true,
-Revalidated: true,
-Response: {
-  Version: 1.1,
-  Content: {
+{
+  FromDisk: true,
+  Stored: true,
+  Revalidated: true,
+  Response: {
+    Version: 1.1,
+    Content: {
+      Headers: {
+        Expires: DateTime_1
+      }
+    },
+    StatusCode: OK,
+    ReasonPhrase: OK,
     Headers: {
-      Expires: DateTime_1
-    }
-  },
-  StatusCode: OK,
-  ReasonPhrase: OK,
-  Headers: {
-    Cache-Control: no-cache
-  },
-  IsSuccessStatusCode: true
+      Cache-Control: no-cache
+    },
+    IsSuccessStatusCode: true
+  }
 }

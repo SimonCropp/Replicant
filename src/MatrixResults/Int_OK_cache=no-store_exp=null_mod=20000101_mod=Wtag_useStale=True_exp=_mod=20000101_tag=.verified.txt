@@ -1,18 +1,20 @@
-FromDisk: false,
-Stored: false,
-Revalidated: true,
-Response: {
-  Version: 1.1,
-  Content: {
+{
+  FromDisk: false,
+  Stored: false,
+  Revalidated: true,
+  Response: {
+    Version: 1.1,
+    Content: {
+      Headers: {
+        Last-Modified: DateTime_1
+      }
+    },
+    StatusCode: OK,
+    ReasonPhrase: OK,
     Headers: {
-      Last-Modified: DateTime_1
-    }
-  },
-  StatusCode: OK,
-  ReasonPhrase: OK,
-  Headers: {
-    Cache-Control: no-store,
-    ETag: W/"tag"
-  },
-  IsSuccessStatusCode: true
+      Cache-Control: no-store,
+      ETag: W/"tag"
+    },
+    IsSuccessStatusCode: true
+  }
 }

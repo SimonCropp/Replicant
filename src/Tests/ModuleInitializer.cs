@@ -9,7 +9,11 @@ public static class ModuleInitializer
         VerifierSettings.ModifySerialization(
             settings =>
             {
-                settings.AddExtraSettings(x => x.Converters.Add(new ResultConverter()));
+                settings.AddExtraSettings(x =>
+                {
+                    x.Converters.Add(new ResultConverter());
+                    x.Converters.Add(new TimestampConverter());
+                });
 #if NET5_0
                 settings.IgnoreMember<System.Net.Http.HttpRequestException>(x => x.StatusCode);
 #endif

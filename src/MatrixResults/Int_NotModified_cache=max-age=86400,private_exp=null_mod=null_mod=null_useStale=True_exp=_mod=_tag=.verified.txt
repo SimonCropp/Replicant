@@ -1,15 +1,17 @@
-FromDisk: true,
-Stored: true,
-Revalidated: true,
-Response: {
-  Version: 1.1,
-  Content: {
-    Headers: {}
-  },
-  StatusCode: OK,
-  ReasonPhrase: OK,
-  Headers: {
-    Cache-Control: max-age=86400, private
-  },
-  IsSuccessStatusCode: true
+{
+  FromDisk: true,
+  Stored: true,
+  Revalidated: true,
+  Response: {
+    Version: 1.1,
+    Content: {
+      Headers: {}
+    },
+    StatusCode: OK,
+    ReasonPhrase: OK,
+    Headers: {
+      Cache-Control: max-age=86400, private
+    },
+    IsSuccessStatusCode: true
+  }
 }

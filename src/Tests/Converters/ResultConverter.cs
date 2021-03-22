@@ -11,14 +11,16 @@ class ResultConverter :
         JsonSerializer serializer,
         IReadOnlyDictionary<string, object> context)
     {
+        writer.WriteStartObject();
         writer.WritePropertyName("FromDisk");
-        serializer.Serialize(writer, result.FromDisk);
+        writer.WriteValue(result.FromDisk);
         writer.WritePropertyName("Stored");
-        serializer.Serialize(writer, result.Stored);
+        writer.WriteValue(result.Stored);
         writer.WritePropertyName("Revalidated");
-        serializer.Serialize(writer, result.Revalidated);
+        writer.WriteValue(result.Revalidated);
         writer.WritePropertyName("Response");
         using var message = result.AsResponseMessage();
         serializer.Serialize(writer, message);
+        writer.WriteEndObject();
     }
 }
