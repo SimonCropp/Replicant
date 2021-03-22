@@ -167,7 +167,7 @@ namespace Replicant
                 throw;
             }
 
-            var status = response.GetStatus(staleIfError);
+            var status = response.GetCacheStatus(staleIfError);
             switch (status)
             {
                 case CacheStatus.Hit:
@@ -231,7 +231,7 @@ namespace Replicant
                 throw;
             }
 
-            var status = response.GetStatus(staleIfError);
+            var status = response.GetCacheStatus(staleIfError);
             switch (status)
             {
                 case CacheStatus.Hit:

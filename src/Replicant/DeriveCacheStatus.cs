@@ -2,7 +2,7 @@
 
 static class DeriveCacheStatus
 {
-    public static CacheStatus GetStatus(this HttpResponseMessage response, bool staleIfError)
+    public static CacheStatus GetCacheStatus(this HttpResponseMessage response, bool staleIfError)
     {
         if (response.IsNoStore())
         {

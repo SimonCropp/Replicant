@@ -42,6 +42,7 @@ public class MatrixTests
                 staleIfError
             };
         }
+
         foreach (var staleIfError in new[] {true, false})
         foreach (var response in Responses())
         {
@@ -62,7 +63,7 @@ public class MatrixTests
         bool useStale)
     {
         string fileName;
-        if(data == null)
+        if (data == null)
         {
             fileName = $"Int_{response}_useStale={useStale}";
         }
@@ -70,6 +71,7 @@ public class MatrixTests
         {
             fileName = $"Int_{response}_useStale={useStale}_exp={data.Expiry:yyyyMMdd}_mod={data.Modified:yyyyMMdd}_tag={data.Etag?.Replace('/', '_').Replace('"', '_')}";
         }
+
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
@@ -87,6 +89,7 @@ public class MatrixTests
             {
                 await cache.AddItemAsync("http://uri", "content", data.Expiry, data.Modified, data.Etag);
             }
+
             var result = await cache.DownloadAsync("http://uri", useStale);
             await Verifier.Verify(result, settings);
         }
@@ -110,7 +113,7 @@ public class MatrixTests
 
         try
         {
-            await Verifier.Verify(response.GetStatus(useStale), settings);
+            await Verifier.Verify(response.GetCacheStatus(useStale), settings);
         }
         catch (HttpRequestException exception)
         {
