@@ -110,7 +110,7 @@ public class MatrixTests
 
         try
         {
-            await Verifier.Verify(response.CacheStatus(useStale), settings);
+            await Verifier.Verify(response.GetStatus(useStale), settings);
         }
         catch (HttpRequestException exception)
         {

@@ -2,33 +2,33 @@
 
 static class DeriveCacheStatus
 {
-    public static CacheStatus CacheStatus(this HttpResponseMessage response, bool staleIfError)
+    public static CacheStatus GetStatus(this HttpResponseMessage response, bool staleIfError)
     {
         if (response.IsNoStore())
         {
-            return global::CacheStatus.NoStore;
+            return CacheStatus.NoStore;
         }
 
         if (response.IsNoCache())
         {
-            return global::CacheStatus.Revalidate;
+            return CacheStatus.Revalidate;
         }
 
         if (response.IsNotModified())
         {
-            return global::CacheStatus.Revalidate;
+            return CacheStatus.Revalidate;
         }
 
         if (!response.IsSuccessStatusCode)
         {
             if (staleIfError)
             {
-                return global::CacheStatus.UseStaleDueToError;
+                return CacheStatus.UseStaleDueToError;
             }
 
             response.EnsureSuccess();
         }
 
-        return global::CacheStatus.Stored;
+        return CacheStatus.Stored;
     }
 }
