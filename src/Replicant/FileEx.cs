@@ -9,6 +9,11 @@ static class FileEx
     public static DateTimeOffset MinFileDateTimeOffset { get; } = new(MinFileDate);
     public static DateTime MaxFileDate { get; } = new(2107, 12, 31);
 
+    public static Encoding Default(this Encoding? encoding)
+    {
+        return encoding ?? Encoding.UTF8;
+    }
+
     public static Stream OpenRead(string path)
     {
         return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
