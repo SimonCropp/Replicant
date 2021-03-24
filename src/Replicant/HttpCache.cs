@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 
 namespace Replicant
 {
-    public partial class HttpCache
+    public partial class HttpCache :
+        IHttpCache
     {
         string directory;
         HttpClient? client;
@@ -325,7 +326,7 @@ namespace Replicant
         /// <summary>
         /// Manually add an item to the cache.
         /// </summary>
-        public Task AddItemAsync(
+        public virtual Task AddItemAsync(
             Uri uri,
             Stream stream,
             DateTimeOffset? expiry = null,

@@ -7,10 +7,8 @@ namespace Replicant
 {
     public partial class HttpCache
     {
-        /// <summary>
-        /// Download a resource and store the result in <paramref name="path"/>.
-        /// </summary>
-        public Task ToFileAsync(
+        /// <inheritdoc/>
+        public virtual Task ToFileAsync(
             string uri,
             string path,
             bool staleIfError = false,
@@ -20,10 +18,8 @@ namespace Replicant
             return ToFileAsync(new Uri(uri), path, staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource and store the result in <paramref name="path"/>.
-        /// </summary>
-        public async Task ToFileAsync(
+        /// <inheritdoc/>
+        public virtual async Task ToFileAsync(
             Uri uri,
             string path,
             bool staleIfError = false,
@@ -34,10 +30,8 @@ namespace Replicant
             await result.ToFileAsync(path, token);
         }
 
-        /// <summary>
-        /// Download a resource and store the result in <paramref name="path"/>.
-        /// </summary>
-        public void ToFile(
+        /// <inheritdoc/>
+        public virtual void ToFile(
             string uri,
             string path,
             bool staleIfError = false,
@@ -47,10 +41,8 @@ namespace Replicant
             ToFile(new Uri(uri), path, staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource and store the result in <paramref name="path"/>.
-        /// </summary>
-        public void ToFile(
+        /// <inheritdoc/>
+        public virtual void ToFile(
             Uri uri,
             string path,
             bool staleIfError = false,

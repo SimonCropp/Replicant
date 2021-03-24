@@ -7,7 +7,8 @@ namespace Replicant
         IAsyncDisposable,
         IDisposable
     {
-        public void Dispose()
+        /// <inheritdoc/>
+        public virtual void Dispose()
         {
             if (clientIsOwned)
             {
@@ -17,7 +18,8 @@ namespace Replicant
             timer.Dispose();
         }
 
-        public ValueTask DisposeAsync()
+        /// <inheritdoc/>
+        public virtual ValueTask DisposeAsync()
         {
             if (clientIsOwned)
             {

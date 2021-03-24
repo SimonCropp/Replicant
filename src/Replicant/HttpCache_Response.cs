@@ -7,10 +7,8 @@ namespace Replicant
 {
     public partial class HttpCache
     {
-        /// <summary>
-        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
-        /// </summary>
-        public Task<HttpResponseMessage> ResponseAsync(
+        /// <inheritdoc/>
+        public virtual Task<HttpResponseMessage> ResponseAsync(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -19,10 +17,8 @@ namespace Replicant
             return ResponseAsync(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
-        /// </summary>
-        public async Task<HttpResponseMessage> ResponseAsync(
+        /// <inheritdoc/>
+        public virtual async Task<HttpResponseMessage> ResponseAsync(
             Uri uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -32,10 +28,8 @@ namespace Replicant
             return result.AsResponseMessage();
         }
 
-        /// <summary>
-        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
-        /// </summary>
-        public Task<HttpResponseMessage> Response(
+        /// <inheritdoc/>
+        public virtual Task<HttpResponseMessage> Response(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -44,10 +38,8 @@ namespace Replicant
             return Response(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
-        /// </summary>
-        public async Task<HttpResponseMessage> Response(
+        /// <inheritdoc/>
+        public virtual async Task<HttpResponseMessage> Response(
             Uri uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,

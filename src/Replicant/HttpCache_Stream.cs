@@ -8,10 +8,8 @@ namespace Replicant
 {
     public partial class HttpCache
     {
-        /// <summary>
-        /// Download a resource an return the result as <see cref="System.IO.Stream"/>.
-        /// </summary>
-        public Task<Stream> StreamAsync(
+        /// <inheritdoc/>
+        public virtual Task<Stream> StreamAsync(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -20,10 +18,8 @@ namespace Replicant
             return StreamAsync(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as <see cref="System.IO.Stream"/>.
-        /// </summary>
-        public async Task<Stream> StreamAsync(
+        /// <inheritdoc/>
+        public virtual async Task<Stream> StreamAsync(
             Uri uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -33,10 +29,8 @@ namespace Replicant
             return await result.AsStreamAsync(token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as <see cref="System.IO.Stream"/>.
-        /// </summary>
-        public Stream Stream(
+        /// <inheritdoc/>
+        public virtual Stream Stream(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -45,10 +39,8 @@ namespace Replicant
             return Stream(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as <see cref="System.IO.Stream"/>.
-        /// </summary>
-        public Stream Stream(
+        /// <inheritdoc/>
+        public virtual Stream Stream(
             Uri uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -58,10 +50,8 @@ namespace Replicant
             return result.AsStream(token);
         }
 
-        /// <summary>
-        /// Download a resource and store the result in <paramref name="stream"/>.
-        /// </summary>
-        public Task ToStreamAsync(
+        /// <inheritdoc/>
+        public virtual Task ToStreamAsync(
             string uri,
             Stream stream,
             bool staleIfError = false,
@@ -71,10 +61,8 @@ namespace Replicant
             return ToStreamAsync(new Uri(uri), stream, staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource and store the result in <paramref name="stream"/>.
-        /// </summary>
-        public async Task ToStreamAsync(
+        /// <inheritdoc/>
+        public virtual async Task ToStreamAsync(
             Uri uri,
             Stream stream,
             bool staleIfError = false,
@@ -85,10 +73,8 @@ namespace Replicant
             await result.ToStreamAsync(stream, token);
         }
 
-        /// <summary>
-        /// Download a resource and store the result in <paramref name="stream"/>.
-        /// </summary>
-        public void ToStream(
+        /// <inheritdoc/>
+        public virtual void ToStream(
             string uri,
             Stream stream,
             bool staleIfError = false,
@@ -98,10 +84,8 @@ namespace Replicant
             ToStream(new Uri(uri), stream, staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource and store the result in <paramref name="stream"/>.
-        /// </summary>
-        public void ToStream(
+        /// <inheritdoc/>
+        public virtual void ToStream(
             Uri uri,
             Stream stream,
             bool staleIfError = false,

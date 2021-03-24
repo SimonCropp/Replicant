@@ -7,10 +7,8 @@ namespace Replicant
 {
     public partial class HttpCache
     {
-        /// <summary>
-        /// Download a resource an return the result as byte array.
-        /// </summary>
-        public async Task<byte[]> BytesAsync(
+        /// <inheritdoc/>
+        public virtual async Task<byte[]> BytesAsync(
             Uri uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -20,10 +18,8 @@ namespace Replicant
             return await result.AsBytesAsync(token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as byte array.
-        /// </summary>
-        public Task<byte[]> BytesAsync(
+        /// <inheritdoc/>
+        public virtual Task<byte[]> BytesAsync(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -32,10 +28,8 @@ namespace Replicant
             return BytesAsync(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as a byte array.
-        /// </summary>
-        public byte[] Bytes(
+        /// <inheritdoc/>
+        public virtual byte[] Bytes(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -44,10 +38,8 @@ namespace Replicant
             return Bytes(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as a byte array.
-        /// </summary>
-        public byte[] Bytes(
+        /// <inheritdoc/>
+        public virtual byte[] Bytes(
             Uri uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,

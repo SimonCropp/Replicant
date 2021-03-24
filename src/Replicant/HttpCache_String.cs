@@ -7,10 +7,8 @@ namespace Replicant
 {
     public partial class HttpCache
     {
-        /// <summary>
-        /// Download a resource an return the result as a string.
-        /// </summary>
-        public Task<string> StringAsync(
+        /// <inheritdoc/>
+        public virtual Task<string> StringAsync(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -19,10 +17,8 @@ namespace Replicant
             return StringAsync(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as a string.
-        /// </summary>
-        public async Task<string> StringAsync(
+        /// <inheritdoc/>
+        public virtual async Task<string> StringAsync(
             Uri uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -32,10 +28,8 @@ namespace Replicant
             return await result.AsStringAsync(token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as a string.
-        /// </summary>
-        public string String(
+        /// <inheritdoc/>
+        public virtual string String(
             string uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,
@@ -44,10 +38,8 @@ namespace Replicant
             return String(new Uri(uri), staleIfError, modifyRequest, token);
         }
 
-        /// <summary>
-        /// Download a resource an return the result as a string.
-        /// </summary>
-        public string String(
+        /// <inheritdoc/>
+        public virtual string String(
             Uri uri,
             bool staleIfError = false,
             Action<HttpRequestMessage>? modifyRequest = null,

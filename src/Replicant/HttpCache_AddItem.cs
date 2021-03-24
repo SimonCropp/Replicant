@@ -8,46 +8,36 @@ namespace Replicant
 {
     public partial class HttpCache
     {
-        /// <summary>
-        /// Manually add an item to the cache.
-        /// </summary>
-        public void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
+        /// <inheritdoc/>
+        public virtual void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             AddItem(response, new Uri(uri), token);
         }
 
-        /// <summary>
-        /// Manually add an item to the cache.
-        /// </summary>
-        public void AddItem(Uri uri, HttpResponseMessage response, CancellationToken token = default)
+        /// <inheritdoc/>
+        public virtual void AddItem(Uri uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             AddItem(response, uri, token);
         }
 
-        /// <summary>
-        /// Manually add an item to the cache.
-        /// </summary>
-        public Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
+        /// <inheritdoc/>
+        public virtual Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             return AddItemAsync(response, new Uri(uri), token);
         }
 
-        /// <summary>
-        /// Manually add an item to the cache.
-        /// </summary>
-        public Task AddItemAsync(Uri uri, HttpResponseMessage response, CancellationToken token = default)
+        /// <inheritdoc/>
+        public virtual Task AddItemAsync(Uri uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
             return AddItemAsync(response, uri, token);
         }
 
-        /// <summary>
-        /// Manually add an item to the cache.
-        /// </summary>
-        public Task AddItemAsync(
+        /// <inheritdoc/>
+        public virtual Task AddItemAsync(
             string uri,
             Stream stream,
             DateTimeOffset? expiry = null,
@@ -61,10 +51,8 @@ namespace Replicant
             return AddItemAsync(new Uri(uri), stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
         }
 
-        /// <summary>
-        /// Manually add an item to the cache.
-        /// </summary>
-        public async Task AddItemAsync(
+        /// <inheritdoc/>
+        public virtual async Task AddItemAsync(
             string uri,
             string content,
             DateTimeOffset? expiry = null,

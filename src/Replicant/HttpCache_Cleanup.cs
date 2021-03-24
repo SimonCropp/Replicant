@@ -25,11 +25,9 @@ namespace Replicant
                 timer.Change(purgeInterval, ignoreTimeSpan);
             }
         }
-
-        /// <summary>
-        /// Purge all items from the cache.
-        /// </summary>
-        public void Purge()
+        
+        /// <inheritdoc/>
+        public virtual void Purge()
         {
             foreach (var file in Directory.EnumerateFiles(directory))
             {
@@ -37,11 +35,9 @@ namespace Replicant
                 pair.PurgeItem();
             }
         }
-
-        /// <summary>
-        /// Purge old items based on maxEntries.
-        /// </summary>
-        public void PurgeOld()
+        
+        /// <inheritdoc/>
+        public virtual void PurgeOld()
         {
             foreach (var file in new DirectoryInfo(directory)
                 .GetFiles("*_*_*.bin")
