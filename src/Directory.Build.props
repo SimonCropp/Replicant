@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <NoWarn>CS1591</NoWarn>
-    <Version>0.2.0</Version>
+    <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <PackageTags>HttpClient, HttpCache, Cache</PackageTags>
     <Description>A wrapper for HttpClient that caches to disk</Description>
