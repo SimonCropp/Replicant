@@ -1,11 +1,14 @@
-{
+﻿{
   FromDisk: false,
   Stored: false,
   Revalidated: true,
   Response: {
     Version: 1.1,
     Content: {
-      Headers: {}
+      Headers: {},
+      Value: {
+        Cache-Control: no-store
+      }
     },
     StatusCode: OK,
     ReasonPhrase: OK,

@@ -1,4 +1,4 @@
-{
+﻿{
   FromDisk: false,
   Stored: false,
   Revalidated: true,
@@ -8,7 +8,8 @@
       Headers: {
         Expires: DateTime_1,
         Last-Modified: DateTime_2
-      }
+      },
+      Value: a
     },
     StatusCode: OK,
     ReasonPhrase: OK,

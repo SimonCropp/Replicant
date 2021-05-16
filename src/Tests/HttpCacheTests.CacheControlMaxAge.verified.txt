@@ -5,7 +5,14 @@
   Response: {
     Version: 1.1,
     Content: {
-      Headers: {}
+      Headers: {},
+      Value: {
+        args: {},
+        headers: {
+          Host: httpbin.org
+        },
+        url: https://httpbin.org/cache/20
+      }
     },
     StatusCode: OK,
     ReasonPhrase: OK,

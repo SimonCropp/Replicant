@@ -5,7 +5,8 @@
   Response: {
     Version: 1.1,
     Content: {
-      Headers: {}
+      Headers: {},
+      Value: the content
     },
     StatusCode: OK,
     ReasonPhrase: OK,
