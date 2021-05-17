@@ -130,7 +130,7 @@ namespace Replicant
         void PurgeOld();
 
         /// <summary>
-        /// Download a resource an return the result as <see cref="System.IO.Stream"/>.
+        /// Download a resource and return the result as <see cref="System.IO.Stream"/>.
         /// </summary>
         Task<Stream> StreamAsync(
             string uri,
@@ -139,7 +139,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as <see cref="System.IO.Stream"/>.
+        /// Download a resource and return the result as <see cref="System.IO.Stream"/>.
         /// </summary>
         Task<Stream> StreamAsync(
             Uri uri,
@@ -148,7 +148,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as <see cref="System.IO.Stream"/>.
+        /// Download a resource and return the result as <see cref="System.IO.Stream"/>.
         /// </summary>
         Stream Stream(
             string uri,
@@ -157,7 +157,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as <see cref="System.IO.Stream"/>.
+        /// Download a resource and return the result as <see cref="System.IO.Stream"/>.
         /// </summary>
         Stream Stream(
             Uri uri,
@@ -206,7 +206,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as a string.
+        /// Download a resource and return the result as a string.
         /// </summary>
         Task<string> StringAsync(
             string uri,
@@ -215,7 +215,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as a string.
+        /// Download a resource and return the result as a string.
         /// </summary>
         Task<string> StringAsync(
             Uri uri,
@@ -224,7 +224,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as a string.
+        /// Download a resource and return the result as a string.
         /// </summary>
         string String(
             string uri,
@@ -233,7 +233,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as a string.
+        /// Download a resource and return the result as a string.
         /// </summary>
         string String(
             Uri uri,
@@ -266,7 +266,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
+        /// Download a resource and return the result as <see cref="HttpResponseMessage"/>.
         /// </summary>
         Task<HttpResponseMessage> ResponseAsync(
             string uri,
@@ -275,7 +275,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
+        /// Download a resource and return the result as <see cref="HttpResponseMessage"/>.
         /// </summary>
         Task<HttpResponseMessage> ResponseAsync(
             Uri uri,
@@ -284,7 +284,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
+        /// Download a resource and return the result as <see cref="HttpResponseMessage"/>.
         /// </summary>
         Task<HttpResponseMessage> Response(
             string uri,
@@ -293,7 +293,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as <see cref="HttpResponseMessage"/>.
+        /// Download a resource and return the result as <see cref="HttpResponseMessage"/>.
         /// </summary>
         Task<HttpResponseMessage> Response(
             Uri uri,
@@ -302,7 +302,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as byte array.
+        /// Download a resource and return the result as byte array.
         /// </summary>
         Task<byte[]> BytesAsync(
             Uri uri,
@@ -311,7 +311,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as byte array.
+        /// Download a resource and return the result as byte array.
         /// </summary>
         Task<byte[]> BytesAsync(
             string uri,
@@ -320,7 +320,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as a byte array.
+        /// Download a resource and return the result as a byte array.
         /// </summary>
         byte[] Bytes(
             string uri,
@@ -329,7 +329,7 @@ namespace Replicant
             CancellationToken token = default);
 
         /// <summary>
-        /// Download a resource an return the result as a byte array.
+        /// Download a resource and return the result as a byte array.
         /// </summary>
         byte[] Bytes(
             Uri uri,
