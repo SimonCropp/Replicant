@@ -20,24 +20,6 @@ Headers/Responses respected in caching decisions:
 https://nuget.org/packages/Replicant/
 
 
-<!-- toc -->
-## Contents
-
-  * [Usage](#usage)
-    * [Construction](#construction)
-    * [Dependency injection](#dependency-injection)
-    * [Get a string](#get-a-string)
-    * [Get bytes](#get-bytes)
-    * [Get a stream](#get-a-stream)
-    * [Download to a file](#download-to-a-file)
-    * [Download to a stream](#download-to-a-stream)
-    * [Manually add an item to the cache](#manually-add-an-item-to-the-cache)
-    * [Use stale item on error](#use-stale-item-on-error)
-    * [Customizing HttpRequestMessage](#customizing-httprequestmessage)
-    * [Full HttpResponseMessage](#full-httpresponsemessage)
-  * [Influences / Alternatives](#influences--alternatives)<!-- endToc -->
-
-
 ## Usage
 
 
