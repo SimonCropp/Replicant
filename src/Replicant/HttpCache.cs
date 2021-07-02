@@ -377,6 +377,11 @@ namespace Replicant
             return InnerAddItemAsync(token, ContentFunc, meta, timestamp);
         }
 
+        static JsonSerializerOptions serializerOptions = new()
+        {
+            WriteIndented = true
+        };
+
         async Task<Result> InnerAddItemAsync(
             CancellationToken token,
             Func<CancellationToken, Task<Stream>> httpContentFunc,
@@ -397,7 +402,7 @@ namespace Replicant
                 using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
                 {
 #endif
-                    await JsonSerializer.SerializeAsync(metaFileStream, meta, cancellationToken: token);
+                    await JsonSerializer.SerializeAsync(metaFileStream, meta, serializerOptions, token);
                     await httpStream.CopyToAsync(contentFileStream, token);
                 }
 
@@ -424,9 +429,9 @@ namespace Replicant
                 using var httpStream = response.Content.ReadAsStream(token);
                 using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
                 using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
-                using (var writer = new Utf8JsonWriter(metaFileStream))
+                using (var writer = new Utf8JsonWriter(metaFileStream, new() {Indented = true}))
                 {
-                    JsonSerializer.Serialize(writer, meta);
+                    JsonSerializer.Serialize(writer, meta, serializerOptions);
                     httpStream.CopyTo(contentFileStream);
                 }
 
