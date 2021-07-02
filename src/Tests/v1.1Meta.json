@@ -1,0 +1,136 @@
+{
+  "Uri": "theuri",
+  "ResponseHeaders": [
+    {
+      "Key": "Date",
+      "Value": [
+        "Thu, 01 Jul 2021 00:43:40 GMT"
+      ]
+    },
+    {
+      "Key": "ETag",
+      "Value": [
+        "370835c007358a007e91a427b319c841"
+      ]
+    },
+    {
+      "Key": "Server",
+      "Value": [
+        "ATS/8.0.8"
+      ]
+    },
+    {
+      "Key": "X-Timestamp",
+      "Value": [
+        "1549033342.54804"
+      ]
+    },
+    {
+      "Key": "Age",
+      "Value": [
+        "79218"
+      ]
+    },
+    {
+      "Key": "X-Cache",
+      "Value": [
+        "cp5004 hit, cp5001 hit/6521"
+      ]
+    },
+    {
+      "Key": "X-Cache-Status",
+      "Value": [
+        "hit-front"
+      ]
+    },
+    {
+      "Key": "Server-Timing",
+      "Value": [
+        "cache;desc=\u0022hit-front\u0022, host;desc=\u0022cp5001\u0022"
+      ]
+    },
+    {
+      "Key": "Strict-Transport-Security",
+      "Value": [
+        "max-age=106384710; includeSubDomains; preload"
+      ]
+    },
+    {
+      "Key": "Report-To",
+      "Value": [
+        "{ \u0022group\u0022: \u0022wm_nel\u0022, \u0022max_age\u0022: 86400, \u0022endpoints\u0022: [{ \u0022url\u0022: \u0022https://intake-logging.wikimedia.org/v1/events?stream=w3c.reportingapi.network_error\u0026schema_uri=/w3c/reportingapi/network_error/1.0.0\u0022 }] }"
+      ]
+    },
+    {
+      "Key": "NEL",
+      "Value": [
+        "{ \u0022report_to\u0022: \u0022wm_nel\u0022, \u0022max_age\u0022: 86400, \u0022failure_fraction\u0022: 0.05, \u0022success_fraction\u0022: 0.0}"
+      ]
+    },
+    {
+      "Key": "Permissions-Policy",
+      "Value": [
+        "interest-cohort=()"
+      ]
+    },
+    {
+      "Key": "X-Client-IP",
+      "Value": [
+        "20.42.200.123"
+      ]
+    },
+    {
+      "Key": "Access-Control-Allow-Origin",
+      "Value": [
+        "*"
+      ]
+    },
+    {
+      "Key": "Access-Control-Expose-Headers",
+      "Value": [
+        "Age, Date, Content-Length, Content-Range, X-Content-Duration, X-Cache"
+      ]
+    },
+    {
+      "Key": "Timing-Allow-Origin",
+      "Value": [
+        "*"
+      ]
+    },
+    {
+      "Key": "Accept-Ranges",
+      "Value": [
+        "bytes"
+      ]
+    },
+    {
+      "Key": "Connection",
+      "Value": [
+        "keep-alive"
+      ]
+    }
+  ],
+  "ContentHeaders": [
+    {
+      "Key": "Content-Type",
+      "Value": [
+        "image/jpeg"
+      ]
+    },
+    {
+      "Key": "Content-Length",
+      "Value": [
+        "17520"
+      ]
+    },
+    {
+      "Key": "Last-Modified",
+      "Value": [
+        "Fri, 01 Feb 2019 15:02:23 GMT"
+      ]
+    }
+  ],
+  "TrailingHeaders": [
+
+  ]
+}

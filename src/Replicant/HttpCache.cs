@@ -364,7 +364,7 @@ namespace Replicant
                     modified.Value.ToUniversalTime().ToString("r"));
             }
 
-            var meta = MetaData.FromEnumerables(responseHeaders, contentHeaders, trailingHeaders);
+            var meta = MetaData.FromEnumerables(uri.AbsoluteUri, responseHeaders, contentHeaders, trailingHeaders);
             return InnerAddItemAsync(token, _ => Task.FromResult(stream), meta, timestamp);
         }
 
@@ -373,7 +373,7 @@ namespace Replicant
             var timestamp = Timestamp.FromResponse(uri, response);
             Task<Stream> ContentFunc(CancellationToken cancellationToken) => response.Content.ReadAsStreamAsync(cancellationToken);
 
-            var meta = MetaData.FromEnumerables(response.Headers, response.Content.Headers, response.TrailingHeaders());
+            var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders());
             return InnerAddItemAsync(token, ContentFunc, meta, timestamp);
         }
 
@@ -414,9 +414,9 @@ namespace Replicant
             var timestamp = Timestamp.FromResponse(uri, response);
 
 #if NET5_0
-            var meta = MetaData.FromEnumerables(response.Headers, response.Content.Headers, response.TrailingHeaders);
+            var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders);
 #else
-            var meta = MetaData.FromEnumerables(response.Headers, response.Content.Headers);
+            var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers);
 #endif
             var tempFile = FilePair.GetTemp();
             try
