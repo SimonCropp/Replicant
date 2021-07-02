@@ -15,5 +15,8 @@
     <PackageReference Include="MarkdownSnippets.MsBuild" Version="23.1.4" PrivateAssets="all" />
     <ProjectReference Include="..\Replicant\Replicant.csproj" />
     <PackageReference Include="ProjectDefaults" Version="1.0.56" PrivateAssets="All" />
+    <None Update="v1Meta.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

@@ -13,8 +13,7 @@ class MetaData
     public MetaData(
         List<KeyValuePair<string, List<string>>> responseHeaders,
         List<KeyValuePair<string, List<string>>> contentHeaders,
-        List<KeyValuePair<string, List<string>>>? trailingHeaders = null
-    )
+        List<KeyValuePair<string, List<string>>>? trailingHeaders = null)
     {
         ResponseHeaders = responseHeaders;
         ContentHeaders = contentHeaders;
@@ -24,8 +23,7 @@ class MetaData
     public static MetaData FromEnumerables(
         IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders,
         IEnumerable<KeyValuePair<string, IEnumerable<string>>> contentHeaders,
-        IEnumerable<KeyValuePair<string, IEnumerable<string>>>? trailingHeaders = null
-    )
+        IEnumerable<KeyValuePair<string, IEnumerable<string>>>? trailingHeaders = null)
     {
         return new(ToList(responseHeaders)!, ToList(contentHeaders)!, ToList(trailingHeaders));
     }
