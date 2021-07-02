@@ -1,8 +1,8 @@
 skip_commits:
   message: /doco|Merge pull request.*/
 image:
-- macOS
 - Visual Studio 2019
+- macOS
 - Ubuntu
 build_script:
   - dotnet build src --configuration Release
