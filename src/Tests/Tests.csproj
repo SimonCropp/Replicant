@@ -6,6 +6,7 @@
     <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Condition="$(Configuration) == 'Release'" Remove="MatrixTests.cs" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="Xunit" Version="2.4.1" />
