@@ -12,7 +12,7 @@ namespace Replicant
         public virtual void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
-            AddItem(response, new Uri(uri), token);
+            AddItem(response, new(uri), token);
         }
 
         /// <inheritdoc/>
@@ -26,7 +26,7 @@ namespace Replicant
         public virtual Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
         {
             Guard.AgainstNull(response.Content, nameof(response.Content));
-            return AddItemAsync(response, new Uri(uri), token);
+            return AddItemAsync(response, new(uri), token);
         }
 
         /// <inheritdoc/>

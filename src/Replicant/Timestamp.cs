@@ -37,7 +37,7 @@ readonly struct Timestamp
         var etag = Etag.FromResponse(response);
         var expiry = response.GetExpiry(now);
         var modified = response.GetLastModified(now);
-        return new Timestamp(expiry, modified, etag, hash);
+        return new(expiry, modified, etag, hash);
     }
 
     public static Timestamp FromPath(string path)

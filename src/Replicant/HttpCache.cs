@@ -346,9 +346,9 @@ namespace Replicant
                 Etag.FromHeader(etag),
                 hash);
 
-            responseHeaders ??= new Headers();
-            contentHeaders ??= new Headers();
-            trailingHeaders ??= new Headers();
+            responseHeaders ??= new();
+            contentHeaders ??= new();
+            trailingHeaders ??= new();
 
             if (expiry != null)
             {
@@ -464,15 +464,15 @@ namespace Replicant
                 {
                     var newContent = $"{newName}.bin";
                     FileEx.Move(tempFile.Content, newContent);
-                    return new(new FilePair(newContent, newMeta), true, true);
+                    return new(new(newContent, newMeta), true, true);
                 }
                 else
                 {
-                    return new(new FilePair(contentFile, newMeta), true, true);
+                    return new(new(contentFile, newMeta), true, true);
                 }
             }
 
-            return new(new FilePair(contentFile, metaFile), true, true);
+            return new(new(contentFile, metaFile), true, true);
         }
     }
 }

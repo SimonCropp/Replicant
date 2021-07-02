@@ -36,10 +36,10 @@ readonly struct Etag
         var tag = value.Substring(1);
         if (value.StartsWith("W"))
         {
-            return new Etag($"W/\"{tag}\"", value, false);
+            return new($"W/\"{tag}\"", value, false);
         }
 
-        return new Etag($"\"{tag}\"", value, false);
+        return new($"\"{tag}\"", value, false);
     }
 
     public static Etag FromResponse(HttpResponseMessage response)
@@ -63,10 +63,10 @@ readonly struct Etag
 
         if (tag.StartsWith("W/"))
         {
-            return new Etag(tag, $"W{tag.Substring(2).Trim('"')}", false);
+            return new(tag, $"W{tag.Substring(2).Trim('"')}", false);
         }
 
-        return new Etag(tag, $"S{tag.Trim('"')}", false);
+        return new(tag, $"S{tag.Trim('"')}", false);
     }
 
     void ThrowIfEmpty()

@@ -67,7 +67,7 @@ readonly struct FilePair
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not purge item due to locked file. Cached item is in a corrupted state. Path: {Content}", e);
+                throw new($"Could not purge item due to locked file. Cached item is in a corrupted state. Path: {Content}", e);
             }
         }
         finally

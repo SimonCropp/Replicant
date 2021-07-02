@@ -23,7 +23,7 @@ public class MatrixTests
 
     static MatrixTests()
     {
-        sharedSettings = new VerifySettings();
+        sharedSettings = new();
         sharedSettings.UseDirectory("../MatrixResults");
     }
 

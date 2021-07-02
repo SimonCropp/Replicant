@@ -145,9 +145,9 @@ static class Extensions
         var uri = response.RequestMessage?.RequestUri?.OriginalString;
         var message = $"{exception.Message} Uri: {uri}";
 #if NET5_0
-        return new HttpRequestException(message, exception.InnerException, exception.StatusCode);
+        return new(message, exception.InnerException, exception.StatusCode);
 #else
-        return new HttpRequestException(message, exception.InnerException);
+        return new(message, exception.InnerException);
 #endif
     }
 
@@ -156,9 +156,9 @@ static class Extensions
         var uri = request.RequestUri?.OriginalString;
         var message = $"{exception.Message} Uri: {uri}";
 #if NET5_0
-        return new HttpRequestException(message, exception.InnerException, exception.StatusCode);
+        return new(message, exception.InnerException, exception.StatusCode);
 #else
-        return new HttpRequestException(message, exception.InnerException);
+        return new(message, exception.InnerException);
 #endif
     }
 
