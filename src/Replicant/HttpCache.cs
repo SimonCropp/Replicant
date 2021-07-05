@@ -143,6 +143,8 @@ namespace Replicant
             var now = DateTimeOffset.UtcNow;
 
             var timestamp = Timestamp.FromPath(file.Content);
+
+            // if the current file hasn't expired, return the current file
             if (timestamp.Expiry > now)
             {
                 return new(file, false, false);
@@ -456,8 +458,7 @@ namespace Replicant
                 FileEx.Move(tempFile.Meta, metaFile);
             }
             catch (Exception exception)
-                when (exception is IOException ||
-                      exception is UnauthorizedAccessException)
+                when (exception is IOException or UnauthorizedAccessException)
             {
                 //Failed to move files, so use temp files instead
                 var newName = Path.GetFileNameWithoutExtension(contentFile);

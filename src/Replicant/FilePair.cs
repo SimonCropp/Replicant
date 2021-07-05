@@ -35,6 +35,7 @@ readonly struct FilePair
         File.Delete(Content);
         File.Delete(Meta);
     }
+
     public void SetExpiry(DateTimeOffset? expiry)
     {
         if (expiry == null)
