@@ -13,7 +13,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="Verify.Xunit" Version="11.24.0" />
-    <PackageReference Include="MarkdownSnippets.MsBuild" Version="23.1.4" PrivateAssets="all" />
+    <PackageReference Include="MarkdownSnippets.MsBuild" Version="24.0.0" PrivateAssets="all" />
     <ProjectReference Include="..\Replicant\Replicant.csproj" />
     <PackageReference Include="ProjectDefaults" Version="1.0.56" PrivateAssets="All" />
     <None Update="*.json">
