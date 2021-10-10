@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-// ReSharper disable RedundantUsingDirective
+﻿// ReSharper disable RedundantUsingDirective
 using System.Reflection;
 // ReSharper restore RedundantUsingDirective
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
 
 static class Extensions
 {

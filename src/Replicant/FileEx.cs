@@ -1,10 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-static class FileEx
+﻿static class FileEx
 {
     public static DateTime MinFileDate { get; } = DateTime.FromFileTimeUtc(0);
     public static DateTimeOffset MinFileDateTimeOffset { get; } = new(MinFileDate);

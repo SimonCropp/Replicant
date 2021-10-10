@@ -1,6 +1,3 @@
-using System;
-using System.Text;
-
 public class StoredData
 {
     public DateTimeOffset? Expiry { get; }

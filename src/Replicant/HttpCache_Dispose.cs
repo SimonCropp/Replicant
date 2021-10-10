@@ -1,36 +1,32 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿namespace Replicant;
 
-namespace Replicant
+public partial class HttpCache :
+    IAsyncDisposable,
+    IDisposable
 {
-    public partial class HttpCache :
-        IAsyncDisposable,
-        IDisposable
+    /// <inheritdoc/>
+    public virtual void Dispose()
     {
-        /// <inheritdoc/>
-        public virtual void Dispose()
+        if (clientIsOwned)
         {
-            if (clientIsOwned)
-            {
-                client!.Dispose();
-            }
-
-            timer.Dispose();
+            client!.Dispose();
         }
 
-        /// <inheritdoc/>
-        public virtual ValueTask DisposeAsync()
+        timer.Dispose();
+    }
+
+    /// <inheritdoc/>
+    public virtual ValueTask DisposeAsync()
+    {
+        if (clientIsOwned)
         {
-            if (clientIsOwned)
-            {
-                client!.Dispose();
-            }
+            client!.Dispose();
+        }
 #if NET5_0
             return timer.DisposeAsync();
 #else
-            timer.Dispose();
-            return default;
+        timer.Dispose();
+        return default;
 #endif
-        }
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
-class StreamWithCleanup :
+﻿class StreamWithCleanup :
     Stream
 {
     Stream inner;
@@ -48,7 +43,7 @@ class StreamWithCleanup :
 
     public override string ToString()
     {
-        return inner.ToString()!;
+        return inner.ToString();
     }
 
     public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)

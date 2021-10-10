@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Security.Cryptography;
 
 static class Hash
 {
