@@ -41,7 +41,7 @@
         return inner.Equals(obj);
     }
 
-    public override string ToString()
+    public override string? ToString()
     {
         return inner.ToString();
     }
