@@ -5,6 +5,7 @@ public static class ModuleInitializer
     [ModuleInitializer]
     public static void Init()
     {
+        VerifyHttp.Enable();
         VerifierSettings.ModifySerialization(
             settings =>
             {

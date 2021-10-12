@@ -4,17 +4,8 @@
   Revalidated: false,
   Response: {
     Version: 1.1,
-    Content: {
-      Headers: {},
-      Value: {
-        args: {},
-        headers: {
-          Host: httpbin.org
-        },
-        url: https://httpbin.org/cache/20
-      }
-    },
     StatusCode: OK,
+    IsSuccessStatusCode: true,
     ReasonPhrase: OK,
     Headers: {
       Access-Control-Allow-Credentials: true,
@@ -22,6 +13,6 @@
       Cache-Control: public, max-age=20,
       Date: DateTime_1
     },
-    IsSuccessStatusCode: true
+    Request: null
   }
 }

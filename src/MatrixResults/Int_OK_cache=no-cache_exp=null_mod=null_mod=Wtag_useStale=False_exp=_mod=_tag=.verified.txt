@@ -1,19 +1,16 @@
-﻿{
+{
   FromDisk: true,
   Stored: true,
   Revalidated: true,
   Response: {
     Version: 1.1,
-    Content: {
-      Headers: {},
-      Value: a
-    },
     StatusCode: OK,
+    IsSuccessStatusCode: true,
     ReasonPhrase: OK,
     Headers: {
       Cache-Control: no-cache,
       ETag: W/"tag"
     },
-    IsSuccessStatusCode: true
+    Request: null
   }
 }
