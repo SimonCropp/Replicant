@@ -143,7 +143,7 @@ public class MatrixTests
         foreach (var webEtag in etags)
         foreach (var cacheControl in cacheControls)
         {
-            HttpResponseMessageEx response = new(HttpStatusCode.NotModified)
+            var response = new HttpResponseMessageEx(HttpStatusCode.NotModified)
             {
                 Content = new StringContent("")
             };
@@ -162,7 +162,7 @@ public class MatrixTests
             foreach (var webEtag in etags)
             foreach (var cacheControl in cacheControls)
             {
-                HttpResponseMessageEx response = new(HttpStatusCode.OK)
+                var response = new HttpResponseMessageEx(HttpStatusCode.OK)
                 {
                     Content = new StringContent("a")
                 };

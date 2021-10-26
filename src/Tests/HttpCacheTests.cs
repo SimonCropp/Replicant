@@ -21,7 +21,7 @@ public class HttpCacheTests
     {
         #region Construction
 
-        HttpCache httpCache = new(
+        var httpCache = new HttpCache(
             cacheDirectory,
             // omit for default new HttpClient()
             new HttpClient
@@ -42,7 +42,7 @@ public class HttpCacheTests
     {
         #region DependencyInjection
 
-        ServiceCollection services = new();
+        var services = new ServiceCollection();
         services.AddSingleton(_ => new HttpCache(CachePath));
 
         using var provider = services.BuildServiceProvider();
@@ -230,7 +230,7 @@ public class HttpCacheTests
     {
         #region string
 
-        List<string> lines = new();
+        var lines = new List<string>();
         await foreach (var line in httpCache.LinesAsync("https://httpbin.org/json"))
         {
             lines.Add(line);
@@ -288,7 +288,7 @@ public class HttpCacheTests
     [Fact]
     public async Task ToStream()
     {
-        MemoryStream targetStream = new();
+        var targetStream = new MemoryStream();
 
         #region ToStream
 
@@ -343,7 +343,7 @@ public class HttpCacheTests
     [Fact]
     public async Task TimeoutUseStale()
     {
-        HttpClient httpClient = new()
+        var httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromMilliseconds(1)
         };
@@ -353,7 +353,7 @@ public class HttpCacheTests
 
         #region AddItem
 
-        using HttpResponseMessage response = new(HttpStatusCode.OK)
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("the content")
         };
@@ -373,7 +373,7 @@ public class HttpCacheTests
     [Fact]
     public async Task ServerErrorDontUseStale()
     {
-        using HttpResponseMessage response = new(HttpStatusCode.OK)
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("foo")
         };
@@ -385,7 +385,7 @@ public class HttpCacheTests
     [Fact]
     public async Task ServerErrorUseStale()
     {
-        using HttpResponseMessage httpResponseMessage = new(HttpStatusCode.OK)
+        using var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("content")
         };
