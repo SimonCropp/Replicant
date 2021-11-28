@@ -14,7 +14,7 @@ public static class ModuleInitializer
                     x.Converters.Add(new ResultConverter());
                     x.Converters.Add(new TimestampConverter());
                 });
-#if NET5_0
+#if NET5_0 || NET6_0_OR_GREATER
                 settings.IgnoreMember<System.Net.Http.HttpRequestException>(x => x.StatusCode);
 #endif
                 settings.IgnoreMember<Result>(x => x.File);
@@ -42,7 +42,7 @@ public static class ModuleInitializer
 }
 
 //Only required if using a legacy version of .net
-#if(!NET5_0)
+#if(!NET5_0 && !NET6_0_OR_GREATER)
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]

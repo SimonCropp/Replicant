@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net48;net5</TargetFrameworks>
+    <TargetFrameworks>net48;net6</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFrameworks>net6</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Condition="$(Configuration) == 'Release'" Remove="MatrixTests.cs" />
@@ -13,8 +13,8 @@
     <PackageReference Include="Xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="Verify.Xunit" Version="14.4.0" />
-    <PackageReference Include="MarkdownSnippets.MsBuild" Version="24.2.1" PrivateAssets="all" />
+    <PackageReference Include="Verify.Xunit" Version="14.6.5" />
+    <PackageReference Include="MarkdownSnippets.MsBuild" Version="24.2.2" PrivateAssets="all" />
     <ProjectReference Include="..\Replicant\Replicant.csproj" />
     <PackageReference Include="ProjectDefaults" Version="1.0.61" PrivateAssets="All" />
     <None Update="*.json">

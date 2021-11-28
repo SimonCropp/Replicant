@@ -74,6 +74,18 @@ public class HttpCacheTests
     }
 
     [Fact]
+    public async Task DefaultInstance()
+    {
+        #region DefaultInstance
+
+        var content = await HttpCache.Default.DownloadAsync("https://httpbin.org/status/200");
+
+        #endregion
+
+        await Verifier.Verify(content);
+    }
+
+    [Fact]
     public async Task EmptyContent()
     {
         var content = await httpCache.DownloadAsync("https://httpbin.org/status/200");
