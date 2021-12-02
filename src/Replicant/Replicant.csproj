@@ -6,9 +6,9 @@
     <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ProjectDefaults" Version="1.0.61" PrivateAssets="All" />
+    <PackageReference Include="ProjectDefaults" Version="1.0.62" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" Condition="$(Configuration) == 'Release'" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" Condition="$(TargetFramework) == 'net472'" />
-    <PackageReference Include="System.Text.Json" Version="6.0.0" Condition="$(TargetFramework) != 'net6'"/>
+    <PackageReference Include="System.Text.Json" Version="6.0.0" Condition="$(TargetFramework) != 'net6'" />
   </ItemGroup>
 </Project>
