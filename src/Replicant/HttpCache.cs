@@ -10,6 +10,21 @@ public partial class HttpCache :
     string directory;
     HttpClient? client;
     Func<HttpClient>? clientFunc;
+    static HttpCache? defaultCache;
+
+    public static HttpCache Default
+    {
+        get
+        {
+            if (defaultCache == null)
+            {
+                var directory = Path.Combine(Path.GetTempPath(), "Replicant");
+                Interlocked.CompareExchange(ref defaultCache, new(directory,new HttpClient()), null);
+            }
+
+            return defaultCache;
+        }
+    }
 
     public static Action<string> LogError = _ => { };
     bool clientIsOwned;
@@ -388,11 +403,11 @@ public partial class HttpCache :
         var tempFile = FilePair.GetTemp();
         try
         {
-#if NET5_0
-                await using var httpStream = await httpContentFunc(token);
-                await using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
-                await using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
-                {
+#if NET5_0 || NET6_0_OR_GREATER
+            await using var httpStream = await httpContentFunc(token);
+            await using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
+            await using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
+            {
 #else
             using var httpStream = await httpContentFunc(token);
             using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
@@ -414,9 +429,9 @@ public partial class HttpCache :
     Result AddItem(HttpResponseMessage response, Uri uri, CancellationToken token)
     {
         var timestamp = Timestamp.FromResponse(uri, response);
-
-#if NET5_0
-            var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders);
+        
+#if NET5_0 || NET6_0_OR_GREATER
+        var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders);
 #else
         var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers);
 #endif
