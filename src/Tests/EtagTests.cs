@@ -13,7 +13,7 @@ public class EtagTests
         var fromHeader = Etag.FromHeader(etag);
         var fromFilePath = Etag.FromFilePart(fromHeader.ForFile);
         var parameter = etag?.Replace('"','_').Replace('/','_');
-        return Verifier.Verify(new
+        return Verify(new
             {
                 fromHeader,
                 fromFilePath

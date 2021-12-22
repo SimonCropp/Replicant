@@ -87,11 +87,11 @@ public class MatrixTests
             }
 
             var result = await cache.DownloadAsync("http://uri", useStale);
-            await Verifier.Verify(result, settings);
+            await Verify(result, settings);
         }
         catch (HttpRequestException exception)
         {
-            await Verifier.Verify(exception, settings);
+            await Verify(exception, settings);
         }
         finally
         {
@@ -109,11 +109,11 @@ public class MatrixTests
 
         try
         {
-            await Verifier.Verify(response.GetCacheStatus(useStale), settings);
+            await Verify(response.GetCacheStatus(useStale), settings);
         }
         catch (HttpRequestException exception)
         {
-            await Verifier.Verify(exception, settings);
+            await Verify(exception, settings);
         }
         finally
         {

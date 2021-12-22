@@ -20,6 +20,6 @@ public class TimestampTests
             timestamps.Add(Timestamp.FromPath(file));
         }
 
-        return Verifier.Verify(timestamps);
+        return Verify(timestamps);
     }
 }
