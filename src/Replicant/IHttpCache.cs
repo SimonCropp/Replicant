@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-
-namespace Replicant;
+﻿namespace Replicant;
 
 public interface IHttpCache:
     IDisposable,

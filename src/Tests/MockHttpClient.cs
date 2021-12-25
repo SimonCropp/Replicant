@@ -1,5 +1,3 @@
-using System.Net.Http;
-
 public class MockHttpClient :
     HttpClient
 {

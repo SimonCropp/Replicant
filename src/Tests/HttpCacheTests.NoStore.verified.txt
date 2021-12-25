@@ -13,6 +13,12 @@
       Cache-Control: no-store,
       Date: DateTime_1
     },
+    Content: {
+      Headers: {},
+      Value: {
+        Cache-Control: no-store
+      }
+    },
     Request: {
       Version: 1.1,
       Method: {

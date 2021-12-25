@@ -1,6 +1,3 @@
-using VerifyXunit;
-using Xunit;
-
 [UsesVerify]
 public class MetaTests
 {

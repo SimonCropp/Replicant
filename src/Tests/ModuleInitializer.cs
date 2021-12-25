@@ -1,5 +1,3 @@
-using VerifyTests;
-
 public static class ModuleInitializer
 {
     [ModuleInitializer]

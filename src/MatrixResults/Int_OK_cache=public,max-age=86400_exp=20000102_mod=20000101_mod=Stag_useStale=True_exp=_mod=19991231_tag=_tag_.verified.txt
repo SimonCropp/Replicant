@@ -11,6 +11,13 @@
       Cache-Control: public, max-age=86400,
       ETag: "tag"
     },
+    Content: {
+      Headers: {
+        Expires: DateTime_1,
+        Last-Modified: DateTime_2
+      },
+      Value: a
+    },
     Request: null
   }
 }

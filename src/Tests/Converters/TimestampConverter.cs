@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-using VerifyTests;
 
 class TimestampConverter :
     WriteOnlyJsonConverter<Timestamp>

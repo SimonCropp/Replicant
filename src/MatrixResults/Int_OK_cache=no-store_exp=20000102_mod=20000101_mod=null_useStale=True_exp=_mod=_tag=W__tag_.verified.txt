@@ -10,6 +10,13 @@
     Headers: {
       Cache-Control: no-store
     },
+    Content: {
+      Headers: {
+        Expires: DateTime_1,
+        Last-Modified: DateTime_2
+      },
+      Value: a
+    },
     Request: null
   }
 }

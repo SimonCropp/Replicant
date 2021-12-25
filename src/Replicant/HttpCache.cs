@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Http;
 using System.Text.Json;
 
 namespace Replicant;
@@ -429,7 +428,7 @@ public partial class HttpCache :
     Result AddItem(HttpResponseMessage response, Uri uri, CancellationToken token)
     {
         var timestamp = Timestamp.FromResponse(uri, response);
-        
+
 #if NET5_0 || NET6_0_OR_GREATER
         var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders);
 #else

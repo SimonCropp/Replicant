@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Net.Http;
 
 readonly struct Timestamp
 {

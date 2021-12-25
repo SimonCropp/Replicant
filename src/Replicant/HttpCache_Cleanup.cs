@@ -20,7 +20,7 @@ public partial class HttpCache
             timer.Change(purgeInterval, ignoreTimeSpan);
         }
     }
-        
+
     /// <inheritdoc/>
     public virtual void Purge()
     {
@@ -30,7 +30,7 @@ public partial class HttpCache
             pair.PurgeItem();
         }
     }
-        
+
     /// <inheritdoc/>
     public virtual void PurgeOld()
     {

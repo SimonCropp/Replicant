@@ -30,7 +30,7 @@
     {
         return new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
     }
-    
+
 #if NET5_0 || NET6_0_OR_GREATER
 
     public static void Move(string source, string target)

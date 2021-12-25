@@ -13,6 +13,16 @@
       Cache-Control: public, max-age=20,
       Date: DateTime_1
     },
+    Content: {
+      Headers: {},
+      Value: {
+        args: {},
+        headers: {
+          Host: httpbin.org
+        },
+        url: https://httpbin.org/cache/20
+      }
+    },
     Request: null
   }
 }

@@ -1,9 +1,6 @@
 using System.Net;
-using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Replicant;
-using VerifyXunit;
-using Xunit;
 
 [UsesVerify]
 public class HttpCacheTests
@@ -334,7 +331,7 @@ public class HttpCacheTests
     [Fact]
     public Task NotFound()
     {
-        return Verifier.ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/404"));
+        return ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/404"));
     }
 
     [Fact]
@@ -379,7 +376,7 @@ public class HttpCacheTests
     [Fact]
     public Task ServerError()
     {
-        return Verifier.ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/500"));
+        return ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/500"));
     }
 
     [Fact]
@@ -391,7 +388,7 @@ public class HttpCacheTests
         };
         var uri = "https://httpbin.org/status/500";
         await httpCache.AddItemAsync(uri, response);
-        await Verifier.ThrowsTask(() => httpCache.StringAsync(uri));
+        await ThrowsTask(() => httpCache.StringAsync(uri));
     }
 
     [Fact]

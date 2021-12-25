@@ -7,6 +7,11 @@
     StatusCode: OK,
     IsSuccessStatusCode: true,
     ReasonPhrase: OK,
+    Content: {
+      Headers: {
+        Expires: DateTime_1
+      }
+    },
     Request: null
   }
 }

@@ -11,6 +11,10 @@
       Cache-Control: no-cache,
       ETag: "tag"
     },
+    Content: {
+      Headers: {},
+      Value: 
+    },
     Request: null
   }
 }

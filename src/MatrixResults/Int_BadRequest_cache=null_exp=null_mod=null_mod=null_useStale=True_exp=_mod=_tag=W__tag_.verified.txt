@@ -7,6 +7,9 @@
     StatusCode: OK,
     IsSuccessStatusCode: true,
     ReasonPhrase: OK,
+    Content: {
+      Headers: {}
+    },
     Request: null
   }
 }

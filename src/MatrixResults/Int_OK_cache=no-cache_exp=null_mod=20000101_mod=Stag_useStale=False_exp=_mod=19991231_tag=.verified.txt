@@ -11,6 +11,12 @@
       Cache-Control: no-cache,
       ETag: "tag"
     },
+    Content: {
+      Headers: {
+        Last-Modified: DateTime_1
+      },
+      Value: a
+    },
     Request: null
   }
 }

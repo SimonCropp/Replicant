@@ -13,6 +13,9 @@
       Date: DateTime_1,
       ETag: {etag}
     },
+    Content: {
+      Headers: {}
+    },
     Request: null
   }
 }

@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-
-readonly struct Result :
+﻿readonly struct Result :
     IDisposable
 {
     public FilePair? File { get; }

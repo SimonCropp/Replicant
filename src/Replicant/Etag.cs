@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-
-readonly struct Etag
+﻿readonly struct Etag
 {
     public bool IsEmpty { get; }
     readonly string forWeb;

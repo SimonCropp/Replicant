@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-
-static class DeriveCacheStatus
+﻿static class DeriveCacheStatus
 {
     public static CacheStatus GetCacheStatus(this HttpResponseMessage response, bool staleIfError)
     {

@@ -1,10 +1,6 @@
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using Replicant;
-using VerifyTests;
-using VerifyXunit;
-using Xunit;
 
 //TODO: can LastModified or Expires for a NotModified?
 [UsesVerify]

@@ -10,6 +10,10 @@
     Headers: {
       Cache-Control: no-store
     },
+    Content: {
+      Headers: {},
+      Value: a
+    },
     Request: null
   }
 }
