@@ -481,10 +481,8 @@ public partial class HttpCache :
                 FileEx.Move(tempFile.Content, newContent);
                 return new(new(newContent, newMeta), true, true);
             }
-            else
-            {
-                return new(new(contentFile, newMeta), true, true);
-            }
+
+            return new(new(contentFile, newMeta), true, true);
         }
 
         return new(new(contentFile, metaFile), true, true);

@@ -108,13 +108,13 @@ static class Extensions
     public static bool IsNoCache(this HttpResponseMessage response)
     {
         var cacheControl = response.Headers.CacheControl;
-        return cacheControl != null && cacheControl.NoCache;
+        return cacheControl is {NoCache: true};
     }
 
     public static bool IsNoStore(this HttpResponseMessage response)
     {
         var cacheControl = response.Headers.CacheControl;
-        return cacheControl != null && cacheControl.NoStore;
+        return cacheControl is {NoStore: true};
     }
 
     public static bool IsNotModified(this HttpResponseMessage response)

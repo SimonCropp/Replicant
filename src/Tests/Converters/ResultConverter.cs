@@ -1,13 +1,7 @@
-using Newtonsoft.Json;
-
 class ResultConverter :
     WriteOnlyJsonConverter<Result>
 {
-    public override void WriteJson(
-        JsonWriter writer,
-        Result result,
-        JsonSerializer serializer,
-        IReadOnlyDictionary<string, object> context)
+    public override void Write(VerifyJsonWriter writer, Result result)
     {
         writer.WriteStartObject();
         writer.WritePropertyName("FromDisk");
@@ -18,7 +12,7 @@ class ResultConverter :
         writer.WriteValue(result.Revalidated);
         writer.WritePropertyName("Response");
         using var message = result.AsResponseMessage();
-        serializer.Serialize(writer, message);
+        writer.Serializer.Serialize(writer, message);
         writer.WriteEndObject();
     }
 }

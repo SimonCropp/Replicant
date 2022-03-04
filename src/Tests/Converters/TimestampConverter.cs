@@ -1,13 +1,7 @@
-using Newtonsoft.Json;
-
 class TimestampConverter :
     WriteOnlyJsonConverter<Timestamp>
 {
-    public override void WriteJson(
-        JsonWriter writer,
-        Timestamp timestamp,
-        JsonSerializer serializer,
-        IReadOnlyDictionary<string, object> context)
+    public override void Write(VerifyJsonWriter writer, Timestamp timestamp)
     {
         writer.WriteStartObject();
         writer.WritePropertyName("MetaFileName");
