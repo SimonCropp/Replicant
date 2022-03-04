@@ -4,15 +4,12 @@
   Revalidated: true,
   Response: {
     Version: 1.1,
-    StatusCode: OK,
-    IsSuccessStatusCode: true,
-    ReasonPhrase: OK,
+    Status: 200 OK,
     Headers: {
       LastModified: Sat, 01 Jan 2000 00:00:00 GMT
     },
     Content: {
       Headers: {}
-    },
-    Request: null
+    }
   }
 }

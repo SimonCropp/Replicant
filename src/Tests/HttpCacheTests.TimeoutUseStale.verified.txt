@@ -4,13 +4,10 @@
   Revalidated: true,
   Response: {
     Version: 1.1,
-    StatusCode: OK,
-    IsSuccessStatusCode: true,
-    ReasonPhrase: OK,
+    Status: 200 OK,
     Content: {
       Headers: {},
       Value: the content
-    },
-    Request: null
+    }
   }
 }

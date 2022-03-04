@@ -4,9 +4,7 @@
   Revalidated: true,
   Response: {
     Version: 1.1,
-    StatusCode: OK,
-    IsSuccessStatusCode: true,
-    ReasonPhrase: OK,
+    Status: 200 OK,
     Headers: {
       Cache-Control: public, max-age=86400,
       ETag: "tag"
@@ -17,7 +15,6 @@
         Last-Modified: DateTime_2
       },
       Value: a
-    },
-    Request: null
+    }
   }
 }

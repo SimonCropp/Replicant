@@ -4,9 +4,7 @@
   Revalidated: true,
   Response: {
     Version: 1.1,
-    StatusCode: NotModified,
-    IsSuccessStatusCode: false,
-    ReasonPhrase: Not Modified,
+    Status: 304 Not Modified,
     Headers: {
       Cache-Control: no-store,
       ETag: W/"tag"
@@ -14,7 +12,6 @@
     Content: {
       Headers: {},
       Value: 
-    },
-    Request: null
+    }
   }
 }

@@ -1,12 +1,10 @@
-{
+﻿{
   FromDisk: true,
   Stored: true,
   Revalidated: true,
   Response: {
     Version: 1.1,
-    StatusCode: OK,
-    IsSuccessStatusCode: true,
-    ReasonPhrase: OK,
+    Status: 200 OK,
     Headers: {
       Cache-Control: max-age=86400, private
     },
@@ -15,7 +13,6 @@
         Last-Modified: DateTime_1
       },
       Value: a
-    },
-    Request: null
+    }
   }
 }

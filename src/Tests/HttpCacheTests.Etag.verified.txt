@@ -4,9 +4,7 @@
   Revalidated: true,
   Response: {
     Version: 1.1,
-    StatusCode: OK,
-    IsSuccessStatusCode: true,
-    ReasonPhrase: OK,
+    Status: 200 OK,
     Headers: {
       Access-Control-Allow-Credentials: true,
       Access-Control-Allow-Origin: *,
@@ -15,7 +13,6 @@
     },
     Content: {
       Headers: {}
-    },
-    Request: null
+    }
   }
 }
