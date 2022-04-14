@@ -7,10 +7,8 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return StreamAsync(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        StreamAsync(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
     public virtual async Task<Stream> StreamAsync(
@@ -28,10 +26,8 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return Stream(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        Stream(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
     public virtual Stream Stream(
@@ -50,10 +46,8 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return ToStreamAsync(new Uri(uri), stream, staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        ToStreamAsync(new Uri(uri), stream, staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
     public virtual async Task ToStreamAsync(
@@ -73,10 +67,8 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
+        CancellationToken token = default) =>
         ToStream(new Uri(uri), stream, staleIfError, modifyRequest, token);
-    }
 
     /// <inheritdoc/>
     public virtual void ToStream(

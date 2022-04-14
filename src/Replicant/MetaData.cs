@@ -23,10 +23,8 @@ class MetaData
         string uri,
         IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders,
         IEnumerable<KeyValuePair<string, IEnumerable<string>>> contentHeaders,
-        IEnumerable<KeyValuePair<string, IEnumerable<string>>>? trailingHeaders = null)
-    {
-        return new(uri, ToList(responseHeaders)!, ToList(contentHeaders)!, ToList(trailingHeaders));
-    }
+        IEnumerable<KeyValuePair<string, IEnumerable<string>>>? trailingHeaders = null) =>
+        new(uri, ToList(responseHeaders)!, ToList(contentHeaders)!, ToList(trailingHeaders));
 
     static List<KeyValuePair<string, List<string>>>? ToList(IEnumerable<KeyValuePair<string, IEnumerable<string>>>? input)
     {
@@ -43,10 +41,8 @@ class MetaData
         return result;
     }
 
-    public static MetaData ReadMeta(string path)
-    {
-        return JsonSerializer.Deserialize<MetaData>(File.ReadAllText(path))!;
-    }
+    public static MetaData ReadMeta(string path) =>
+        JsonSerializer.Deserialize<MetaData>(File.ReadAllText(path))!;
 
     public static void ApplyToResponse(string path, HttpResponseMessage response)
     {

@@ -155,8 +155,6 @@
         return response;
     }
 
-    public void Dispose()
-    {
+    public void Dispose() =>
         Response?.Dispose();
-    }
 }

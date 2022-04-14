@@ -6,10 +6,8 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return LinesAsync(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        LinesAsync(new Uri(uri), staleIfError, modifyRequest, token);
 
     public async IAsyncEnumerable<string> LinesAsync(
         Uri uri,
@@ -20,8 +18,7 @@ public partial class HttpCache
         using var result = await DownloadAsync(uri, staleIfError, modifyRequest, token);
         using var stream = result.AsStream(token);
         using var reader = new StreamReader(stream);
-        string? line;
-        while ((line = await reader.ReadLineAsync()) != null)
+        while (await reader.ReadLineAsync() is { } line)
         {
             yield return line;
         }
@@ -31,10 +28,8 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return Lines(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        Lines(new Uri(uri), staleIfError, modifyRequest, token);
 
     public IEnumerable<string> Lines(
         Uri uri,
@@ -45,8 +40,7 @@ public partial class HttpCache
         using var result = Download(uri, staleIfError, modifyRequest, token);
         using var stream = result.AsStream(token);
         using var reader = new StreamReader(stream);
-        string? line;
-        while ((line = reader.ReadLine()) != null)
+        while (reader.ReadLine() is { } line)
         {
             yield return line;
         }

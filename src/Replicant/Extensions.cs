@@ -8,10 +8,8 @@ static class Extensions
 {
 #if NET5_0 || NET6_0_OR_GREATER
 
-    public static void CopyTo(this HttpContent content, Stream target, CancellationToken token)
-    {
+    public static void CopyTo(this HttpContent content, Stream target, CancellationToken token) =>
         content.CopyTo(target, null, token);
-    }
 
     public static HttpResponseMessage SendEx(
         this HttpClient client,
@@ -57,40 +55,26 @@ static class Extensions
         }
     }
 
-    public static Task<Stream> ReadAsStreamAsync(this HttpContent content, CancellationToken token)
-    {
-        return content.ReadAsStreamAsync();
-    }
+    public static Task<Stream> ReadAsStreamAsync(this HttpContent content, CancellationToken token) =>
+        content.ReadAsStreamAsync();
 
-    public static Task<byte[]> ReadAsByteArrayAsync(this HttpContent content, CancellationToken token)
-    {
-        return content.ReadAsByteArrayAsync();
-    }
+    public static Task<byte[]> ReadAsByteArrayAsync(this HttpContent content, CancellationToken token) =>
+        content.ReadAsByteArrayAsync();
 
-    public static Task<string> ReadAsStringAsync(this HttpContent content, CancellationToken token)
-    {
-        return content.ReadAsStringAsync();
-    }
+    public static Task<string> ReadAsStringAsync(this HttpContent content, CancellationToken token) =>
+        content.ReadAsStringAsync();
 
-    public static Task CopyToAsync(this Stream source, Stream target, CancellationToken token)
-    {
-        return source.CopyToAsync(target);
-    }
+    public static Task CopyToAsync(this Stream source, Stream target, CancellationToken token) =>
+        source.CopyToAsync(target);
 
-    public static Task CopyToAsync(this HttpContent content, Stream target, CancellationToken token)
-    {
-        return content.CopyToAsync(target);
-    }
+    public static Task CopyToAsync(this HttpContent content, Stream target, CancellationToken token) =>
+        content.CopyToAsync(target);
 
-    public static void CopyTo(this HttpContent content, Stream target, CancellationToken token)
-    {
+    public static void CopyTo(this HttpContent content, Stream target, CancellationToken token) =>
         content.CopyToAsync(target).GetAwaiter().GetResult();
-    }
 
-    public static Stream ReadAsStream(this HttpContent content, CancellationToken token)
-    {
-        return content.ReadAsStreamAsync().GetAwaiter().GetResult();
-    }
+    public static Stream ReadAsStream(this HttpContent content, CancellationToken token) =>
+        content.ReadAsStreamAsync().GetAwaiter().GetResult();
 
 #endif
 
@@ -117,10 +101,8 @@ static class Extensions
         return cacheControl is {NoStore: true};
     }
 
-    public static bool IsNotModified(this HttpResponseMessage response)
-    {
-        return response.StatusCode == HttpStatusCode.NotModified;
-    }
+    public static bool IsNotModified(this HttpResponseMessage response) =>
+        response.StatusCode == HttpStatusCode.NotModified;
 
     public static void EnsureSuccess(this HttpResponseMessage response)
     {

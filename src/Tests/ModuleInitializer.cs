@@ -13,7 +13,7 @@ public static class ModuleInitializer
                     x.Converters.Add(new TimestampConverter());
                 });
 #if NET5_0 || NET6_0_OR_GREATER
-                settings.IgnoreMember<System.Net.Http.HttpRequestException>(x => x.StatusCode);
+                settings.IgnoreMember<HttpRequestException>(x => x.StatusCode);
 #endif
                 settings.IgnoreMember<Result>(x => x.File);
                 settings.IgnoreMembers(

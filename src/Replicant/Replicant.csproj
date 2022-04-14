@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net472;net5;net6</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net472;net5.0;net6.0</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ProjectDefaults" Version="1.0.78" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" Condition="$(Configuration) == 'Release'" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" Condition="$(TargetFramework) == 'net472'" />
-    <PackageReference Include="System.Text.Json" Version="6.0.1" Condition="$(TargetFramework) != 'net6'" />
+    <PackageReference Include="System.Text.Json" Version="6.0.3" Condition="$(TargetFramework) != 'net6.0'" />
   </ItemGroup>
 </Project>

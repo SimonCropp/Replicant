@@ -329,10 +329,8 @@ public class HttpCacheTests
     }
 
     [Fact]
-    public Task NotFound()
-    {
-        return ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/404"));
-    }
+    public Task NotFound() =>
+        ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/404"));
 
     [Fact]
     public async Task Timeout()
@@ -374,10 +372,8 @@ public class HttpCacheTests
     }
 
     [Fact]
-    public Task ServerError()
-    {
-        return ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/500"));
-    }
+    public Task ServerError() =>
+        ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/500"));
 
     [Fact]
     public async Task ServerErrorDontUseStale()

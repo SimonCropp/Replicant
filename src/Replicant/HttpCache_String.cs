@@ -7,10 +7,8 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return StringAsync(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        StringAsync(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
     public virtual async Task<string> StringAsync(
@@ -28,10 +26,8 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return String(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        String(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
     public virtual string String(

@@ -1,8 +1,6 @@
 ﻿namespace Replicant;
 
-public partial class HttpCache :
-    IAsyncDisposable,
-    IDisposable
+public partial class HttpCache
 {
     /// <inheritdoc/>
     public virtual void Dispose()

@@ -12,21 +12,16 @@ readonly struct FilePair
         Meta = meta;
     }
 
-    public static FilePair FromContentFile(string path)
-    {
-        return new(path, Path.ChangeExtension(path, "json"));
-    }
+    public static FilePair FromContentFile(string path) =>
+        new(path, Path.ChangeExtension(path, "json"));
 
-    public bool Exists()
-    {
-        return File.Exists(Content) &&
-               File.Exists(Meta);
-    }
+    public bool Exists() =>
+        File.Exists(Content) &&
+        File.Exists(Meta);
 
-    public static FilePair FromContentFile(FileInfo path)
-    {
-        return FromContentFile(path.FullName);
-    }
+    public static FilePair FromContentFile(FileInfo path) =>
+        FromContentFile(path.FullName);
+
     public void Delete()
     {
         File.Delete(Content);

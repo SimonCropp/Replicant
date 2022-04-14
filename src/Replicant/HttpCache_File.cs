@@ -8,10 +8,8 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return ToFileAsync(new Uri(uri), path, staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        ToFileAsync(new Uri(uri), path, staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
     public virtual async Task ToFileAsync(
@@ -31,10 +29,8 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
+        CancellationToken token = default) =>
         ToFile(new Uri(uri), path, staleIfError, modifyRequest, token);
-    }
 
     /// <inheritdoc/>
     public virtual void ToFile(

@@ -3,28 +3,20 @@
 public partial class HttpCache
 {
     /// <inheritdoc/>
-    public virtual void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default)
-    {
+    public virtual void AddItem(string uri, HttpResponseMessage response, CancellationToken token = default) =>
         AddItem(response, new(uri), token);
-    }
 
     /// <inheritdoc/>
-    public virtual void AddItem(Uri uri, HttpResponseMessage response, CancellationToken token = default)
-    {
+    public virtual void AddItem(Uri uri, HttpResponseMessage response, CancellationToken token = default) =>
         AddItem(response, uri, token);
-    }
 
     /// <inheritdoc/>
-    public virtual Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default)
-    {
-        return AddItemAsync(response, new(uri), token);
-    }
+    public virtual Task AddItemAsync(string uri, HttpResponseMessage response, CancellationToken token = default) =>
+        AddItemAsync(response, new(uri), token);
 
     /// <inheritdoc/>
-    public virtual Task AddItemAsync(Uri uri, HttpResponseMessage response, CancellationToken token = default)
-    {
-        return AddItemAsync(response, uri, token);
-    }
+    public virtual Task AddItemAsync(Uri uri, HttpResponseMessage response, CancellationToken token = default) =>
+        AddItemAsync(response, uri, token);
 
     /// <inheritdoc/>
     public virtual Task AddItemAsync(
@@ -36,10 +28,8 @@ public partial class HttpCache
         Headers? responseHeaders = null,
         Headers? contentHeaders = null,
         Headers? trailingHeaders = null,
-        CancellationToken token = default)
-    {
-        return AddItemAsync(new Uri(uri), stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
-    }
+        CancellationToken token = default) =>
+        AddItemAsync(new Uri(uri), stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
 
     /// <inheritdoc/>
     public virtual async Task AddItemAsync(

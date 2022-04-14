@@ -51,10 +51,8 @@ public partial class HttpCache :
     /// <param name="clientFunc">A factory to retrieve a <see cref="HttpClient"/> each time a resource is downloaded.</param>
     /// <param name="maxEntries">The maximum entries to store in the cache.</param>
     public HttpCache(string directory, Func<HttpClient> clientFunc, int maxEntries = 1000) :
-        this(directory, maxEntries)
-    {
+        this(directory, maxEntries) =>
         this.clientFunc = clientFunc;
-    }
 
     /// <summary>
     /// Instantiate a new instance of <see cref="HttpCache"/>.
@@ -80,10 +78,8 @@ public partial class HttpCache :
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return DownloadAsync(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        DownloadAsync(new Uri(uri), staleIfError, modifyRequest, token);
 
     internal Task<Result> DownloadAsync(
         Uri uri,
@@ -105,10 +101,8 @@ public partial class HttpCache :
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return Download(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        Download(new Uri(uri), staleIfError, modifyRequest, token);
 
     internal Result Download(
         Uri uri,
@@ -272,15 +266,13 @@ public partial class HttpCache :
         }
     }
 
-    static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, CancellationToken token)
-    {
-        return (
-                   exception is HttpRequestException ||
-                   exception is TaskCanceledException &&
-                   !token.IsCancellationRequested
-               )
-               && staleIfError;
-    }
+    static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, CancellationToken token) =>
+        (
+            exception is HttpRequestException ||
+            exception is TaskCanceledException &&
+            !token.IsCancellationRequested
+        )
+        && staleIfError;
 
     async Task<Result> HandleFileMissingAsync(
         Uri uri,
@@ -329,10 +321,8 @@ public partial class HttpCache :
         return request;
     }
 
-    HttpClient GetClient()
-    {
-        return client ?? clientFunc!();
-    }
+    HttpClient GetClient() =>
+        client ?? clientFunc!();
 
     /// <summary>
     /// Manually add an item to the cache.

@@ -4,15 +4,11 @@
     public static DateTimeOffset MinFileDateTimeOffset { get; } = new(MinFileDate);
     public static DateTime MaxFileDate { get; } = new(2107, 12, 31);
 
-    public static Encoding Default(this Encoding? encoding)
-    {
-        return encoding ?? Encoding.UTF8;
-    }
+    public static Encoding Default(this Encoding? encoding) =>
+        encoding ?? Encoding.UTF8;
 
-    public static Stream OpenRead(string path)
-    {
-        return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
-    }
+    public static Stream OpenRead(string path) =>
+        new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
 
     public static string GetTempFileName(string? extension = null)
     {
@@ -26,27 +22,19 @@
         return Path.Combine(tempPath, randomFileName);
     }
 
-    public static Stream OpenWrite(string path)
-    {
-        return new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-    }
+    public static Stream OpenWrite(string path) =>
+        new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
 
 #if NET5_0 || NET6_0_OR_GREATER
 
-    public static void Move(string source, string target)
-    {
+    public static void Move(string source, string target) =>
         File.Move(source, target, true);
-    }
 
-    public static async Task<byte[]> ReadAllBytesAsync(string path, CancellationToken token)
-    {
-        return await File.ReadAllBytesAsync(path, token);
-    }
+    public static async Task<byte[]> ReadAllBytesAsync(string path, CancellationToken token) =>
+        await File.ReadAllBytesAsync(path, token);
 
-    public static async Task<string> ReadAllTextAsync(string path, CancellationToken token)
-    {
-        return await File.ReadAllTextAsync(path, token);
-    }
+    public static async Task<string> ReadAllTextAsync(string path, CancellationToken token) =>
+        await File.ReadAllTextAsync(path, token);
 
 #else
 
@@ -56,15 +44,11 @@
         File.Move(source, target);
     }
 
-    public static Task<byte[]> ReadAllBytesAsync(string path, CancellationToken token)
-    {
-        return Task.FromResult(File.ReadAllBytes(path));
-    }
+    public static Task<byte[]> ReadAllBytesAsync(string path, CancellationToken token) =>
+        Task.FromResult(File.ReadAllBytes(path));
 
-    public static Task<string> ReadAllTextAsync(string path, CancellationToken token)
-    {
-        return Task.FromResult(File.ReadAllText(path));
-    }
+    public static Task<string> ReadAllTextAsync(string path, CancellationToken token) =>
+        Task.FromResult(File.ReadAllText(path));
 
 #endif
 }

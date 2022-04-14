@@ -18,20 +18,16 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return BytesAsync(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        BytesAsync(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
     public virtual byte[] Bytes(
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
-    {
-        return Bytes(new Uri(uri), staleIfError, modifyRequest, token);
-    }
+        CancellationToken token = default) =>
+        Bytes(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
     public virtual byte[] Bytes(
