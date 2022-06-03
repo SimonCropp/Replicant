@@ -1,9 +1,11 @@
 {
   fromHeader: {
+    IsEmpty: false,
     ForWeb: W/"tag",
     ForFile: Wtag
   },
   fromFilePath: {
+    IsEmpty: false,
     ForWeb: W/"tag",
     ForFile: Wtag
   }
