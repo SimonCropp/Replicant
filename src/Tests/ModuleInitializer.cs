@@ -4,38 +4,34 @@ public static class ModuleInitializer
     public static void Init()
     {
         VerifyHttp.Enable();
-        VerifierSettings.ModifySerialization(
-            settings =>
-            {
-                settings.AddExtraSettings(x =>
-                {
-                    x.Converters.Add(new ResultConverter());
-                    x.Converters.Add(new TimestampConverter());
-                });
+        VerifierSettings.AddExtraSettings(x =>
+        {
+            x.Converters.Add(new ResultConverter());
+            x.Converters.Add(new TimestampConverter());
+        });
 #if NET5_0 || NET6_0_OR_GREATER
-                settings.IgnoreMember<HttpRequestException>(x => x.StatusCode);
+                VerifierSettings.IgnoreMember<HttpRequestException>(x => x.StatusCode);
 #endif
-                settings.IgnoreMember<Result>(x => x.File);
-                settings.IgnoreMembers(
-                    "StackTrace",
-                    "Content-Length",
-                    "TrailingHeaders",
-                    "X-Amzn-Trace-Id",
-                    "Set-Cookie",
-                    "Report-To",
-                    "Connection",
-                    "Server-Timing",
-                    "Content-Type",
-                    "NEL",
-                    "Accept-Ranges",
-                    "Age",
-                    "Server",
-                    "X-Client-IP",
-                    "Strict-Transport-Security",
-                    "X-Cache-Status",
-                    "X-Cache",
-                    "origin");
-            });
+        VerifierSettings.IgnoreMember<Result>(x => x.File);
+        VerifierSettings.IgnoreMembers(
+            "StackTrace",
+            "Content-Length",
+            "TrailingHeaders",
+            "X-Amzn-Trace-Id",
+            "Set-Cookie",
+            "Report-To",
+            "Connection",
+            "Server-Timing",
+            "Content-Type",
+            "NEL",
+            "Accept-Ranges",
+            "Age",
+            "Server",
+            "X-Client-IP",
+            "Strict-Transport-Security",
+            "X-Cache-Status",
+            "X-Cache",
+            "origin");
     }
 }
 
