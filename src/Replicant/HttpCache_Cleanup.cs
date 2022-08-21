@@ -39,7 +39,7 @@ public partial class HttpCache
             .OrderByDescending(x => x.LastAccessTime)
             .Skip(maxEntries))
         {
-            var pair = FilePair.FromContentFile(file!);
+            var pair = FilePair.FromContentFile(file);
             pair.PurgeItem();
         }
     }
