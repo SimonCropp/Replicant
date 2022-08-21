@@ -6,7 +6,7 @@
     <Compile Condition="$(Configuration) == 'Release'" Remove="MatrixTests.cs" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-    <PackageReference Include="Argon" Version="0.1.0-beta.16" />
+    <PackageReference Include="Argon" Version="0.1.0-beta.17" />
     <PackageReference Include="Verify.Http" Version="3.0.0-beta.2" />
     <PackageReference Include="Xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5" PrivateAssets="all" />
