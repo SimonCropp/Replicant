@@ -10,7 +10,7 @@ public static class ModuleInitializer
             x.Converters.Add(new TimestampConverter());
         });
 #if NET5_0 || NET6_0_OR_GREATER
-                VerifierSettings.IgnoreMember<HttpRequestException>(x => x.StatusCode);
+        VerifierSettings.IgnoreMember<HttpRequestException>(x => x.StatusCode);
 #endif
         VerifierSettings.IgnoreMember<Result>(x => x.File);
         VerifierSettings.IgnoreMembers(
