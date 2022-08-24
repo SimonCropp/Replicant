@@ -1,4 +1,4 @@
-[
+﻿[
   {,
     "slideshow": {,
       "author": "Yours Truly", ,

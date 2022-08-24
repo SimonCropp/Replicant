@@ -1,4 +1,4 @@
-{
+﻿{
   Type: HttpRequestException,
   Message: Response status code does not indicate success: 304 (Not Modified). Uri: 
 }

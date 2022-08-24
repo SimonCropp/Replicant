@@ -1,4 +1,4 @@
-[
+﻿[
   {
     MetaFileName: 92cb8761e3e5246f873da524f438f95468eb3d36_2021-03-22T095023_S{etag}.json,
     ContentFileName: 92cb8761e3e5246f873da524f438f95468eb3d36_2021-03-22T095023_S{etag}.bin,

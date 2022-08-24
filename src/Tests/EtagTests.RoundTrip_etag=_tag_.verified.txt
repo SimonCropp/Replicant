@@ -1,4 +1,4 @@
-{
+﻿{
   fromHeader: {
     IsEmpty: false,
     ForWeb: "tag",
