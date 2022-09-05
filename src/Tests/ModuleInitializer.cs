@@ -4,15 +4,16 @@ public static class ModuleInitializer
     public static void Init()
     {
         VerifyHttp.Enable();
-        VerifierSettings.AddExtraSettings(x =>
+        VerifierSettings.AddExtraSettings(_ =>
         {
-            x.Converters.Add(new ResultConverter());
-            x.Converters.Add(new TimestampConverter());
+            _.Converters.Add(new ResultConverter());
+            _.Converters.Add(new MetaDataConverter());
+            _.Converters.Add(new TimestampConverter());
         });
 #if NET5_0 || NET6_0_OR_GREATER
-        VerifierSettings.IgnoreMember<HttpRequestException>(x => x.StatusCode);
+        VerifierSettings.IgnoreMember<HttpRequestException>(_ => _.StatusCode);
 #endif
-        VerifierSettings.IgnoreMember<Result>(x => x.File);
+        VerifierSettings.IgnoreMember<Result>(_ => _.File);
         VerifierSettings.IgnoreMembers(
             "StackTrace",
             "Content-Length",
