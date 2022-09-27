@@ -271,7 +271,7 @@ public class HttpCacheTests
 
         #endregion
 
-        await Verify(stream).UseExtension("txt");
+        await Verify(stream, "txt");
     }
 
     [Fact]
@@ -305,7 +305,7 @@ public class HttpCacheTests
 
         #endregion
 
-        await Verify(targetStream).UseExtension("txt");
+        await Verify(targetStream, "txt");
     }
 
     [Fact]
