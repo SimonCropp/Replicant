@@ -3,7 +3,7 @@ public static class ModuleInitializer
     [ModuleInitializer]
     public static void Init()
     {
-        VerifyHttp.Enable();
+        VerifyHttp.Initialize();
         VerifierSettings.AddExtraSettings(_ =>
         {
             _.Converters.Add(new ResultConverter());
