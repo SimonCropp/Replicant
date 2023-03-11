@@ -79,7 +79,7 @@ public partial class HttpCache :
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancellation cancellation = default) =>
-        DownloadAsync(new Uri(uri), staleIfError, modifyRequest, token);
+        DownloadAsync(new Uri(uri), staleIfError, modifyRequest, cancellation);
 
     internal Task<Result> DownloadAsync(
         Uri uri,
@@ -91,10 +91,10 @@ public partial class HttpCache :
 
         if (contentFile == null)
         {
-            return HandleFileMissingAsync(uri, modifyRequest, token);
+            return HandleFileMissingAsync(uri, modifyRequest, cancellation);
         }
 
-        return HandleFileExistsAsync(uri, staleIfError, modifyRequest, token, contentFile.Value);
+        return HandleFileExistsAsync(uri, staleIfError, modifyRequest, cancellation, contentFile.Value);
     }
 
     internal Result Download(
@@ -102,7 +102,7 @@ public partial class HttpCache :
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancellation cancellation = default) =>
-        Download(new Uri(uri), staleIfError, modifyRequest, token);
+        Download(new Uri(uri), staleIfError, modifyRequest, cancellation);
 
     internal Result Download(
         Uri uri,
@@ -114,10 +114,10 @@ public partial class HttpCache :
 
         if (contentFile == null)
         {
-            return HandleFileMissing(uri, modifyRequest, token);
+            return HandleFileMissing(uri, modifyRequest, cancellation);
         }
 
-        return HandleFileExists(uri, staleIfError, modifyRequest, contentFile.Value, token);
+        return HandleFileExists(uri, staleIfError, modifyRequest, contentFile.Value, cancellation);
     }
 
     FilePair? FindContentFileForUri(Uri uri)
@@ -161,11 +161,11 @@ public partial class HttpCache :
         var httpClient = GetClient();
         try
         {
-            response = await httpClient.SendAsyncEx(request, token);
+            response = await httpClient.SendAsyncEx(request, cancellation);
         }
         catch (Exception exception)
         {
-            if (ShouldReturnStaleIfError(staleIfError, exception, token))
+            if (ShouldReturnStaleIfError(staleIfError, exception, cancellation))
             {
                 return new(file, true, false);
             }
@@ -187,7 +187,7 @@ public partial class HttpCache :
             {
                 using (response)
                 {
-                    return await AddItemAsync(response, uri, token);
+                    return await AddItemAsync(response, uri, cancellation);
                 }
             }
             case CacheStatus.NoStore:
@@ -225,11 +225,11 @@ public partial class HttpCache :
         var httpClient = GetClient();
         try
         {
-            response = httpClient.SendEx(request, token);
+            response = httpClient.SendEx(request, cancellation);
         }
         catch (Exception exception)
         {
-            if (ShouldReturnStaleIfError(staleIfError, exception, token))
+            if (ShouldReturnStaleIfError(staleIfError, exception, cancellation))
             {
                 return new(contentFile, true, false);
             }
@@ -251,7 +251,7 @@ public partial class HttpCache :
             {
                 using (response)
                 {
-                    return AddItem(response, uri, token);
+                    return AddItem(response, uri, cancellation);
                 }
             }
             case CacheStatus.NoStore:
@@ -270,7 +270,7 @@ public partial class HttpCache :
         (
             exception is HttpRequestException ||
             exception is TaskCanceledException &&
-            !token.IsCancellationRequested
+            !cancellation.IsCancellationRequested
         )
         && staleIfError;
 
@@ -281,7 +281,7 @@ public partial class HttpCache :
     {
         var httpClient = GetClient();
         using var request = BuildRequest(uri, modifyRequest);
-        var response = await httpClient.SendAsyncEx(request, token);
+        var response = await httpClient.SendAsyncEx(request, cancellation);
         response.EnsureSuccess();
         if (response.IsNoStore())
         {
@@ -290,7 +290,7 @@ public partial class HttpCache :
 
         using (response)
         {
-            return await AddItemAsync(response, uri, token);
+            return await AddItemAsync(response, uri, cancellation);
         }
     }
 
@@ -301,7 +301,7 @@ public partial class HttpCache :
     {
         var httpClient = GetClient();
         using var request = BuildRequest(uri, modifyRequest);
-        var response = httpClient.SendEx(request, token);
+        var response = httpClient.SendEx(request, cancellation);
         response.EnsureSuccess();
         if (response.IsNoStore())
         {
@@ -310,7 +310,7 @@ public partial class HttpCache :
 
         using (response)
         {
-            return AddItem(response, uri, token);
+            return AddItem(response, uri, cancellation);
         }
     }
 
@@ -366,7 +366,7 @@ public partial class HttpCache :
         }
 
         var meta = MetaData.FromEnumerables(uri.AbsoluteUri, responseHeaders, contentHeaders, trailingHeaders);
-        return InnerAddItemAsync(token, _ => Task.FromResult(stream), meta, timestamp);
+        return InnerAddItemAsync(cancellation, _ => Task.FromResult(stream), meta, timestamp);
     }
 
     Task<Result> AddItemAsync(HttpResponseMessage response, Uri uri, Cancellation cancellation)
@@ -375,7 +375,7 @@ public partial class HttpCache :
         Task<Stream> ContentFunc(Cancellation cancellation) => response.Content.ReadAsStreamAsync(cancellation);
 
         var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders());
-        return InnerAddItemAsync(token, ContentFunc, meta, timestamp);
+        return InnerAddItemAsync(cancellation, ContentFunc, meta, timestamp);
     }
 
     static JsonSerializerOptions serializerOptions = new()
@@ -393,18 +393,18 @@ public partial class HttpCache :
         try
         {
 #if NET5_0 || NET6_0_OR_GREATER
-            await using var httpStream = await httpContentFunc(token);
+            await using var httpStream = await httpContentFunc(cancellation);
             await using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
             await using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
             {
 #else
-            using var httpStream = await httpContentFunc(token);
+            using var httpStream = await httpContentFunc(cancellation);
             using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
             using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
             {
 #endif
-                await JsonSerializer.SerializeAsync(metaFileStream, meta, serializerOptions, token);
-                await httpStream.CopyToAsync(contentFileStream, token);
+                await JsonSerializer.SerializeAsync(metaFileStream, meta, serializerOptions, cancellation);
+                await httpStream.CopyToAsync(contentFileStream, cancellation);
             }
 
             return BuildResult(timestamp, tempFile);
@@ -427,7 +427,7 @@ public partial class HttpCache :
         var tempFile = FilePair.GetTemp();
         try
         {
-            using var httpStream = response.Content.ReadAsStream(token);
+            using var httpStream = response.Content.ReadAsStream(cancellation);
             using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
             using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
             using (var writer = new Utf8JsonWriter(metaFileStream, new() {Indented = true}))

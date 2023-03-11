@@ -32,7 +32,7 @@
             return FileEx.OpenRead(File!.Value.Content);
         }
 
-        var stream = await Response.Content.ReadAsStreamAsync(token);
+        var stream = await Response.Content.ReadAsStreamAsync(cancellation);
         return new StreamWithCleanup(stream, this);
     }
 
@@ -40,20 +40,20 @@
     {
         if (Response == null)
         {
-            return FileEx.ReadAllBytesAsync(File!.Value.Content, token);
+            return FileEx.ReadAllBytesAsync(File!.Value.Content, cancellation);
         }
 
-        return Response.Content.ReadAsByteArrayAsync(token);
+        return Response.Content.ReadAsByteArrayAsync(cancellation);
     }
 
     public Task<string> AsStringAsync(Cancellation cancellation)
     {
         if (Response == null)
         {
-            return FileEx.ReadAllTextAsync(File!.Value.Content, token);
+            return FileEx.ReadAllTextAsync(File!.Value.Content, cancellation);
         }
 
-        return Response.Content.ReadAsStringAsync(token);
+        return Response.Content.ReadAsStringAsync(cancellation);
     }
 
     public async Task ToStreamAsync(Stream stream, Cancellation cancellation)
@@ -61,11 +61,11 @@
         if (Response == null)
         {
             using var openRead = FileEx.OpenRead(File!.Value.Content);
-            await openRead.CopyToAsync(stream, token);
+            await openRead.CopyToAsync(stream, cancellation);
             return;
         }
 
-        await Response.Content.CopyToAsync(stream, token);
+        await Response.Content.CopyToAsync(stream, cancellation);
     }
 
     public async Task ToFileAsync(string path, Cancellation cancellation)
@@ -77,7 +77,7 @@
         }
 
         using var stream = FileEx.OpenWrite(path);
-        await Response.Content.CopyToAsync(stream, token);
+        await Response.Content.CopyToAsync(stream, cancellation);
     }
 
     public Stream AsStream(Cancellation cancellation = default)
@@ -87,7 +87,7 @@
             return FileEx.OpenRead(File!.Value.Content);
         }
 
-        var stream = Response.Content.ReadAsStream(token);
+        var stream = Response.Content.ReadAsStream(cancellation);
         return new StreamWithCleanup(stream, this);
     }
 
@@ -98,7 +98,7 @@
             return System.IO.File.ReadAllBytes(File!.Value.Content);
         }
 
-        using var stream = Response.Content.ReadAsStream(token);
+        using var stream = Response.Content.ReadAsStream(cancellation);
         using var memoryStream = new MemoryStream();
         stream.CopyTo(memoryStream);
         return memoryStream.ToArray();
@@ -111,7 +111,7 @@
             return System.IO.File.ReadAllText(File!.Value.Content);
         }
 
-        using var stream = Response.Content.ReadAsStream(token);
+        using var stream = Response.Content.ReadAsStream(cancellation);
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
@@ -120,7 +120,7 @@
     {
         if (Response != null)
         {
-            Response.Content.CopyTo(stream, token);
+            Response.Content.CopyTo(stream, cancellation);
             return;
         }
 
@@ -137,7 +137,7 @@
         }
 
         using var stream = FileEx.OpenWrite(path);
-        Response.Content.CopyTo(stream, token);
+        Response.Content.CopyTo(stream, cancellation);
     }
 
     public HttpResponseMessage AsResponseMessage()

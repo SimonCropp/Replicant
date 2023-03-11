@@ -9,7 +9,7 @@ static class Extensions
 #if NET5_0 || NET6_0_OR_GREATER
 
     public static void CopyTo(this HttpContent content, Stream target, Cancellation cancellation) =>
-        content.CopyTo(target, null, token);
+        content.CopyTo(target, null, cancellation);
 
     public static HttpResponseMessage SendEx(
         this HttpClient client,
@@ -46,7 +46,7 @@ static class Extensions
             var prepareRequestMessage = typeof(HttpClient).GetMethod("PrepareRequestMessage", BindingFlags.Instance | BindingFlags.NonPublic)!;
             prepareRequestMessage.Invoke(client, new object?[] {request});
 
-            return client.SendAsync(request, HttpCompletionOption.ResponseContentRead, token)
+            return client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellation)
                 .GetAwaiter().GetResult();
         }
         catch (HttpRequestException exception)
@@ -145,7 +145,7 @@ static class Extensions
     {
         try
         {
-            return await client.SendAsync(request, token);
+            return await client.SendAsync(request, cancellation);
         }
         catch (HttpRequestException exception)
         {

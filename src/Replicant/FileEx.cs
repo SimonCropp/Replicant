@@ -31,10 +31,10 @@
         File.Move(source, target, true);
 
     public static async Task<byte[]> ReadAllBytesAsync(string path, Cancellation cancellation) =>
-        await File.ReadAllBytesAsync(path, token);
+        await File.ReadAllBytesAsync(path, cancellation);
 
     public static async Task<string> ReadAllTextAsync(string path, Cancellation cancellation) =>
-        await File.ReadAllTextAsync(path, token);
+        await File.ReadAllTextAsync(path, cancellation);
 
 #else
 

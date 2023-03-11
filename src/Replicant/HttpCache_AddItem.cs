@@ -4,19 +4,19 @@ public partial class HttpCache
 {
     /// <inheritdoc/>
     public virtual void AddItem(string uri, HttpResponseMessage response, Cancellation cancellation = default) =>
-        AddItem(response, new(uri), token);
+        AddItem(response, new(uri), cancellation);
 
     /// <inheritdoc/>
     public virtual void AddItem(Uri uri, HttpResponseMessage response, Cancellation cancellation = default) =>
-        AddItem(response, uri, token);
+        AddItem(response, uri, cancellation);
 
     /// <inheritdoc/>
     public virtual Task AddItemAsync(string uri, HttpResponseMessage response, Cancellation cancellation = default) =>
-        AddItemAsync(response, new(uri), token);
+        AddItemAsync(response, new(uri), cancellation);
 
     /// <inheritdoc/>
     public virtual Task AddItemAsync(Uri uri, HttpResponseMessage response, Cancellation cancellation = default) =>
-        AddItemAsync(response, uri, token);
+        AddItemAsync(response, uri, cancellation);
 
     /// <inheritdoc/>
     public virtual Task AddItemAsync(
@@ -29,7 +29,7 @@ public partial class HttpCache
         Headers? contentHeaders = null,
         Headers? trailingHeaders = null,
         Cancellation cancellation = default) =>
-        AddItemAsync(new Uri(uri), stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
+        AddItemAsync(new Uri(uri), stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, cancellation);
 
     /// <inheritdoc/>
     public virtual async Task AddItemAsync(
@@ -44,6 +44,6 @@ public partial class HttpCache
         Cancellation cancellation = default)
     {
         using var stream = content.AsStream();
-        await AddItemAsync(uri, stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, token);
+        await AddItemAsync(uri, stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, cancellation);
     }
 }

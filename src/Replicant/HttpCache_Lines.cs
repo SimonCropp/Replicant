@@ -7,7 +7,7 @@ public partial class HttpCache
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancellation cancellation = default) =>
-        LinesAsync(new Uri(uri), staleIfError, modifyRequest, token);
+        LinesAsync(new Uri(uri), staleIfError, modifyRequest, cancellation);
 
     public async IAsyncEnumerable<string> LinesAsync(
         Uri uri,
@@ -15,8 +15,8 @@ public partial class HttpCache
         Action<HttpRequestMessage>? modifyRequest = null,
         [EnumeratorCancellation] Cancellation cancellation = default)
     {
-        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, token);
-        using var stream = result.AsStream(token);
+        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancellation);
+        using var stream = result.AsStream(cancellation);
         using var reader = new StreamReader(stream);
         while (await reader.ReadLineAsync() is { } line)
         {
@@ -29,7 +29,7 @@ public partial class HttpCache
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancellation cancellation = default) =>
-        Lines(new Uri(uri), staleIfError, modifyRequest, token);
+        Lines(new Uri(uri), staleIfError, modifyRequest, cancellation);
 
     public IEnumerable<string> Lines(
         Uri uri,
@@ -37,8 +37,8 @@ public partial class HttpCache
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancellation cancellation = default)
     {
-        using var result = Download(uri, staleIfError, modifyRequest, token);
-        using var stream = result.AsStream(token);
+        using var result = Download(uri, staleIfError, modifyRequest, cancellation);
+        using var stream = result.AsStream(cancellation);
         using var reader = new StreamReader(stream);
         while (reader.ReadLine() is { } line)
         {

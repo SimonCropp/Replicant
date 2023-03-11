@@ -8,7 +8,7 @@ public partial class HttpCache
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancellation cancellation = default) =>
-        StringAsync(new Uri(uri), staleIfError, modifyRequest, token);
+        StringAsync(new Uri(uri), staleIfError, modifyRequest, cancellation);
 
     /// <inheritdoc/>
     public virtual async Task<string> StringAsync(
@@ -17,8 +17,8 @@ public partial class HttpCache
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancellation cancellation = default)
     {
-        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, token);
-        return await result.AsStringAsync(token);
+        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancellation);
+        return await result.AsStringAsync(cancellation);
     }
 
     /// <inheritdoc/>
@@ -27,7 +27,7 @@ public partial class HttpCache
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancellation cancellation = default) =>
-        String(new Uri(uri), staleIfError, modifyRequest, token);
+        String(new Uri(uri), staleIfError, modifyRequest, cancellation);
 
     /// <inheritdoc/>
     public virtual string String(
@@ -36,7 +36,7 @@ public partial class HttpCache
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancellation cancellation = default)
     {
-        using var result = Download(uri, staleIfError, modifyRequest, token);
+        using var result = Download(uri, staleIfError, modifyRequest, cancellation);
         return result.AsString();
     }
 }
