@@ -13,8 +13,8 @@
     public override void EndWrite(IAsyncResult asyncResult) =>
         inner.EndWrite(asyncResult);
 
-    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
-        inner.WriteAsync(buffer, offset, count, cancellationToken);
+    public override Task WriteAsync(byte[] buffer, int offset, int count, Cancellation cancellation) =>
+        inner.WriteAsync(buffer, offset, count, cancellation);
 
     public override void WriteByte(byte value) =>
         inner.WriteByte(value);
@@ -34,8 +34,8 @@
     public override string? ToString() =>
         inner.ToString();
 
-    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
-        inner.ReadAsync(buffer, offset, count, cancellationToken);
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, Cancellation cancellation) =>
+        inner.ReadAsync(buffer, offset, count, cancellation);
 
     public override int ReadTimeout
     {
@@ -45,11 +45,11 @@
 
 #if !NET472 && !NETSTANDARD2_0
 
-    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) =>
-        inner.WriteAsync(buffer, cancellationToken);
+    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, Cancellation cancellation = default) =>
+        inner.WriteAsync(buffer, cancellation);
 
-    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
-        inner.ReadAsync(buffer, cancellationToken);
+    public override ValueTask<int> ReadAsync(Memory<byte> buffer, Cancellation cancellation = default) =>
+        inner.ReadAsync(buffer, cancellation);
 
     public override void Write(ReadOnlySpan<byte> buffer) =>
         inner.Write(buffer);
@@ -69,8 +69,8 @@
 
 #endif
 
-    public override Task FlushAsync(CancellationToken cancellationToken) =>
-        inner.FlushAsync(cancellationToken);
+    public override Task FlushAsync(Cancellation cancellation) =>
+        inner.FlushAsync(cancellation);
 
     public override bool CanTimeout => inner.CanTimeout;
 
@@ -116,8 +116,8 @@
     public override int ReadByte() =>
         inner.ReadByte();
 
-    public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) =>
-        inner.CopyToAsync(destination, bufferSize, cancellationToken);
+    public override Task CopyToAsync(Stream destination, int bufferSize, Cancellation cancellation) =>
+        inner.CopyToAsync(destination, bufferSize, cancellation);
 
     public override void Close()
     {

@@ -7,7 +7,7 @@ public partial class HttpCache
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         using var result = await DownloadAsync(uri, staleIfError, modifyRequest, token);
         return await result.AsBytesAsync(token);
@@ -18,7 +18,7 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         BytesAsync(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
@@ -26,7 +26,7 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         Bytes(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
@@ -34,7 +34,7 @@ public partial class HttpCache
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         using var result = Download(uri, staleIfError, modifyRequest, token);
         return result.AsBytes();

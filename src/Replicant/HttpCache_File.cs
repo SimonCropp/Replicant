@@ -8,7 +8,7 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         ToFileAsync(new Uri(uri), path, staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
@@ -17,7 +17,7 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         using var result = await DownloadAsync(uri, staleIfError, modifyRequest, token);
         await result.ToFileAsync(path, token);
@@ -29,7 +29,7 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         ToFile(new Uri(uri), path, staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
@@ -38,7 +38,7 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         using var result = Download(uri, staleIfError, modifyRequest, token);
         result.ToFile(path, token);

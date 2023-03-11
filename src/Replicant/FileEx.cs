@@ -30,10 +30,10 @@
     public static void Move(string source, string target) =>
         File.Move(source, target, true);
 
-    public static async Task<byte[]> ReadAllBytesAsync(string path, CancellationToken token) =>
+    public static async Task<byte[]> ReadAllBytesAsync(string path, Cancellation cancellation) =>
         await File.ReadAllBytesAsync(path, token);
 
-    public static async Task<string> ReadAllTextAsync(string path, CancellationToken token) =>
+    public static async Task<string> ReadAllTextAsync(string path, Cancellation cancellation) =>
         await File.ReadAllTextAsync(path, token);
 
 #else
@@ -44,10 +44,10 @@
         File.Move(source, target);
     }
 
-    public static Task<byte[]> ReadAllBytesAsync(string path, CancellationToken token) =>
+    public static Task<byte[]> ReadAllBytesAsync(string path, Cancellation cancellation) =>
         Task.FromResult(File.ReadAllBytes(path));
 
-    public static Task<string> ReadAllTextAsync(string path, CancellationToken token) =>
+    public static Task<string> ReadAllTextAsync(string path, Cancellation cancellation) =>
         Task.FromResult(File.ReadAllText(path));
 
 #endif

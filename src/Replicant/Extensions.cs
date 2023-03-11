@@ -8,13 +8,13 @@ static class Extensions
 {
 #if NET5_0 || NET6_0_OR_GREATER
 
-    public static void CopyTo(this HttpContent content, Stream target, CancellationToken token) =>
+    public static void CopyTo(this HttpContent content, Stream target, Cancellation cancellation) =>
         content.CopyTo(target, null, token);
 
     public static HttpResponseMessage SendEx(
         this HttpClient client,
         HttpRequestMessage request,
-        CancellationToken token)
+        Cancellation cancellation)
     {
         try
         {
@@ -31,7 +31,7 @@ static class Extensions
     public static HttpResponseMessage SendEx(
         this HttpClient client,
         HttpRequestMessage request,
-        CancellationToken token)
+        Cancellation cancellation)
     {
         try
         {
@@ -55,25 +55,25 @@ static class Extensions
         }
     }
 
-    public static Task<Stream> ReadAsStreamAsync(this HttpContent content, CancellationToken token) =>
+    public static Task<Stream> ReadAsStreamAsync(this HttpContent content, Cancellation cancellation) =>
         content.ReadAsStreamAsync();
 
-    public static Task<byte[]> ReadAsByteArrayAsync(this HttpContent content, CancellationToken token) =>
+    public static Task<byte[]> ReadAsByteArrayAsync(this HttpContent content, Cancellation cancellation) =>
         content.ReadAsByteArrayAsync();
 
-    public static Task<string> ReadAsStringAsync(this HttpContent content, CancellationToken token) =>
+    public static Task<string> ReadAsStringAsync(this HttpContent content, Cancellation cancellation) =>
         content.ReadAsStringAsync();
 
-    public static Task CopyToAsync(this Stream source, Stream target, CancellationToken token) =>
+    public static Task CopyToAsync(this Stream source, Stream target, Cancellation cancellation) =>
         source.CopyToAsync(target);
 
-    public static Task CopyToAsync(this HttpContent content, Stream target, CancellationToken token) =>
+    public static Task CopyToAsync(this HttpContent content, Stream target, Cancellation cancellation) =>
         content.CopyToAsync(target);
 
-    public static void CopyTo(this HttpContent content, Stream target, CancellationToken token) =>
+    public static void CopyTo(this HttpContent content, Stream target, Cancellation cancellation) =>
         content.CopyToAsync(target).GetAwaiter().GetResult();
 
-    public static Stream ReadAsStream(this HttpContent content, CancellationToken token) =>
+    public static Stream ReadAsStream(this HttpContent content, Cancellation cancellation) =>
         content.ReadAsStreamAsync().GetAwaiter().GetResult();
 
 #endif
@@ -141,7 +141,7 @@ static class Extensions
     public static async Task<HttpResponseMessage> SendAsyncEx(
         this HttpClient client,
         HttpRequestMessage request,
-        CancellationToken token)
+        Cancellation cancellation)
     {
         try
         {

@@ -7,7 +7,7 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         StreamAsync(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
@@ -15,7 +15,7 @@ public partial class HttpCache
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         var result = await DownloadAsync(uri, staleIfError, modifyRequest, token);
         return await result.AsStreamAsync(token);
@@ -26,7 +26,7 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         Stream(new Uri(uri), staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
@@ -34,7 +34,7 @@ public partial class HttpCache
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         var result = Download(uri, staleIfError, modifyRequest, token);
         return result.AsStream(token);
@@ -46,7 +46,7 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         ToStreamAsync(new Uri(uri), stream, staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
@@ -55,7 +55,7 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         using var result = await DownloadAsync(uri, staleIfError, modifyRequest, token);
         await result.ToStreamAsync(stream, token);
@@ -67,7 +67,7 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         ToStream(new Uri(uri), stream, staleIfError, modifyRequest, token);
 
     /// <inheritdoc/>
@@ -76,7 +76,7 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         using var result = Download(uri, staleIfError, modifyRequest, token);
         result.ToStream(stream, token);

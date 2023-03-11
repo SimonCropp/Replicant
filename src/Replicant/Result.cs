@@ -25,7 +25,7 @@
         FromDisk = false;
     }
 
-    public async Task<Stream> AsStreamAsync(CancellationToken token)
+    public async Task<Stream> AsStreamAsync(Cancellation cancellation)
     {
         if (Response == null)
         {
@@ -36,7 +36,7 @@
         return new StreamWithCleanup(stream, this);
     }
 
-    public Task<byte[]> AsBytesAsync(CancellationToken token)
+    public Task<byte[]> AsBytesAsync(Cancellation cancellation)
     {
         if (Response == null)
         {
@@ -46,7 +46,7 @@
         return Response.Content.ReadAsByteArrayAsync(token);
     }
 
-    public Task<string> AsStringAsync(CancellationToken token)
+    public Task<string> AsStringAsync(Cancellation cancellation)
     {
         if (Response == null)
         {
@@ -56,7 +56,7 @@
         return Response.Content.ReadAsStringAsync(token);
     }
 
-    public async Task ToStreamAsync(Stream stream, CancellationToken token)
+    public async Task ToStreamAsync(Stream stream, Cancellation cancellation)
     {
         if (Response == null)
         {
@@ -68,7 +68,7 @@
         await Response.Content.CopyToAsync(stream, token);
     }
 
-    public async Task ToFileAsync(string path, CancellationToken token)
+    public async Task ToFileAsync(string path, Cancellation cancellation)
     {
         if (Response == null)
         {
@@ -80,7 +80,7 @@
         await Response.Content.CopyToAsync(stream, token);
     }
 
-    public Stream AsStream(CancellationToken token = default)
+    public Stream AsStream(Cancellation cancellation = default)
     {
         if (Response == null)
         {
@@ -91,7 +91,7 @@
         return new StreamWithCleanup(stream, this);
     }
 
-    public byte[] AsBytes(CancellationToken token = default)
+    public byte[] AsBytes(Cancellation cancellation = default)
     {
         if (Response == null)
         {
@@ -104,7 +104,7 @@
         return memoryStream.ToArray();
     }
 
-    public string AsString(CancellationToken token = default)
+    public string AsString(Cancellation cancellation = default)
     {
         if (Response == null)
         {
@@ -116,7 +116,7 @@
         return reader.ReadToEnd();
     }
 
-    public void ToStream(Stream stream, CancellationToken token = default)
+    public void ToStream(Stream stream, Cancellation cancellation = default)
     {
         if (Response != null)
         {
@@ -128,7 +128,7 @@
         openRead.CopyTo(stream);
     }
 
-    public void ToFile(string path, CancellationToken token = default)
+    public void ToFile(string path, Cancellation cancellation = default)
     {
         if (Response == null)
         {

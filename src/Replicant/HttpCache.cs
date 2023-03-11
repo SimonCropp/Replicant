@@ -78,14 +78,14 @@ public partial class HttpCache :
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         DownloadAsync(new Uri(uri), staleIfError, modifyRequest, token);
 
     internal Task<Result> DownloadAsync(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         var contentFile = FindContentFileForUri(uri);
 
@@ -101,14 +101,14 @@ public partial class HttpCache :
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         Download(new Uri(uri), staleIfError, modifyRequest, token);
 
     internal Result Download(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         var contentFile = FindContentFileForUri(uri);
 
@@ -140,7 +140,7 @@ public partial class HttpCache :
         Uri uri,
         bool staleIfError,
         Action<HttpRequestMessage>? modifyRequest,
-        CancellationToken token,
+        Cancellation cancellation,
         FilePair file)
     {
         var now = DateTimeOffset.UtcNow;
@@ -207,7 +207,7 @@ public partial class HttpCache :
         bool staleIfError,
         Action<HttpRequestMessage>? modifyRequest,
         FilePair contentFile,
-        CancellationToken token)
+        Cancellation cancellation)
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -266,7 +266,7 @@ public partial class HttpCache :
         }
     }
 
-    static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, CancellationToken token) =>
+    static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, Cancellation cancellation) =>
         (
             exception is HttpRequestException ||
             exception is TaskCanceledException &&
@@ -277,7 +277,7 @@ public partial class HttpCache :
     async Task<Result> HandleFileMissingAsync(
         Uri uri,
         Action<HttpRequestMessage>? modifyRequest,
-        CancellationToken token)
+        Cancellation cancellation)
     {
         var httpClient = GetClient();
         using var request = BuildRequest(uri, modifyRequest);
@@ -297,7 +297,7 @@ public partial class HttpCache :
     Result HandleFileMissing(
         Uri uri,
         Action<HttpRequestMessage>? modifyRequest,
-        CancellationToken token)
+        Cancellation cancellation)
     {
         var httpClient = GetClient();
         using var request = BuildRequest(uri, modifyRequest);
@@ -336,7 +336,7 @@ public partial class HttpCache :
         Headers? responseHeaders = null,
         Headers? contentHeaders = null,
         Headers? trailingHeaders = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         var hash = Hash.Compute(uri.AbsoluteUri);
         var now = DateTimeOffset.Now;
@@ -369,10 +369,10 @@ public partial class HttpCache :
         return InnerAddItemAsync(token, _ => Task.FromResult(stream), meta, timestamp);
     }
 
-    Task<Result> AddItemAsync(HttpResponseMessage response, Uri uri, CancellationToken token)
+    Task<Result> AddItemAsync(HttpResponseMessage response, Uri uri, Cancellation cancellation)
     {
         var timestamp = Timestamp.FromResponse(uri, response);
-        Task<Stream> ContentFunc(CancellationToken cancellationToken) => response.Content.ReadAsStreamAsync(cancellationToken);
+        Task<Stream> ContentFunc(Cancellation cancellation) => response.Content.ReadAsStreamAsync(cancellation);
 
         var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders());
         return InnerAddItemAsync(token, ContentFunc, meta, timestamp);
@@ -384,8 +384,8 @@ public partial class HttpCache :
     };
 
     async Task<Result> InnerAddItemAsync(
-        CancellationToken token,
-        Func<CancellationToken, Task<Stream>> httpContentFunc,
+        Cancellation cancellation,
+        Func<Cancellation, Task<Stream>> httpContentFunc,
         MetaData meta,
         Timestamp timestamp)
     {
@@ -415,7 +415,7 @@ public partial class HttpCache :
         }
     }
 
-    Result AddItem(HttpResponseMessage response, Uri uri, CancellationToken token)
+    Result AddItem(HttpResponseMessage response, Uri uri, Cancellation cancellation)
     {
         var timestamp = Timestamp.FromResponse(uri, response);
 

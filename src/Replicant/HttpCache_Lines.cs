@@ -6,14 +6,14 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         LinesAsync(new Uri(uri), staleIfError, modifyRequest, token);
 
     public async IAsyncEnumerable<string> LinesAsync(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        [EnumeratorCancellation] CancellationToken token = default)
+        [EnumeratorCancellation] Cancellation cancellation = default)
     {
         using var result = await DownloadAsync(uri, staleIfError, modifyRequest, token);
         using var stream = result.AsStream(token);
@@ -28,14 +28,14 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default) =>
+        Cancellation cancellation = default) =>
         Lines(new Uri(uri), staleIfError, modifyRequest, token);
 
     public IEnumerable<string> Lines(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        CancellationToken token = default)
+        Cancellation cancellation = default)
     {
         using var result = Download(uri, staleIfError, modifyRequest, token);
         using var stream = result.AsStream(token);
