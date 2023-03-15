@@ -35,15 +35,3 @@ public static class ModuleInitializer
             "origin");
     }
 }
-
-//Only required if using a legacy version of .net
-#if(!NET5_0 && !NET6_0_OR_GREATER)
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
-    public sealed class ModuleInitializerAttribute :
-        Attribute
-    {
-    }
-}
-#endif
