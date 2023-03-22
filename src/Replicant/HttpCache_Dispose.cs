@@ -20,8 +20,8 @@ public partial class HttpCache
         {
             client!.Dispose();
         }
-#if NET5_0
-            return timer.DisposeAsync();
+#if NET7_0_OR_GREATER
+        return timer.DisposeAsync();
 #else
         timer.Dispose();
         return default;

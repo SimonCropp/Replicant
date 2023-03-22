@@ -43,7 +43,7 @@
         set => inner.ReadTimeout = value;
     }
 
-#if !NET472 && !NETSTANDARD2_0
+#if NET7_0_OR_GREATER
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, Cancellation cancellation = default) =>
         inner.WriteAsync(buffer, cancellation);
