@@ -392,7 +392,7 @@ public partial class HttpCache :
         var tempFile = FilePair.GetTemp();
         try
         {
-#if NET5_0 || NET6_0_OR_GREATER
+#if NET7_0_OR_GREATER
             await using var httpStream = await httpContentFunc(cancellation);
             await using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
             await using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
@@ -419,7 +419,7 @@ public partial class HttpCache :
     {
         var timestamp = Timestamp.FromResponse(uri, response);
 
-#if NET5_0 || NET6_0_OR_GREATER
+#if NET7_0_OR_GREATER
         var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders);
 #else
         var meta = MetaData.FromEnumerables(uri.AbsoluteUri, response.Headers, response.Content.Headers);

@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 
 static class Extensions
 {
-#if NET5_0 || NET6_0_OR_GREATER
+#if NET7_0_OR_GREATER
 
     public static void CopyTo(this HttpContent content, Stream target, Cancellation cancellation) =>
         content.CopyTo(target, null, cancellation);
@@ -120,7 +120,7 @@ static class Extensions
     {
         var uri = response.RequestMessage?.RequestUri?.OriginalString;
         var message = $"{exception.Message} Uri: {uri}";
-#if NET5_0 || NET6_0_OR_GREATER
+#if NET7_0_OR_GREATER
         return new(message, exception.InnerException, exception.StatusCode);
 #else
         return new(message, exception.InnerException);
@@ -131,7 +131,7 @@ static class Extensions
     {
         var uri = request.RequestUri?.OriginalString;
         var message = $"{exception.Message} Uri: {uri}";
-#if NET5_0 || NET6_0_OR_GREATER
+#if NET7_0_OR_GREATER
         return new(message, exception.InnerException, exception.StatusCode);
 #else
         return new(message, exception.InnerException);
@@ -156,7 +156,7 @@ static class Extensions
     public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> TrailingHeaders(
         this HttpResponseMessage response)
     {
-#if NET5_0 || NET6_0_OR_GREATER
+#if NET7_0_OR_GREATER
         return response.TrailingHeaders;
 #else
         return new List<KeyValuePair<string, IEnumerable<string>>>();
