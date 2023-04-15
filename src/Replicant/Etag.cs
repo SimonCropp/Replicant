@@ -31,7 +31,7 @@
         }
 
         var tag = value.Substring(1);
-        if (value.StartsWith("W"))
+        if (value.StartsWith('W'))
         {
             return new($"W/\"{tag}\"", value, false);
         }
