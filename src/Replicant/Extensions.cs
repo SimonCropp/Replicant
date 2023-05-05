@@ -55,18 +55,6 @@ static class Extensions
         }
     }
 
-    public static Task<Stream> ReadAsStreamAsync(this HttpContent content, Cancellation cancellation) =>
-        content.ReadAsStreamAsync();
-
-    public static Task<byte[]> ReadAsByteArrayAsync(this HttpContent content, Cancellation cancellation) =>
-        content.ReadAsByteArrayAsync();
-
-    public static Task<string> ReadAsStringAsync(this HttpContent content, Cancellation cancellation) =>
-        content.ReadAsStringAsync();
-
-    public static Task CopyToAsync(this Stream source, Stream target, Cancellation cancellation) =>
-        source.CopyToAsync(target);
-
     public static Task CopyToAsync(this HttpContent content, Stream target, Cancellation cancellation) =>
         content.CopyToAsync(target);
 
@@ -153,8 +141,7 @@ static class Extensions
         }
     }
 
-    public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> TrailingHeaders(
-        this HttpResponseMessage response)
+    public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> TrailingHeaders(this HttpResponseMessage response)
     {
 #if NET7_0_OR_GREATER
         return response.TrailingHeaders;
