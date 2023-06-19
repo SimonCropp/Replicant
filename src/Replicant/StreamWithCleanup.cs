@@ -13,8 +13,8 @@
     public override void EndWrite(IAsyncResult asyncResult) =>
         inner.EndWrite(asyncResult);
 
-    public override Task WriteAsync(byte[] buffer, int offset, int count, Cancellation cancellation) =>
-        inner.WriteAsync(buffer, offset, count, cancellation);
+    public override Task WriteAsync(byte[] buffer, int offset, int count, Cancel cancel) =>
+        inner.WriteAsync(buffer, offset, count, cancel);
 
     public override void WriteByte(byte value) =>
         inner.WriteByte(value);
@@ -34,8 +34,8 @@
     public override string? ToString() =>
         inner.ToString();
 
-    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, Cancellation cancellation) =>
-        inner.ReadAsync(buffer, offset, count, cancellation);
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, Cancel cancel) =>
+        inner.ReadAsync(buffer, offset, count, cancel);
 
     public override int ReadTimeout
     {
@@ -45,11 +45,11 @@
 
 #if NET7_0_OR_GREATER
 
-    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, Cancellation cancellation = default) =>
-        inner.WriteAsync(buffer, cancellation);
+    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, Cancel cancel = default) =>
+        inner.WriteAsync(buffer, cancel);
 
-    public override ValueTask<int> ReadAsync(Memory<byte> buffer, Cancellation cancellation = default) =>
-        inner.ReadAsync(buffer, cancellation);
+    public override ValueTask<int> ReadAsync(Memory<byte> buffer, Cancel cancel = default) =>
+        inner.ReadAsync(buffer, cancel);
 
     public override void Write(ReadOnlySpan<byte> buffer) =>
         inner.Write(buffer);
@@ -69,8 +69,8 @@
 
 #endif
 
-    public override Task FlushAsync(Cancellation cancellation) =>
-        inner.FlushAsync(cancellation);
+    public override Task FlushAsync(Cancel cancel) =>
+        inner.FlushAsync(cancel);
 
     public override bool CanTimeout => inner.CanTimeout;
 
@@ -116,8 +116,8 @@
     public override int ReadByte() =>
         inner.ReadByte();
 
-    public override Task CopyToAsync(Stream destination, int bufferSize, Cancellation cancellation) =>
-        inner.CopyToAsync(destination, bufferSize, cancellation);
+    public override Task CopyToAsync(Stream destination, int bufferSize, Cancel cancel) =>
+        inner.CopyToAsync(destination, bufferSize, cancel);
 
     public override void Close()
     {

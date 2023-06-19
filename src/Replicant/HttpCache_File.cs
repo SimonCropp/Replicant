@@ -8,8 +8,8 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        ToFileAsync(new Uri(uri), path, staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        ToFileAsync(new Uri(uri), path, staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual async Task ToFileAsync(
@@ -17,10 +17,10 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancellation);
-        await result.ToFileAsync(path, cancellation);
+        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
+        await result.ToFileAsync(path, cancel);
     }
 
     /// <inheritdoc/>
@@ -29,8 +29,8 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        ToFile(new Uri(uri), path, staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        ToFile(new Uri(uri), path, staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual void ToFile(
@@ -38,9 +38,9 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        using var result = Download(uri, staleIfError, modifyRequest, cancellation);
-        result.ToFile(path, cancellation);
+        using var result = Download(uri, staleIfError, modifyRequest, cancel);
+        result.ToFile(path, cancel);
     }
 }

@@ -8,13 +8,13 @@ static class Extensions
 {
 #if NET7_0_OR_GREATER
 
-    public static void CopyTo(this HttpContent content, Stream target, Cancellation cancellation) =>
-        content.CopyTo(target, null, cancellation);
+    public static void CopyTo(this HttpContent content, Stream target, Cancel cancel) =>
+        content.CopyTo(target, null, cancel);
 
     public static HttpResponseMessage SendEx(
         this HttpClient client,
         HttpRequestMessage request,
-        Cancellation cancellation)
+        Cancel cancel)
     {
         try
         {
@@ -31,7 +31,7 @@ static class Extensions
     public static HttpResponseMessage SendEx(
         this HttpClient client,
         HttpRequestMessage request,
-        Cancellation cancellation)
+        Cancel cancel)
     {
         try
         {
@@ -46,7 +46,7 @@ static class Extensions
             var prepareRequestMessage = typeof(HttpClient).GetMethod("PrepareRequestMessage", BindingFlags.Instance | BindingFlags.NonPublic)!;
             prepareRequestMessage.Invoke(client, new object?[] {request});
 
-            return client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellation)
+            return client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancel)
                 .GetAwaiter().GetResult();
         }
         catch (HttpRequestException exception)
@@ -55,13 +55,13 @@ static class Extensions
         }
     }
 
-    public static Task CopyToAsync(this HttpContent content, Stream target, Cancellation cancellation) =>
+    public static Task CopyToAsync(this HttpContent content, Stream target, Cancel cancel) =>
         content.CopyToAsync(target);
 
-    public static void CopyTo(this HttpContent content, Stream target, Cancellation cancellation) =>
+    public static void CopyTo(this HttpContent content, Stream target, Cancel cancel) =>
         content.CopyToAsync(target).GetAwaiter().GetResult();
 
-    public static Stream ReadAsStream(this HttpContent content, Cancellation cancellation) =>
+    public static Stream ReadAsStream(this HttpContent content, Cancel cancel) =>
         content.ReadAsStreamAsync().GetAwaiter().GetResult();
 
 #endif
@@ -129,11 +129,11 @@ static class Extensions
     public static async Task<HttpResponseMessage> SendAsyncEx(
         this HttpClient client,
         HttpRequestMessage request,
-        Cancellation cancellation)
+        Cancel cancel)
     {
         try
         {
-            return await client.SendAsync(request, cancellation);
+            return await client.SendAsync(request, cancel);
         }
         catch (HttpRequestException exception)
         {

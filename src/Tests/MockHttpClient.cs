@@ -6,7 +6,7 @@ public class MockHttpClient :
     public MockHttpClient(params HttpResponseMessage[] responses) =>
         this.responses = responses.GetEnumerator();
 
-    public override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, Cancellation cancellation)
+    public override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, Cancel cancel)
     {
         responses.MoveNext();
         return Task.FromResult((HttpResponseMessage) responses.Current!);

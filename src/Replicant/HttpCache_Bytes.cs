@@ -7,10 +7,10 @@ public partial class HttpCache
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancellation);
-        return await result.AsBytesAsync(cancellation);
+        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
+        return await result.AsBytesAsync(cancel);
     }
 
     /// <inheritdoc/>
@@ -18,25 +18,25 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        BytesAsync(new Uri(uri), staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        BytesAsync(new Uri(uri), staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual byte[] Bytes(
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        Bytes(new Uri(uri), staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        Bytes(new Uri(uri), staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual byte[] Bytes(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        using var result = Download(uri, staleIfError, modifyRequest, cancellation);
+        using var result = Download(uri, staleIfError, modifyRequest, cancel);
         return result.AsBytes();
     }
 }

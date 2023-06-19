@@ -7,17 +7,17 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        ResponseAsync(new Uri(uri), staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        ResponseAsync(new Uri(uri), staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual async Task<HttpResponseMessage> ResponseAsync(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancellation);
+        var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
         return result.AsResponseMessage();
     }
 
@@ -26,17 +26,17 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        Response(new Uri(uri), staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        Response(new Uri(uri), staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual async Task<HttpResponseMessage> Response(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancellation);
+        var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
         return result.AsResponseMessage();
     }
 }

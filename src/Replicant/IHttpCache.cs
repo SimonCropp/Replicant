@@ -12,7 +12,7 @@ public interface IHttpCache:
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and store the result in <paramref name="path"/>.
@@ -22,7 +22,7 @@ public interface IHttpCache:
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and store the result in <paramref name="path"/>.
@@ -32,7 +32,7 @@ public interface IHttpCache:
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and store the result in <paramref name="path"/>.
@@ -42,17 +42,17 @@ public interface IHttpCache:
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Manually add an item to the cache.
     /// </summary>
-    void AddItem(string uri, HttpResponseMessage response, Cancellation cancellation = default);
+    void AddItem(string uri, HttpResponseMessage response, Cancel cancel = default);
 
     /// <summary>
     /// Manually add an item to the cache.
     /// </summary>
-    void AddItem(Uri uri, HttpResponseMessage response, Cancellation cancellation = default);
+    void AddItem(Uri uri, HttpResponseMessage response, Cancel cancel = default);
 
     /// <summary>
     /// Manually add an item to the cache.
@@ -60,7 +60,7 @@ public interface IHttpCache:
     Task AddItemAsync
     (string uri,
         HttpResponseMessage response,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Manually add an item to the cache.
@@ -68,7 +68,7 @@ public interface IHttpCache:
     Task AddItemAsync(
         Uri uri,
         HttpResponseMessage response,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Manually add an item to the cache.
@@ -82,7 +82,7 @@ public interface IHttpCache:
         Headers? responseHeaders = null,
         Headers? contentHeaders = null,
         Headers? trailingHeaders = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Manually add an item to the cache.
@@ -96,7 +96,7 @@ public interface IHttpCache:
         Headers? responseHeaders = null,
         Headers? contentHeaders = null,
         Headers? trailingHeaders = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Manually add an item to the cache.
@@ -110,7 +110,7 @@ public interface IHttpCache:
         Headers? responseHeaders = null,
         Headers? contentHeaders = null,
         Headers? trailingHeaders = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Purge all items from the cache.
@@ -129,7 +129,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as <see cref="System.IO.Stream"/>.
@@ -138,7 +138,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as <see cref="System.IO.Stream"/>.
@@ -147,7 +147,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as <see cref="System.IO.Stream"/>.
@@ -156,7 +156,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and store the result in <paramref name="stream"/>.
@@ -166,7 +166,7 @@ public interface IHttpCache:
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and store the result in <paramref name="stream"/>.
@@ -176,7 +176,7 @@ public interface IHttpCache:
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and store the result in <paramref name="stream"/>.
@@ -186,7 +186,7 @@ public interface IHttpCache:
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and store the result in <paramref name="stream"/>.
@@ -196,7 +196,7 @@ public interface IHttpCache:
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as a string.
@@ -205,7 +205,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as a string.
@@ -214,7 +214,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as a string.
@@ -223,7 +223,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as a string.
@@ -232,31 +232,31 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     IAsyncEnumerable<string> LinesAsync(
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     IAsyncEnumerable<string> LinesAsync(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     IEnumerable<string> Lines(
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     IEnumerable<string> Lines(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as <see cref="HttpResponseMessage"/>.
@@ -265,7 +265,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as <see cref="HttpResponseMessage"/>.
@@ -274,7 +274,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as <see cref="HttpResponseMessage"/>.
@@ -283,7 +283,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as <see cref="HttpResponseMessage"/>.
@@ -292,7 +292,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as byte array.
@@ -301,7 +301,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as byte array.
@@ -310,7 +310,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as a byte array.
@@ -319,7 +319,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 
     /// <summary>
     /// Download a resource and return the result as a byte array.
@@ -328,5 +328,5 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default);
+        Cancel cancel = default);
 }

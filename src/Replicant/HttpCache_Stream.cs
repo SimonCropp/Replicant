@@ -7,18 +7,18 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        StreamAsync(new Uri(uri), staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        StreamAsync(new Uri(uri), staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual async Task<Stream> StreamAsync(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancellation);
-        return await result.AsStreamAsync(cancellation);
+        var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
+        return await result.AsStreamAsync(cancel);
     }
 
     /// <inheritdoc/>
@@ -26,18 +26,18 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        Stream(new Uri(uri), staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        Stream(new Uri(uri), staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual Stream Stream(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        var result = Download(uri, staleIfError, modifyRequest, cancellation);
-        return result.AsStream(cancellation);
+        var result = Download(uri, staleIfError, modifyRequest, cancel);
+        return result.AsStream(cancel);
     }
 
     /// <inheritdoc/>
@@ -46,8 +46,8 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        ToStreamAsync(new Uri(uri), stream, staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        ToStreamAsync(new Uri(uri), stream, staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual async Task ToStreamAsync(
@@ -55,10 +55,10 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancellation);
-        await result.ToStreamAsync(stream, cancellation);
+        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
+        await result.ToStreamAsync(stream, cancel);
     }
 
     /// <inheritdoc/>
@@ -67,8 +67,8 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        ToStream(new Uri(uri), stream, staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        ToStream(new Uri(uri), stream, staleIfError, modifyRequest, cancel);
 
     /// <inheritdoc/>
     public virtual void ToStream(
@@ -76,9 +76,9 @@ public partial class HttpCache
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        using var result = Download(uri, staleIfError, modifyRequest, cancellation);
-        result.ToStream(stream, cancellation);
+        using var result = Download(uri, staleIfError, modifyRequest, cancel);
+        result.ToStream(stream, cancel);
     }
 }

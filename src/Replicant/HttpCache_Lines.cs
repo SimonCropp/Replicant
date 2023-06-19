@@ -6,17 +6,17 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        LinesAsync(new Uri(uri), staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        LinesAsync(new Uri(uri), staleIfError, modifyRequest, cancel);
 
     public async IAsyncEnumerable<string> LinesAsync(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        [EnumeratorCancellation] Cancellation cancellation = default)
+        [EnumeratorCancellation] Cancel cancel = default)
     {
-        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancellation);
-        using var stream = result.AsStream(cancellation);
+        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
+        using var stream = result.AsStream(cancel);
         using var reader = new StreamReader(stream);
         while (await reader.ReadLineAsync() is { } line)
         {
@@ -28,17 +28,17 @@ public partial class HttpCache
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default) =>
-        Lines(new Uri(uri), staleIfError, modifyRequest, cancellation);
+        Cancel cancel = default) =>
+        Lines(new Uri(uri), staleIfError, modifyRequest, cancel);
 
     public IEnumerable<string> Lines(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        Cancellation cancellation = default)
+        Cancel cancel = default)
     {
-        using var result = Download(uri, staleIfError, modifyRequest, cancellation);
-        using var stream = result.AsStream(cancellation);
+        using var result = Download(uri, staleIfError, modifyRequest, cancel);
+        using var stream = result.AsStream(cancel);
         using var reader = new StreamReader(stream);
         while (reader.ReadLine() is { } line)
         {

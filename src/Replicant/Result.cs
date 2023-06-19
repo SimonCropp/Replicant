@@ -25,50 +25,50 @@
         FromDisk = false;
     }
 
-    public async Task<Stream> AsStreamAsync(Cancellation cancellation)
+    public async Task<Stream> AsStreamAsync(Cancel cancel)
     {
         if (Response == null)
         {
             return FileEx.OpenRead(File!.Value.Content);
         }
 
-        var stream = await Response.Content.ReadAsStreamAsync(cancellation);
+        var stream = await Response.Content.ReadAsStreamAsync(cancel);
         return new StreamWithCleanup(stream, this);
     }
 
-    public Task<byte[]> AsBytesAsync(Cancellation cancellation)
+    public Task<byte[]> AsBytesAsync(Cancel cancel)
     {
         if (Response == null)
         {
-            return FileEx.ReadAllBytesAsync(File!.Value.Content, cancellation);
+            return FileEx.ReadAllBytesAsync(File!.Value.Content, cancel);
         }
 
-        return Response.Content.ReadAsByteArrayAsync(cancellation);
+        return Response.Content.ReadAsByteArrayAsync(cancel);
     }
 
-    public Task<string> AsStringAsync(Cancellation cancellation)
+    public Task<string> AsStringAsync(Cancel cancel)
     {
         if (Response == null)
         {
-            return FileEx.ReadAllTextAsync(File!.Value.Content, cancellation);
+            return FileEx.ReadAllTextAsync(File!.Value.Content, cancel);
         }
 
-        return Response.Content.ReadAsStringAsync(cancellation);
+        return Response.Content.ReadAsStringAsync(cancel);
     }
 
-    public async Task ToStreamAsync(Stream stream, Cancellation cancellation)
+    public async Task ToStreamAsync(Stream stream, Cancel cancel)
     {
         if (Response == null)
         {
             using var openRead = FileEx.OpenRead(File!.Value.Content);
-            await openRead.CopyToAsync(stream, cancellation);
+            await openRead.CopyToAsync(stream, cancel);
             return;
         }
 
-        await Response.Content.CopyToAsync(stream, cancellation);
+        await Response.Content.CopyToAsync(stream, cancel);
     }
 
-    public async Task ToFileAsync(string path, Cancellation cancellation)
+    public async Task ToFileAsync(string path, Cancel cancel)
     {
         if (Response == null)
         {
@@ -77,50 +77,50 @@
         }
 
         using var stream = FileEx.OpenWrite(path);
-        await Response.Content.CopyToAsync(stream, cancellation);
+        await Response.Content.CopyToAsync(stream, cancel);
     }
 
-    public Stream AsStream(Cancellation cancellation = default)
+    public Stream AsStream(Cancel cancel = default)
     {
         if (Response == null)
         {
             return FileEx.OpenRead(File!.Value.Content);
         }
 
-        var stream = Response.Content.ReadAsStream(cancellation);
+        var stream = Response.Content.ReadAsStream(cancel);
         return new StreamWithCleanup(stream, this);
     }
 
-    public byte[] AsBytes(Cancellation cancellation = default)
+    public byte[] AsBytes(Cancel cancel = default)
     {
         if (Response == null)
         {
             return System.IO.File.ReadAllBytes(File!.Value.Content);
         }
 
-        using var stream = Response.Content.ReadAsStream(cancellation);
+        using var stream = Response.Content.ReadAsStream(cancel);
         using var memoryStream = new MemoryStream();
         stream.CopyTo(memoryStream);
         return memoryStream.ToArray();
     }
 
-    public string AsString(Cancellation cancellation = default)
+    public string AsString(Cancel cancel = default)
     {
         if (Response == null)
         {
             return System.IO.File.ReadAllText(File!.Value.Content);
         }
 
-        using var stream = Response.Content.ReadAsStream(cancellation);
+        using var stream = Response.Content.ReadAsStream(cancel);
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
 
-    public void ToStream(Stream stream, Cancellation cancellation = default)
+    public void ToStream(Stream stream, Cancel cancel = default)
     {
         if (Response != null)
         {
-            Response.Content.CopyTo(stream, cancellation);
+            Response.Content.CopyTo(stream, cancel);
             return;
         }
 
@@ -128,7 +128,7 @@
         openRead.CopyTo(stream);
     }
 
-    public void ToFile(string path, Cancellation cancellation = default)
+    public void ToFile(string path, Cancel cancel = default)
     {
         if (Response == null)
         {
@@ -137,7 +137,7 @@
         }
 
         using var stream = FileEx.OpenWrite(path);
-        Response.Content.CopyTo(stream, cancellation);
+        Response.Content.CopyTo(stream, cancel);
     }
 
     public HttpResponseMessage AsResponseMessage()
