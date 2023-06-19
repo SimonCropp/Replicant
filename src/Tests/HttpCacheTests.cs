@@ -1,3 +1,4 @@
+#if DEBUG
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Replicant;
@@ -406,3 +407,4 @@ public class HttpCacheTests
         await Verify(content);
     }
 }
+#endif
