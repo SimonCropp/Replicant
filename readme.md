@@ -32,7 +32,7 @@ There is a default static instance:
 ```cs
 var content = await HttpCache.Default.DownloadAsync("https://httpbin.org/status/200");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L76-L80' title='Snippet source file'>snippet source</a> | <a href='#snippet-defaultinstance' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L77-L81' title='Snippet source file'>snippet source</a> | <a href='#snippet-defaultinstance' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 This caches to `{Temp}/Replicant`.
@@ -58,7 +58,7 @@ var httpCache = new HttpCache(
 // Dispose when finished
 await httpCache.DisposeAsync();
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L19-L34' title='Snippet source file'>snippet source</a> | <a href='#snippet-construction' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L20-L35' title='Snippet source file'>snippet source</a> | <a href='#snippet-construction' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -76,7 +76,7 @@ using var provider = services.BuildServiceProvider();
 var httpCache = provider.GetRequiredService<HttpCache>();
 Assert.NotNull(httpCache);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L40-L49' title='Snippet source file'>snippet source</a> | <a href='#snippet-dependencyinjection' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L41-L50' title='Snippet source file'>snippet source</a> | <a href='#snippet-dependencyinjection' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Using HttpClient with [HttpClientFactory](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests).
@@ -97,7 +97,7 @@ using var provider = services.BuildServiceProvider();
 var httpCache = provider.GetRequiredService<HttpCache>();
 Assert.NotNull(httpCache);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L55-L70' title='Snippet source file'>snippet source</a> | <a href='#snippet-dependencyinjectionwithhttpfactory' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L56-L71' title='Snippet source file'>snippet source</a> | <a href='#snippet-dependencyinjectionwithhttpfactory' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -108,7 +108,7 @@ Assert.NotNull(httpCache);
 ```cs
 var content = await httpCache.StringAsync("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L228-L232' title='Snippet source file'>snippet source</a> | <a href='#snippet-string' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L229-L233' title='Snippet source file'>snippet source</a> | <a href='#snippet-string' title='Start of snippet'>anchor</a></sup>
 <a id='snippet-string-1'></a>
 ```cs
 var lines = new List<string>();
@@ -117,7 +117,7 @@ await foreach (var line in httpCache.LinesAsync("https://httpbin.org/json"))
     lines.Add(line);
 }
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L240-L248' title='Snippet source file'>snippet source</a> | <a href='#snippet-string-1' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L241-L249' title='Snippet source file'>snippet source</a> | <a href='#snippet-string-1' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -128,7 +128,7 @@ await foreach (var line in httpCache.LinesAsync("https://httpbin.org/json"))
 ```cs
 var bytes = await httpCache.BytesAsync("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L256-L260' title='Snippet source file'>snippet source</a> | <a href='#snippet-bytes' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L257-L261' title='Snippet source file'>snippet source</a> | <a href='#snippet-bytes' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -139,7 +139,7 @@ var bytes = await httpCache.BytesAsync("https://httpbin.org/json");
 ```cs
 using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L268-L272' title='Snippet source file'>snippet source</a> | <a href='#snippet-stream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L269-L273' title='Snippet source file'>snippet source</a> | <a href='#snippet-stream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -150,7 +150,7 @@ using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
 ```cs
 await httpCache.ToFileAsync("https://httpbin.org/json", targetFile);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L283-L287' title='Snippet source file'>snippet source</a> | <a href='#snippet-tofile' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L284-L288' title='Snippet source file'>snippet source</a> | <a href='#snippet-tofile' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -161,7 +161,7 @@ await httpCache.ToFileAsync("https://httpbin.org/json", targetFile);
 ```cs
 await httpCache.ToStreamAsync("https://httpbin.org/json", targetStream);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L302-L306' title='Snippet source file'>snippet source</a> | <a href='#snippet-tostream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L303-L307' title='Snippet source file'>snippet source</a> | <a href='#snippet-tostream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -176,7 +176,7 @@ using var response = new HttpResponseMessage(HttpStatusCode.OK)
 };
 await httpCache.AddItemAsync(uri, response);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L361-L369' title='Snippet source file'>snippet source</a> | <a href='#snippet-additem' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L362-L370' title='Snippet source file'>snippet source</a> | <a href='#snippet-additem' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -189,7 +189,7 @@ If an error occurs when re-validating a potentially stale item, then the cached 
 ```cs
 var content = httpCache.StringAsync(uri, staleIfError: true);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L400-L404' title='Snippet source file'>snippet source</a> | <a href='#snippet-staleiferror' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L401-L405' title='Snippet source file'>snippet source</a> | <a href='#snippet-staleiferror' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -208,7 +208,7 @@ var content = await httpCache.StringAsync(
         message.Headers.Add("Key2", "Value2");
     });
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L316-L326' title='Snippet source file'>snippet source</a> | <a href='#snippet-modifyrequest' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L317-L327' title='Snippet source file'>snippet source</a> | <a href='#snippet-modifyrequest' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -221,7 +221,7 @@ An instance of the HttpResponseMessage can be created from a cached item:
 ```cs
 using var response = await httpCache.ResponseAsync("https://httpbin.org/status/200");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L163-L167' title='Snippet source file'>snippet source</a> | <a href='#snippet-fullhttpresponsemessage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L164-L168' title='Snippet source file'>snippet source</a> | <a href='#snippet-fullhttpresponsemessage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
