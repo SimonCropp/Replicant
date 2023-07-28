@@ -18,7 +18,7 @@ public partial class HttpCache
         using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
         using var stream = result.AsStream(cancel);
         using var reader = new StreamReader(stream);
-        while (await reader.ReadLineAsync() is { } line)
+        while (await reader.ReadLineAsync(cancel) is { } line)
         {
             yield return line;
         }
