@@ -1,16 +1,15 @@
 ﻿{
   FromDisk: true,
-  Stored: true,
+  Stored: false,
   Revalidated: true,
   Response: {
     Version: 1.1,
     Status: 200 OK,
     Headers: {
-      Cache-Control: public, max-age=86400
+      LastModified: Sat, 01 Jan 2000 00:00:00 GMT
     },
     Content: {
-      Headers: {},
-      Value: 
+      Headers: {}
     }
   }
 }
