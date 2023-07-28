@@ -14,7 +14,7 @@
 
         if (response.IsNotModified())
         {
-            return CacheStatus.Revalidate;
+            return CacheStatus.Hit;
         }
 
         if (!response.IsSuccessStatusCode)
