@@ -11,7 +11,12 @@ public class HttpCacheTests
 
     public HttpCacheTests()
     {
-        httpCache = new(CachePath);
+        httpCache = new(
+            CachePath,
+            new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(30)
+            });
         httpCache.Purge();
     }
 
@@ -169,6 +174,7 @@ public class HttpCacheTests
 
         await Verify(response);
     }
+
     [Fact]
     public async Task FullHttpResponseMessage()
     {
@@ -391,12 +397,12 @@ public class HttpCacheTests
     [Fact]
     public async Task ServerErrorUseStale()
     {
-        using var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("content")
         };
         var uri = "https://httpbin.org/status/500";
-        await httpCache.AddItemAsync(uri, httpResponseMessage);
+        await httpCache.AddItemAsync(uri, response);
 
         #region staleIfError
 
