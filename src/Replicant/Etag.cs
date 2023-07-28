@@ -30,7 +30,7 @@
             return Empty;
         }
 
-        var tag = value.Substring(1);
+        var tag = value[1..];
         if (value.StartsWith("W"))
         {
             return new($"W/\"{tag}\"", value, false);
@@ -60,7 +60,7 @@
 
         if (tag.StartsWith("W/"))
         {
-            return new(tag, $"W{tag.Substring(2).Trim('"')}", false);
+            return new(tag, $"W{tag[2..].Trim('"')}", false);
         }
 
         return new(tag, $"S{tag.Trim('"')}", false);

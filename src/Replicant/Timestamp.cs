@@ -42,12 +42,12 @@ readonly struct Timestamp
         var file = Path.GetFileNameWithoutExtension(path);
         var indexOf = file.IndexOf('_');
 
-        var urlHash = file.Substring(0, indexOf);
+        var urlHash = file[..indexOf];
 
         var modifiedPart = file.Substring(indexOf + 1, 17);
         var modified = DateTimeOffset.ParseExact(modifiedPart, "yyyy-MM-ddTHHmmss", null, DateTimeStyles.AssumeUniversal);
 
-        var etagPart = file.Substring(indexOf + 19);
+        var etagPart = file[(indexOf + 19)..];
         var etag = Etag.FromFilePart(etagPart);
 
         DateTime? expiry = File.GetLastWriteTimeUtc(path);
