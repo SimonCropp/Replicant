@@ -36,7 +36,7 @@ public partial class HttpCache
     {
         foreach (var file in new DirectoryInfo(directory)
             .GetFiles("*_*_*.bin")
-            .OrderByDescending(x => x.LastAccessTime)
+            .OrderByDescending(_ => _.LastAccessTime)
             .Skip(maxEntries))
         {
             var pair = FilePair.FromContentFile(file);
