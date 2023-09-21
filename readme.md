@@ -5,6 +5,8 @@
 
 A wrapper for HttpClient that caches to disk. Cached files, over the max specified, are deleted based on the last access times.
 
+**See [Milestones](../../milestones?state=closed) for release notes.**
+
 Headers/Responses respected in caching decisions:
 
  * [Expires](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires)
