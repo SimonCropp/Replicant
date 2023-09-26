@@ -14,7 +14,7 @@
     <PackageReference Include="Verify.Xunit" Version="21.2.0" />
     <PackageReference Include="MarkdownSnippets.MsBuild" Version="25.1.0" PrivateAssets="all" />
     <ProjectReference Include="..\Replicant\Replicant.csproj" />
-    <PackageReference Include="ProjectDefaults" Version="1.0.97" PrivateAssets="all" />
+    <PackageReference Include="ProjectDefaults" Version="1.0.99" PrivateAssets="all" />
     <None Update="*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
