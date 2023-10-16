@@ -7,5 +7,6 @@
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <PackageTags>HttpClient, HttpCache, Cache</PackageTags>
     <Description>A wrapper for HttpClient that caches to disk</Description>
+    <ResolveAssemblyReferencesSilent>true</ResolveAssemblyReferencesSilent>
   </PropertyGroup>
 </Project>
