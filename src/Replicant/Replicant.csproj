@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Polyfill" Version="1.32.1" PrivateAssets="all" />
     <PackageReference Include="ProjectDefaults" Version="1.0.101" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" Condition="$(Configuration) == 'Release'" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" Condition="$(Configuration) == 'Release'" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" Condition="$(TargetFramework) == 'net48'" />
     <PackageReference Include="System.Text.Json" Version="8.0.0" Condition="$(TargetFramework) != 'net7.0'" />
   </ItemGroup>
