@@ -11,7 +11,7 @@
     <PackageReference Include="Xunit" Version="2.6.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="Verify.Xunit" Version="22.7.0" />
+    <PackageReference Include="Verify.Xunit" Version="22.7.1" />
     <PackageReference Include="MarkdownSnippets.MsBuild" Version="25.1.0" PrivateAssets="all" />
     <ProjectReference Include="..\Replicant\Replicant.csproj" />
     <PackageReference Include="ProjectDefaults" Version="1.0.102" PrivateAssets="all" />
