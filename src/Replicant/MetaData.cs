@@ -32,7 +32,7 @@ class MetaData
         {
             return null;
         }
-        List<KeyValuePair<string, List<string>>> result = new();
+        List<KeyValuePair<string, List<string>>> result = [];
         foreach (var item in input)
         {
             result.Add(new(item.Key, item.Value.ToList()));
