@@ -1,15 +1,6 @@
-﻿class StreamWithCleanup :
+﻿class StreamWithCleanup(Stream inner, IDisposable disposable) :
     Stream
 {
-    Stream inner;
-    IDisposable disposable;
-
-    public StreamWithCleanup(Stream inner, IDisposable disposable)
-    {
-        this.inner = inner;
-        this.disposable = disposable;
-    }
-
     public override void EndWrite(IAsyncResult asyncResult) =>
         inner.EndWrite(asyncResult);
 

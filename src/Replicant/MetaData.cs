@@ -1,23 +1,15 @@
 ﻿using System.Text.Json;
 
-class MetaData
+class MetaData(
+    string? uri,
+    List<KeyValuePair<string, List<string>>> responseHeaders,
+    List<KeyValuePair<string, List<string>>> contentHeaders,
+    List<KeyValuePair<string, List<string>>>? trailingHeaders = null)
 {
-    public string? Uri { get; }
-    public List<KeyValuePair<string, List<string>>> ResponseHeaders { get; }
-    public List<KeyValuePair<string, List<string>>> ContentHeaders { get; }
-    public List<KeyValuePair<string, List<string>>>? TrailingHeaders { get; }
-
-    public MetaData(
-        string? uri,
-        List<KeyValuePair<string, List<string>>> responseHeaders,
-        List<KeyValuePair<string, List<string>>> contentHeaders,
-        List<KeyValuePair<string, List<string>>>? trailingHeaders = null)
-    {
-        Uri = uri;
-        ResponseHeaders = responseHeaders;
-        ContentHeaders = contentHeaders;
-        TrailingHeaders = trailingHeaders;
-    }
+    public string? Uri { get; } = uri;
+    public List<KeyValuePair<string, List<string>>> ResponseHeaders { get; } = responseHeaders;
+    public List<KeyValuePair<string, List<string>>> ContentHeaders { get; } = contentHeaders;
+    public List<KeyValuePair<string, List<string>>>? TrailingHeaders { get; } = trailingHeaders;
 
     public static MetaData FromEnumerables(
         string uri,
