@@ -1,16 +1,10 @@
 ﻿using Replicant;
 
 [DebuggerDisplay("Content = {Content} | Meta = {Meta}")]
-readonly struct FilePair
+readonly struct FilePair(string content, string meta)
 {
-    public string Content { get; }
-    public string Meta { get; }
-
-    public FilePair(string content, string meta)
-    {
-        Content = content;
-        Meta = meta;
-    }
+    public string Content { get; } = content;
+    public string Meta { get; } = meta;
 
     public static FilePair FromContentFile(string path) =>
         new(path, Path.ChangeExtension(path, "json"));
@@ -96,6 +90,4 @@ readonly struct FilePair
         var tempMeta = FileEx.GetTempFileName();
         return new(tempContent, tempMeta);
     }
-
-
 }
