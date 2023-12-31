@@ -44,7 +44,7 @@ static class Extensions
 
             //PrepareRequestMessage(request);
             var prepareRequestMessage = typeof(HttpClient).GetMethod("PrepareRequestMessage", BindingFlags.Instance | BindingFlags.NonPublic)!;
-            prepareRequestMessage.Invoke(client, new object?[] {request});
+            prepareRequestMessage.Invoke(client, [request]);
 
             return client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancel)
                 .GetAwaiter().GetResult();

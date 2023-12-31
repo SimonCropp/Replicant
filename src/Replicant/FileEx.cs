@@ -30,11 +30,11 @@
     public static void Move(string source, string target) =>
         File.Move(source, target, true);
 
-    public static async Task<byte[]> ReadAllBytesAsync(string path, Cancel cancel) =>
-        await File.ReadAllBytesAsync(path, cancel);
+    public static Task<byte[]> ReadAllBytesAsync(string path, Cancel cancel) =>
+        File.ReadAllBytesAsync(path, cancel);
 
-    public static async Task<string> ReadAllTextAsync(string path, Cancel cancel) =>
-        await File.ReadAllTextAsync(path, cancel);
+    public static Task<string> ReadAllTextAsync(string path, Cancel cancel) =>
+        File.ReadAllTextAsync(path, cancel);
 
 #else
 

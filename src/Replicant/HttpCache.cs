@@ -126,8 +126,7 @@ public partial class HttpCache :
         var directoryInfo = new DirectoryInfo(directory);
         var fileInfo = directoryInfo
             .GetFiles($"{hash}_*.bin")
-            .OrderBy(_ => _.LastWriteTime)
-            .FirstOrDefault();
+            .MinBy(_ => _.LastWriteTime);
         if (fileInfo == null)
         {
             return null;

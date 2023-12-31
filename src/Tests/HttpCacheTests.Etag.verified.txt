@@ -1,6 +1,6 @@
 ﻿{
   FromDisk: true,
-  Stored: true,
+  Stored: false,
   Revalidated: true,
   Response: {
     Version: 1.1,
@@ -12,7 +12,13 @@
       ETag: {etag}
     },
     Content: {
-      Headers: {}
+      Headers: {},
+      Value: {
+        headers: {
+          Host: httpbin.org
+        },
+        url: https://httpbin.org/etag/{etag}
+      }
     }
   }
 }

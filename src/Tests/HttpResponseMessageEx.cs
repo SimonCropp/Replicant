@@ -1,13 +1,8 @@
 using System.Net;
 
-public class HttpResponseMessageEx :
-    HttpResponseMessage
+public class HttpResponseMessageEx(HttpStatusCode code) :
+    HttpResponseMessage(code)
 {
-    public HttpResponseMessageEx(HttpStatusCode code) :
-        base(code)
-    {
-    }
-
     protected override void Dispose(bool disposing)
     {
     }

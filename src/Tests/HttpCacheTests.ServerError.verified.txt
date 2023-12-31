@@ -1,4 +1,4 @@
 ﻿{
   Type: HttpRequestException,
-  Message: Response status code does not indicate success: 504 (Gateway Time-out). Uri: https://httpbin.org/status/500
+  Message: Response status code does not indicate success: 500 (INTERNAL SERVER ERROR). Uri: https://httpbin.org/status/500
 }

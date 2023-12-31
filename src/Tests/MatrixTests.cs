@@ -10,8 +10,8 @@ public class MatrixTests
     static DateTimeOffset now = new(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
     static DateTimeOffset inPast = now.AddDays(-1);
     static DateTimeOffset inFuture = now.AddDays(1);
-    static DateTimeOffset?[] expiries = {null, inFuture};
-    static DateTimeOffset?[] mods = {null, now, inPast};
+    static DateTimeOffset?[] expiries = [null, inFuture];
+    static DateTimeOffset?[] mods = [null, now, inPast];
 
     static MatrixTests()
     {
@@ -27,23 +27,23 @@ public class MatrixTests
         foreach (var etag in etagStrings)
         foreach (var response in Responses())
         {
-            yield return new object?[]
-            {
+            yield return
+            [
                 new StoredData(expiry, modDate, etag),
                 response,
                 staleIfError
-            };
+            ];
         }
 
         foreach (var staleIfError in new[] {true, false})
         foreach (var response in Responses())
         {
-            yield return new object?[]
-            {
+            yield return
+            [
                 null,
                 response,
                 staleIfError
-            };
+            ];
         }
     }
 
@@ -122,11 +122,11 @@ public class MatrixTests
         foreach (var staleIfError in new[] {true, false})
         foreach (var response in Responses())
         {
-            yield return new object[]
-            {
+            yield return
+            [
                 response,
                 staleIfError
-            };
+            ];
         }
     }
 
@@ -176,21 +176,21 @@ public class MatrixTests
     }
 
     static Etag[] etags =
-    {
+    [
         new("\"tag\"", "Stag", false),
         new("W/\"tag\"", "Wtag", false),
-        Etag.Empty,
-    };
+        Etag.Empty
+    ];
 
     static string?[] etagStrings =
-    {
+    [
         "\"tag\"",
         "W/\"tag\"",
         null
-    };
+    ];
 
     static CacheControlHeaderValue[] cacheControls =
-    {
+    [
         new()
         {
             Public = true,
@@ -209,5 +209,5 @@ public class MatrixTests
         {
             NoStore = true,
         }
-    };
+    ];
 }
