@@ -3,7 +3,6 @@ using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Replicant;
 
-[UsesVerify]
 public class HttpCacheTests
 {
     HttpCache httpCache;
