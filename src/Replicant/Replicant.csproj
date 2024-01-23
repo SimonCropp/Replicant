@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Polyfill" Version="2.0.1" PrivateAssets="all" />
-    <PackageReference Include="ProjectDefaults" Version="1.0.108" PrivateAssets="all" />
+    <PackageReference Include="ProjectDefaults" Version="1.0.109" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" Condition="$(Configuration) == 'Release'" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" Condition="$(TargetFramework) == 'net48'" />
     <PackageReference Include="System.Text.Json" Version="8.0.1" Condition="$(TargetFramework) != 'net7.0'" />
