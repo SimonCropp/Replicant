@@ -1,18 +1,11 @@
-public class StoredData
+public class StoredData(
+    DateTimeOffset? expiry,
+    DateTimeOffset? modified,
+    string? etag)
 {
-    public DateTimeOffset? Expiry { get; }
-    public DateTimeOffset? Modified { get; }
-    public string? Etag { get; }
-
-    public StoredData(
-        DateTimeOffset? expiry,
-        DateTimeOffset? modified,
-        string? etag)
-    {
-        Expiry = expiry;
-        Modified = modified;
-        Etag = etag;
-    }
+    public DateTimeOffset? Expiry { get; } = expiry;
+    public DateTimeOffset? Modified { get; } = modified;
+    public string? Etag { get; } = etag;
 
     public override string ToString()
     {
