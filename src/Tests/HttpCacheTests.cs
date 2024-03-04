@@ -19,7 +19,7 @@ public class HttpCacheTests
         httpCache.Purge();
     }
 
-    async Task Construction(string cacheDirectory)
+    static async Task Construction(string cacheDirectory)
     {
         #region Construction
 

@@ -77,13 +77,6 @@ readonly struct FilePair(string content, string meta)
         }
     }
 
-    public FilePair ToTemp()
-    {
-        var tempContent = FileEx.GetTempFileName();
-        var tempMeta = FileEx.GetTempFileName();
-        return new(tempContent, tempMeta);
-    }
-
     public static FilePair GetTemp()
     {
         var tempContent = FileEx.GetTempFileName();
