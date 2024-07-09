@@ -16,6 +16,6 @@
     <PackageVersion Include="Verify.Http" Version="6.2.1" />
     <PackageVersion Include="Verify.Xunit" Version="25.3.0" />
     <PackageVersion Include="Xunit" Version="2.9.0" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.1" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
 </Project>
