@@ -14,7 +14,7 @@
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="Verify.Http" Version="6.3.0" />
-    <PackageVersion Include="Verify.XunitV3" Version="27.0.0-beta.5" />
+    <PackageVersion Include="Verify.XunitV3" Version="27.0.0-beta.6" />
     <PackageVersion Include="xunit.v3" Version="0.4.0-pre.20" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0-pre.35" />
   </ItemGroup>
