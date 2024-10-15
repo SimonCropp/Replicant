@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Argon" Version="0.21.0" />
+    <PackageVersion Include="Argon" Version="0.22.0" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="27.0.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.1" />
@@ -13,7 +13,7 @@
     <PackageVersion Include="ProjectDefaults" Version="1.0.139" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
-    <PackageVersion Include="Verify.XunitV3" Version="27.0.0" />
+    <PackageVersion Include="Verify.XunitV3" Version="27.0.1" />
     <PackageVersion Include="Verify.Http" Version="6.4.0" />
     <PackageVersion Include="xunit.v3" Version="0.4.0-pre.20" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0-pre.35" />
