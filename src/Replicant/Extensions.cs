@@ -141,14 +141,12 @@ static class Extensions
         }
     }
 
-    public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> TrailingHeaders(this HttpResponseMessage response)
-    {
+    public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> TrailingHeaders(this HttpResponseMessage response) =>
 #if NET7_0_OR_GREATER
-        return response.TrailingHeaders;
+        response.TrailingHeaders;
 #else
-        return [];
+        [];
 #endif
-    }
 
     public static Stream AsStream(this string value)
     {
