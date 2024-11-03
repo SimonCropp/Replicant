@@ -3,7 +3,6 @@
   Stored: true,
   Revalidated: true,
   Response: {
-    Version: 1.1,
     Status: 200 OK,
     Headers: {
       Cache-Control: max-age=86400, private

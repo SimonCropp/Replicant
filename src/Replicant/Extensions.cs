@@ -146,7 +146,7 @@ static class Extensions
 #if NET7_0_OR_GREATER
         return response.TrailingHeaders;
 #else
-        return Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>();
+        return [];
 #endif
     }
 

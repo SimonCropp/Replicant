@@ -1,5 +1,4 @@
 #if DEBUG
-using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Replicant;
 

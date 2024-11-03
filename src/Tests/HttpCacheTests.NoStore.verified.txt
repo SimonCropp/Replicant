@@ -3,7 +3,6 @@
   Stored: false,
   Revalidated: true,
   Response: {
-    Version: 1.1,
     Status: 200 OK,
     Headers: {
       Access-Control-Allow-Credentials: true,
@@ -15,14 +14,6 @@
       Headers: {},
       Value: {
         Cache-Control: no-store
-      }
-    },
-    Request: {
-      Uri: {
-        Path: https://httpbin.org/response-headers,
-        Query: {
-          Cache-Control: no-store
-        }
       }
     }
   }

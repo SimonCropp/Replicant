@@ -3,7 +3,6 @@
   Stored: false,
   Revalidated: true,
   Response: {
-    Version: 1.1,
     Status: 304 Not Modified,
     Headers: {
       Cache-Control: no-store,

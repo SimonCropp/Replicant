@@ -1,5 +1,4 @@
-using System.Net;
-
+// ReSharper disable ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
 public class HttpResponseMessageEx(HttpStatusCode code) :
     HttpResponseMessage(code)
 {

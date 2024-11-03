@@ -3,7 +3,6 @@
   Stored: false,
   Revalidated: true,
   Response: {
-    Version: 1.1,
     Status: 200 OK,
     Headers: {
       LastModified: Sat, 01 Jan 2000 00:00:00 GMT

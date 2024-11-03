@@ -3,7 +3,6 @@
   Stored: false,
   Revalidated: true,
   Response: {
-    Version: 1.1,
     Status: 200 OK,
     Content: {
       Headers: {},
