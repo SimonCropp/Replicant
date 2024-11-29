@@ -3,6 +3,9 @@
     [Fact]
     public async Task ReadFromJsonAsync()
     {
+        //warmup
+        await GetResult();
+
         HttpCache.Default.Purge();
         var time1 = Stopwatch.StartNew();
         var result1 = await GetResult();
