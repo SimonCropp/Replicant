@@ -1,14 +1,13 @@
 ﻿readonly struct Etag
 {
     public bool IsEmpty { get; }
-    readonly string forWeb;
 
     public string ForWeb
     {
         get
         {
             ThrowIfEmpty();
-            return forWeb;
+            return field;
         }
     }
 
@@ -18,7 +17,7 @@
 
     internal Etag(string forWeb, string forFile, bool isEmpty)
     {
-        this.forWeb = forWeb;
+        ForWeb = forWeb;
         IsEmpty = isEmpty;
         ForFile = forFile;
     }
