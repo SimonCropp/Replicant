@@ -1,8 +1,7 @@
 ﻿static class FileEx
 {
     public static DateTime MinFileDate { get; } = DateTime.FromFileTimeUtc(0);
-    public static DateTimeOffset MinFileDateTimeOffset { get; } = new(MinFileDate);
-    public static DateTime MaxFileDate { get; } = new(2107, 12, 31);
+    public static DateTime MinFileDate { get; }  = DateTime.FromFileTimeUtc(1);
 
     public static Encoding Default(this Encoding? encoding) =>
         encoding ?? Encoding.UTF8;
