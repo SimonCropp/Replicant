@@ -1,6 +1,4 @@
-﻿using System.Net.Http.Json;
-
-public class IntegrationTests(ITestOutputHelper outputHelper)
+﻿public class IntegrationTests(ITestOutputHelper outputHelper)
 {
     [Fact]
     public async Task ReadFromJsonAsync()
@@ -8,11 +6,11 @@ public class IntegrationTests(ITestOutputHelper outputHelper)
         HttpCache.Default.Purge();
         var time1 = Stopwatch.StartNew();
         var result1 = await GetResult();
-        outputHelper.WriteLine($"First: {time1.ElapsedMilliseconds}");
+        outputHelper.WriteLine($"First: {time1.ElapsedMilliseconds}ms");
         Assert.NotNull(result1);
         var time2 = Stopwatch.StartNew();
         var result2 = await GetResult();
-        outputHelper.WriteLine($"Second: {time2.ElapsedMilliseconds}");
+        outputHelper.WriteLine($"Second: {time2.ElapsedMilliseconds}ms");
         Assert.NotNull(result2);
         await Verify(new
         {
