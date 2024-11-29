@@ -34,5 +34,6 @@ public static class ModuleInitializer
             "X-Cache-Status",
             "X-Cache",
             "origin");
+        VerifierSettings.InitializePlugins();
     }
 }

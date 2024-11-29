@@ -1,6 +1,7 @@
 ﻿static class FileEx
 {
-    public static DateTime MinFileDate { get; } = DateTime.FromFileTimeUtc(0);
+    //Seems windows or .net behaviour has changed and using FromFileTimeUtc(0) is now ignored
+    public static DateTime OldMinFileDate { get; } = DateTime.FromFileTimeUtc(0);
     public static DateTime MinFileDate { get; }  = DateTime.FromFileTimeUtc(1);
 
     public static Encoding Default(this Encoding? encoding) =>
