@@ -1,6 +1,5 @@
 #if DEBUG
 using Microsoft.Extensions.DependencyInjection;
-using Replicant;
 
 public class HttpCacheTests
 {

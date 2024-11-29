@@ -1,0 +1,18 @@
+﻿{
+  result1: {
+    Args: {},
+    Headers: {
+      Host: httpbin.org
+    },
+    Origin: 206.83.112.222,
+    Url: https://httpbin.org/etag/theTag
+  },
+  result2: {
+    Args: {},
+    Headers: {
+      Host: httpbin.org
+    },
+    Origin: 206.83.112.222,
+    Url: https://httpbin.org/etag/theTag
+  }
+}

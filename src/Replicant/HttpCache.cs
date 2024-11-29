@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Text.Json;
 
 namespace Replicant;
@@ -9,19 +10,19 @@ public partial class HttpCache :
     string directory;
     HttpClient? client;
     Func<HttpClient>? clientFunc;
-    static HttpCache? defaultCache;
 
+    [field: AllowNull, MaybeNull]
     public static HttpCache Default
     {
         get
         {
-            if (defaultCache == null)
+            if (field == null)
             {
                 var directory = Path.Combine(Path.GetTempPath(), "Replicant");
-                Interlocked.CompareExchange(ref defaultCache, new(directory,new HttpClient()), null);
+                Interlocked.CompareExchange(ref field, new(directory,new HttpClient()), null);
             }
 
-            return defaultCache;
+            return field;
         }
     }
 
