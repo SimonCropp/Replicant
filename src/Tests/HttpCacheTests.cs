@@ -17,6 +17,17 @@ public class HttpCacheTests
         httpCache.Purge();
     }
 
+    [Fact]
+    public async Task EnsureExpiryIsCorrect()
+    {
+        var result = await httpCache.DownloadAsync("https://httpbin.org/json");
+        var path = result.File!.Value.Content;
+        var time = Timestamp.FromPath(path);
+        Assert.Null(time.Expiry);
+        Assert.Equal(FileEx.MinFileDate, File.GetLastWriteTimeUtc(path));
+        await Verify(time);
+    }
+
     static async Task Construction(string cacheDirectory)
     {
         #region Construction
@@ -218,7 +229,6 @@ public class HttpCacheTests
         var content = await httpCache.DownloadAsync("https://httpbin.org/json");
         await Verify(content);
     }
-
     [Fact]
     public Task WithContentSync()
     {
