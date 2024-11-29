@@ -148,7 +148,7 @@ public partial class HttpCache :
         var timestamp = Timestamp.FromPath(file.Content);
 
         // if the current file hasn't expired, return the current file
-        if (timestamp.Expiry > now)
+        if (timestamp.Expiry == null || timestamp.Expiry > now)
         {
             return new(file, false, false);
         }

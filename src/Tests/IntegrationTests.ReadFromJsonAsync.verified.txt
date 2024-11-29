@@ -4,7 +4,6 @@
     Headers: {
       Host: httpbin.org
     },
-    Origin: 206.83.112.222,
     Url: https://httpbin.org/etag/theTag
   },
   result2: {
@@ -12,7 +11,6 @@
     Headers: {
       Host: httpbin.org
     },
-    Origin: 206.83.112.222,
     Url: https://httpbin.org/etag/theTag
   }
 }

@@ -51,7 +51,7 @@ readonly struct Timestamp
         var etag = Etag.FromFilePart(etagPart);
 
         DateTime? expiry = File.GetLastWriteTimeUtc(path);
-        if (expiry == FileEx.MinFileDate)
+        if (expiry == FileEx.MinFileDate || expiry == FileEx.OldMinFileDate)
         {
             expiry = null;
         }

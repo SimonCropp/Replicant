@@ -16,10 +16,11 @@
         outputHelper.WriteLine($"Second: {time2.ElapsedMilliseconds}ms");
         Assert.NotNull(result2);
         await Verify(new
-        {
-            result1,
-            result2
-        });
+            {
+                result1,
+                result2
+            })
+            .IgnoreMember("Origin");
     }
 
     static async Task<Root?> GetResult()
