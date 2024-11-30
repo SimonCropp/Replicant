@@ -1,16 +1,11 @@
 ﻿{
-  FromDisk: false,
+  FromDisk: true,
   Stored: false,
-  Revalidated: true,
+  Revalidated: false,
   Response: {
-    Status: 304 Not Modified,
-    Headers: {
-      Cache-Control: no-store,
-      ETag: "tag"
-    },
+    Status: 200 OK,
     Content: {
-      Headers: {},
-      Value: 
+      Headers: {}
     }
   }
 }

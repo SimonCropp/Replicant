@@ -1,4 +1,4 @@
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+[assembly: NonParallelizable]
 public static class ModuleInitializer
 {
     [ModuleInitializer]

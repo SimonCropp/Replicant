@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 
+[TestFixture]
 //TODO: can LastModified or Expires for a NotModified?
 public class MatrixTests
 {
@@ -44,8 +45,7 @@ public class MatrixTests
         }
     }
 
-    [Theory]
-    [MemberData(nameof(DataForIntegration))]
+    [TestCaseSource(nameof(DataForIntegration))]
     public async Task Integration(
         StoredData? data,
         HttpResponseMessageEx response,
@@ -92,8 +92,7 @@ public class MatrixTests
         }
     }
 
-    [Theory]
-    [MemberData(nameof(StatusForMessageData))]
+    [TestCaseSource(nameof(StatusForMessageData))]
     public async Task StatusForMessage(HttpResponseMessageEx response, bool useStale)
     {
         var fileName = $"Status_{response}_useStale={useStale}";

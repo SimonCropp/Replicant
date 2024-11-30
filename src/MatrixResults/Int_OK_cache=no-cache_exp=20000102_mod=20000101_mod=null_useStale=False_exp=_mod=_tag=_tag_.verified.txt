@@ -1,18 +1,11 @@
 ﻿{
   FromDisk: true,
-  Stored: true,
-  Revalidated: true,
+  Stored: false,
+  Revalidated: false,
   Response: {
     Status: 200 OK,
-    Headers: {
-      Cache-Control: no-cache
-    },
     Content: {
-      Headers: {
-        Expires: DateTime_1,
-        Last-Modified: DateTime_2
-      },
-      Value: a
+      Headers: {}
     }
   }
 }

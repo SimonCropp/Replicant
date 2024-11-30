@@ -1,17 +1,14 @@
 ﻿{
-  FromDisk: false,
+  FromDisk: true,
   Stored: false,
-  Revalidated: true,
+  Revalidated: false,
   Response: {
     Status: 200 OK,
     Headers: {
-      Cache-Control: no-store
+      LastModified: Sat, 01 Jan 2000 00:00:00 GMT
     },
     Content: {
-      Headers: {
-        Last-Modified: DateTime_1
-      },
-      Value: a
+      Headers: {}
     }
   }
 }

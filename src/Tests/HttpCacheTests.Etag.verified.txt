@@ -1,7 +1,7 @@
 ﻿{
   FromDisk: true,
   Stored: false,
-  Revalidated: true,
+  Revalidated: false,
   Response: {
     Status: 200 OK,
     Headers: {
