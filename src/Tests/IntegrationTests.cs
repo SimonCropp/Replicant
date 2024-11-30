@@ -1,6 +1,9 @@
-﻿public class IntegrationTests(ITestOutputHelper outputHelper)
+﻿using NUnit.Framework.Legacy;
+
+[TestFixture]
+public class IntegrationTests
 {
-    [Fact]
+    [Test]
     public async Task ReadFromJsonAsync()
     {
         //warmup
@@ -9,12 +12,12 @@
         HttpCache.Default.Purge();
         var time1 = Stopwatch.StartNew();
         var result1 = await GetResult();
-        outputHelper.WriteLine($"First: {time1.ElapsedMilliseconds}ms");
-        Assert.NotNull(result1);
+        Console.WriteLine($"First: {time1.ElapsedMilliseconds}ms");
+        ClassicAssert.NotNull(result1);
         var time2 = Stopwatch.StartNew();
         var result2 = await GetResult();
-        outputHelper.WriteLine($"Second: {time2.ElapsedMilliseconds}ms");
-        Assert.NotNull(result2);
+        Console.WriteLine($"Second: {time2.ElapsedMilliseconds}ms");
+        ClassicAssert.NotNull(result2);
         await Verify(new
             {
                 result1,

@@ -1,4 +1,11 @@
 ﻿{
-  Type: HttpRequestException,
-  Message: Response status code does not indicate success: 400 (Bad Request). Uri: 
+  FromDisk: true,
+  Stored: false,
+  Revalidated: false,
+  Response: {
+    Status: 200 OK,
+    Content: {
+      Headers: {}
+    }
+  }
 }

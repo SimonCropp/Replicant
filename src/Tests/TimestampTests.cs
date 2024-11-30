@@ -1,6 +1,7 @@
+[TestFixture]
 public class TimestampTests
 {
-    [Fact]
+    [Test]
     public Task FromPath()
     {
         var timestamps = new List<Timestamp>();

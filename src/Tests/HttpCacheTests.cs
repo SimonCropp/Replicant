@@ -1,31 +1,34 @@
 #if DEBUG
 using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework.Legacy;
 
+[TestFixture]
 public class HttpCacheTests
 {
-    HttpCache httpCache;
+    HttpCache httpCache= new(
+        CachePath,
+        new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(30)
+        });
+
     static string CachePath = Path.Combine(Path.GetTempPath(), "DownloadTests");
 
-    public HttpCacheTests()
+    [TearDown]
+    public void Purge()
     {
-        httpCache = new(
-            CachePath,
-            new HttpClient
-            {
-                Timeout = TimeSpan.FromSeconds(30)
-            });
-        httpCache.Purge();
+        Directory.Delete(CachePath, true);
+        Directory.CreateDirectory(CachePath);
     }
 
-    [Fact]
+    [Test]
     public async Task EnsureExpiryIsCorrect()
     {
         var result = await httpCache.DownloadAsync("https://httpbin.org/json");
         var path = result.File!.Value.Content;
         var time = Timestamp.FromPath(path);
-        Assert.Null(time.Expiry);
-        Assert.Equal(FileEx.MinFileDate, File.GetLastWriteTimeUtc(path));
-        await Verify(time);
+        ClassicAssert.Null(time.Expiry);
+        ClassicAssert.AreEqual(FileEx.MinFileDate, File.GetLastWriteTimeUtc(path));
     }
 
     static async Task Construction(string cacheDirectory)
@@ -48,7 +51,7 @@ public class HttpCacheTests
         #endregion
     }
 
-    [Fact]
+    [Test]
     public void DependencyInjection()
     {
         #region DependencyInjection
@@ -58,12 +61,12 @@ public class HttpCacheTests
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
-        Assert.NotNull(httpCache);
+        ClassicAssert.NotNull(httpCache);
 
         #endregion
     }
 
-    [Fact]
+    [Test]
     public void DependencyInjectionWithHttpFactory()
     {
         #region DependencyInjectionWithHttpFactory
@@ -79,14 +82,15 @@ public class HttpCacheTests
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
-        Assert.NotNull(httpCache);
+        ClassicAssert.NotNull(httpCache);
 
         #endregion
     }
 
-    [Fact]
+    [Test]
     public async Task DefaultInstance()
     {
+        HttpCache.Default.Purge();
         #region DefaultInstance
 
         var content = await HttpCache.Default.DownloadAsync("https://httpbin.org/status/200");
@@ -96,14 +100,14 @@ public class HttpCacheTests
         await Verify(content);
     }
 
-    [Fact]
+    [Test]
     public async Task EmptyContent()
     {
         var content = await httpCache.DownloadAsync("https://httpbin.org/status/200");
         await Verify(content);
     }
 
-    [Fact]
+    [Test]
     public async Task DuplicateSlowDownloads()
     {
         var task = httpCache.DownloadAsync("https://httpbin.org/delay/1");
@@ -112,12 +116,12 @@ public class HttpCacheTests
 
         var result1 = await task;
 
-        Assert.True(result1.Stored || result2.Stored);
+        ClassicAssert.True(result1.Stored || result2.Stored);
     }
 
 #if DEBUG
     //TODO: debug these on mac
-    [Fact]
+    [Test]
     public async Task PurgeOldWhenContentFileLocked()
     {
         using var result = await httpCache.DownloadAsync("https://httpbin.org/status/200");
@@ -125,11 +129,11 @@ public class HttpCacheTests
         {
             var filePair = result.File!.Value;
             filePair.PurgeItem();
-            Assert.True(filePair.Exists());
+            ClassicAssert.True(filePair.Exists());
         }
     }
 
-    [Fact]
+    [Test]
     public async Task PurgeOldWhenMetaFileLocked()
     {
         var result = await httpCache.DownloadAsync("https://httpbin.org/status/200");
@@ -138,12 +142,12 @@ public class HttpCacheTests
         {
             var filePair = result.File!.Value;
             filePair.PurgeItem();
-            Assert.True(filePair.Exists());
+            ClassicAssert.True(filePair.Exists());
         }
     }
 #endif
 
-    [Fact]
+    [Test]
     public async Task LockedContentFile()
     {
         var uri = "https://httpbin.org/etag/{etag}";
@@ -157,7 +161,7 @@ public class HttpCacheTests
         await Verify(httpResponseMessage);
     }
 
-    [Fact]
+    [Test]
     public async Task LockedMetaFile()
     {
         var uri = "https://httpbin.org/etag/{etag}";
@@ -171,7 +175,7 @@ public class HttpCacheTests
         await Verify(httpResponseMessage);
     }
 
-    [Fact]
+    [Test]
     public async Task FullHttpResponseMessageAsync()
     {
         #region FullHttpResponseMessage
@@ -183,29 +187,29 @@ public class HttpCacheTests
         await Verify(response);
     }
 
-    [Fact]
+    [Test]
     public async Task FullHttpResponseMessage()
     {
         using var response = httpCache.Response("https://httpbin.org/status/200");
         await Verify(response);
     }
 
-    [Fact]
+    [Test]
     public async Task NoCache()
     {
         using var result = await httpCache.DownloadAsync("https://httpbin.org/response-headers?Cache-Control=no-cache");
         await Verify(result);
     }
 
-    [Fact]
+    [Test]
     public async Task NoStore()
     {
         using var result = await httpCache.DownloadAsync("https://httpbin.org/response-headers?Cache-Control=no-store");
-        Assert.NotNull(result.Response);
+        ClassicAssert.NotNull(result.Response);
         await Verify(result);
     }
 
-    [Fact]
+    [Test]
     public async Task Etag()
     {
         var uri = "https://httpbin.org/etag/{etag}";
@@ -214,7 +218,7 @@ public class HttpCacheTests
         await Verify(content);
     }
 
-    [Fact]
+    [Test]
     public async Task CacheControlMaxAge()
     {
         var uri = "https://httpbin.org/cache/20";
@@ -223,20 +227,21 @@ public class HttpCacheTests
         await Verify(content);
     }
 
-    [Fact]
+    [Test]
     public async Task WithContent()
     {
         var content = await httpCache.DownloadAsync("https://httpbin.org/json");
         await Verify(content);
     }
-    [Fact]
+
+    [Test]
     public Task WithContentSync()
     {
         var content = httpCache.Download("https://httpbin.org/json");
         return Verify(content);
     }
 
-    [Fact]
+    [Test]
     public async Task String()
     {
         #region string
@@ -248,7 +253,7 @@ public class HttpCacheTests
         await Verify(content);
     }
 
-    [Fact]
+    [Test]
     public async Task Lines()
     {
         #region string
@@ -264,7 +269,7 @@ public class HttpCacheTests
         await Verify(lines);
     }
 
-    [Fact]
+    [Test]
     public async Task Bytes()
     {
         #region bytes
@@ -276,7 +281,7 @@ public class HttpCacheTests
         await Verify(Encoding.UTF8.GetString(bytes));
     }
 
-    [Fact]
+    [Test]
     public async Task Stream()
     {
         #region stream
@@ -288,7 +293,7 @@ public class HttpCacheTests
         await Verify(stream, "txt");
     }
 
-    [Fact]
+    [Test]
     public async Task ToFile()
     {
         var targetFile = FileEx.GetTempFileName("txt");
@@ -308,7 +313,7 @@ public class HttpCacheTests
         }
     }
 
-    [Fact]
+    [Test]
     public async Task ToStream()
     {
         var targetStream = new MemoryStream();
@@ -322,7 +327,7 @@ public class HttpCacheTests
         await Verify(targetStream, "txt");
     }
 
-    [Fact]
+    [Test]
     public async Task ModifyRequest()
     {
         var uri = "https://httpbin.org/json";
@@ -342,34 +347,32 @@ public class HttpCacheTests
         await Verify(content);
     }
 
-    [Fact]
+    [Test]
     public Task NotFound() =>
         ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/404"));
 
-    [Fact]
+    [Test]
     public async Task Timeout()
     {
         HttpClient httpClient = new()
         {
             Timeout = TimeSpan.FromMilliseconds(10)
         };
-        httpCache = new(CachePath, httpClient);
-        httpCache.Purge();
+        var cache = new HttpCache(CachePath, httpClient);
         var uri = "https://httpbin.org/delay/1";
-        var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => httpCache.StringAsync(uri));
-        await Verify(exception.Message)
-            .UniqueForRuntime();
+        await ThrowsTask(() => cache.StringAsync(uri))
+            .UniqueForRuntime()
+            .IgnoreMembers("InnerException", "CancellationToken");
     }
 
-    [Fact]
+    [Test]
     public async Task TimeoutUseStale()
     {
         var httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromMilliseconds(1)
         };
-        httpCache = new(CachePath, httpClient);
-        httpCache.Purge();
+        var httpCache = new HttpCache(CachePath, httpClient);
         var uri = "https://httpbin.org/delay/1";
 
         #region AddItem
@@ -385,23 +388,29 @@ public class HttpCacheTests
         await Verify(httpCache.DownloadAsync(uri, true));
     }
 
-    [Fact]
+    [Test]
     public Task ServerError() =>
         ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/500"));
 
-    [Fact]
+    [Test]
     public async Task ServerErrorDontUseStale()
     {
         using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("foo")
+            {
+                Headers =
+                {
+                    Expires = DateTimeOffset.Now.AddDays(-1)
+                }
+            },
         };
         var uri = "https://httpbin.org/status/500";
         await httpCache.AddItemAsync(uri, response);
         await ThrowsTask(() => httpCache.StringAsync(uri));
     }
 
-    [Fact]
+    [Test]
     public async Task ServerErrorUseStale()
     {
         using var response = new HttpResponseMessage(HttpStatusCode.OK)

@@ -11,11 +11,11 @@
     <PackageReference Include="Argon" />
     <PackageReference Include="Verify.DiffPlex" />
     <PackageReference Include="Verify.Http" />
-    <PackageReference Include="xunit.v3" />
-    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="MarkdownSnippets.MsBuild" PrivateAssets="all" />
-    <PackageReference Include="Verify.XunitV3" />
+    <PackageReference Include="Verify.NUnit" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
     <ProjectReference Include="..\Replicant\Replicant.csproj" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <None Update="*.json">

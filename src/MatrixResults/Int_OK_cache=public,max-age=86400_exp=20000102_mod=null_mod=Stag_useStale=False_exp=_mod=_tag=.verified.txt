@@ -1,18 +1,11 @@
 ﻿{
   FromDisk: true,
-  Stored: true,
-  Revalidated: true,
+  Stored: false,
+  Revalidated: false,
   Response: {
     Status: 200 OK,
-    Headers: {
-      Cache-Control: public, max-age=86400,
-      ETag: "tag"
-    },
     Content: {
-      Headers: {
-        Expires: DateTime_1
-      },
-      Value: a
+      Headers: {}
     }
   }
 }

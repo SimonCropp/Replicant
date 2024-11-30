@@ -1,16 +1,14 @@
 ﻿{
   FromDisk: true,
-  Stored: true,
-  Revalidated: true,
+  Stored: false,
+  Revalidated: false,
   Response: {
     Status: 200 OK,
     Headers: {
-      Cache-Control: no-cache,
-      ETag: W/"tag"
+      LastModified: Fri, 31 Dec 1999 00:00:00 GMT
     },
     Content: {
-      Headers: {},
-      Value: 
+      Headers: {}
     }
   }
 }
