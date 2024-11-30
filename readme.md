@@ -72,7 +72,7 @@ Add HttpClient as a singleton when using dependency injection.
 <a id='snippet-DependencyInjection'></a>
 ```cs
 var services = new ServiceCollection();
-services.AddSingleton(_ => new HttpCache(CachePath));
+services.AddSingleton(_ => new HttpCache(cachePath));
 
 using var provider = services.BuildServiceProvider();
 var httpCache = provider.GetRequiredService<HttpCache>();
@@ -92,7 +92,7 @@ services.AddSingleton(
     _ =>
     {
         var clientFactory = _.GetRequiredService<IHttpClientFactory>();
-        return new HttpCache(CachePath, () => clientFactory.CreateClient());
+        return new HttpCache(cachePath, () => clientFactory.CreateClient());
     });
 
 using var provider = services.BuildServiceProvider();
