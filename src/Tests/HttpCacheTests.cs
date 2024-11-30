@@ -5,20 +5,20 @@ using NUnit.Framework.Legacy;
 [TestFixture]
 public class HttpCacheTests
 {
+    static string cachePath = Path.Combine(Path.GetTempPath(), "DownloadTests");
+
     HttpCache httpCache= new(
-        CachePath,
+        cachePath,
         new HttpClient
         {
             Timeout = TimeSpan.FromSeconds(30)
         });
 
-    static string CachePath = Path.Combine(Path.GetTempPath(), "DownloadTests");
-
     [TearDown]
     public void Purge()
     {
-        Directory.Delete(CachePath, true);
-        Directory.CreateDirectory(CachePath);
+        Directory.Delete(cachePath, true);
+        Directory.CreateDirectory(cachePath);
     }
 
     [Test]
@@ -57,7 +57,7 @@ public class HttpCacheTests
         #region DependencyInjection
 
         var services = new ServiceCollection();
-        services.AddSingleton(_ => new HttpCache(CachePath));
+        services.AddSingleton(_ => new HttpCache(cachePath));
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
@@ -77,7 +77,7 @@ public class HttpCacheTests
             _ =>
             {
                 var clientFactory = _.GetRequiredService<IHttpClientFactory>();
-                return new HttpCache(CachePath, () => clientFactory.CreateClient());
+                return new HttpCache(cachePath, () => clientFactory.CreateClient());
             });
 
         using var provider = services.BuildServiceProvider();
@@ -219,13 +219,16 @@ public class HttpCacheTests
     }
 
     [Test]
-    public async Task ExpiredShouldNotSendEtag()
+    public async Task ExpiredShouldNotSendEtagOrIfModifiedSince()
     {
         var uri = "https://httpbin.org/etag/{etag}";
-        await httpCache.DownloadAsync(uri);
+        var result = await httpCache.DownloadAsync(uri);
+
+        File.SetLastWriteTimeUtc(result.File!.Value.Content, new(2020,10,1));
         Recording.Start();
-        var content = await httpCache.DownloadAsync(uri);
-        await Verify(content);
+        result = await httpCache.DownloadAsync(uri);
+        await Verify(result)
+            .IgnoreMembers("traceparent", "Traceparent");
     }
 
     [Test]
@@ -368,7 +371,7 @@ public class HttpCacheTests
         {
             Timeout = TimeSpan.FromMilliseconds(10)
         };
-        var cache = new HttpCache(CachePath, httpClient);
+        var cache = new HttpCache(cachePath, httpClient);
         var uri = "https://httpbin.org/delay/1";
         await ThrowsTask(() => cache.StringAsync(uri))
             .UniqueForRuntime()
@@ -382,7 +385,7 @@ public class HttpCacheTests
         {
             Timeout = TimeSpan.FromMilliseconds(1)
         };
-        var httpCache = new HttpCache(CachePath, httpClient);
+        var httpCache = new HttpCache(cachePath, httpClient);
         var uri = "https://httpbin.org/delay/1";
 
         #region AddItem

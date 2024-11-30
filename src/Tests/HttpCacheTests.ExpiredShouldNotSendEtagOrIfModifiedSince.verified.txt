@@ -1,0 +1,48 @@
+﻿{
+  target: {
+    FromDisk: true,
+    Stored: true,
+    Revalidated: true,
+    Response: {
+      Status: 200 OK,
+      Headers: {
+        Access-Control-Allow-Credentials: true,
+        Access-Control-Allow-Origin: *,
+        Date: DateTime_1,
+        ETag: {etag}
+      },
+      Content: {
+        Headers: {},
+        Value: {
+          headers: {
+            Host: httpbin.org
+          },
+          url: https://httpbin.org/etag/{etag}
+        }
+      }
+    }
+  },
+  httpCall: {
+    Status: Created,
+    Request: {
+      Uri: https://httpbin.org/etag/{etag},
+      Headers: {}
+    },
+    Response: {
+      Status: 200 OK,
+      Headers: {
+        Access-Control-Allow-Credentials: true,
+        Access-Control-Allow-Origin: *,
+        Date: DateTime_1,
+        ETag: {etag}
+      },
+      ContentHeaders: {},
+      ContentStringParsed: {
+        headers: {
+          Host: httpbin.org
+        },
+        url: https://httpbin.org/etag/{etag}
+      }
+    }
+  }
+}

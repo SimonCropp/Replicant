@@ -144,13 +144,19 @@ public partial class HttpCache :
         var timestamp = Timestamp.FromPath(file.Content);
 
         // if the current file hasn't expired, return the current file
-        if (timestamp.Expiry == null || timestamp.Expiry > now)
+        var expiry = timestamp.Expiry;
+        if (expiry == null || expiry > now)
         {
             return new(file, false, false);
         }
 
+        var expired = expiry < now;
         using var request = BuildRequest(uri, modifyRequest);
-        timestamp.ApplyHeadersToRequest(request);
+
+        if (!expired)
+        {
+            timestamp.ApplyHeadersToRequest(request);
+        }
 
         HttpResponseMessage? response;
 
