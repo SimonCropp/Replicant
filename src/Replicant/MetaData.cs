@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-class MetaData(
+﻿class MetaData(
     string? uri,
     List<KeyValuePair<string, List<string>>> responseHeaders,
     List<KeyValuePair<string, List<string>>> contentHeaders,

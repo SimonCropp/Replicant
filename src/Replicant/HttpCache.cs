@@ -1,8 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Net;
-using System.Text.Json;
-
-namespace Replicant;
+﻿namespace Replicant;
 
 public partial class HttpCache :
     IHttpCache
