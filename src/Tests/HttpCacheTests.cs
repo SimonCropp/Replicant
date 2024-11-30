@@ -219,6 +219,16 @@ public class HttpCacheTests
     }
 
     [Test]
+    public async Task ExpiredShouldNotSendEtag()
+    {
+        var uri = "https://httpbin.org/etag/{etag}";
+        await httpCache.DownloadAsync(uri);
+        Recording.Start();
+        var content = await httpCache.DownloadAsync(uri);
+        await Verify(content);
+    }
+
+    [Test]
     public async Task CacheControlMaxAge()
     {
         var uri = "https://httpbin.org/cache/20";
