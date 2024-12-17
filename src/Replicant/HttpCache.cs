@@ -15,14 +15,17 @@ public partial class HttpCache :
             if (field == null)
             {
                 var directory = Path.Combine(Path.GetTempPath(), "Replicant");
-                Interlocked.CompareExchange(ref field, new(directory,new HttpClient()), null);
+                Interlocked.CompareExchange(ref field, new(directory, new HttpClient()), null);
             }
 
             return field;
         }
     }
 
-    public static Action<string> LogError = _ => { };
+    public static Action<string> LogError = _ =>
+    {
+    };
+
     bool clientIsOwned;
 
     HttpCache(string directory, int maxEntries = 1000)
