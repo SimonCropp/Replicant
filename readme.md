@@ -66,7 +66,7 @@ await httpCache.DisposeAsync();
 
 ### Dependency injection
 
-Add HttpClient as a singleton when using dependency injection.
+Add HttpCache as a singleton when using dependency injection.
 
 <!-- snippet: DependencyInjection -->
 <a id='snippet-DependencyInjection'></a>
