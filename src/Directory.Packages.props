@@ -12,7 +12,7 @@
     <PackageVersion Include="Polyfill" Version="7.12.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.147" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
-    <PackageVersion Include="System.Text.Json" Version="9.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="9.0.1" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.1.2" />
     <PackageVersion Include="Verify.NUnit" Version="28.8.1" />
     <PackageVersion Include="Verify.Http" Version="6.4.1" />
