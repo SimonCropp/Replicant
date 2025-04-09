@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <OutputType>Exe</OutputType>
-    <NoWarn>xUnit1051</NoWarn>
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Condition="$(Configuration) == 'Release'" Remove="MatrixTests.cs" />
