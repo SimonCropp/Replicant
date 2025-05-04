@@ -458,8 +458,8 @@ public partial class HttpCache :
 
         try
         {
-            FileEx.Move(tempFile.Content, contentFile);
-            FileEx.Move(tempFile.Meta, metaFile);
+            FilePolyfill.Move(tempFile.Content, contentFile, true);
+            FilePolyfill.Move(tempFile.Meta, metaFile, true);
         }
         catch (Exception exception)
             when (exception is IOException or UnauthorizedAccessException)
@@ -469,11 +469,11 @@ public partial class HttpCache :
             newName += Guid.NewGuid();
 
             var newMeta = $"{newName}.json";
-            FileEx.Move(tempFile.Meta, newMeta);
+            FilePolyfill.Move(tempFile.Meta, newMeta, true);
             if (File.Exists(tempFile.Content))
             {
                 var newContent = $"{newName}.bin";
-                FileEx.Move(tempFile.Content, newContent);
+                FilePolyfill.Move(tempFile.Content, newContent, true);
                 return new(new(newContent, newMeta), true, true);
             }
 

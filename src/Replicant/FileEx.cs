@@ -24,31 +24,4 @@
 
     public static Stream OpenWrite(string path) =>
         new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-
-#if NET7_0_OR_GREATER
-
-    public static void Move(string source, string target) =>
-        File.Move(source, target, true);
-
-    public static Task<byte[]> ReadAllBytesAsync(string path, Cancel cancel) =>
-        File.ReadAllBytesAsync(path, cancel);
-
-    public static Task<string> ReadAllTextAsync(string path, Cancel cancel) =>
-        File.ReadAllTextAsync(path, cancel);
-
-#else
-
-    public static void Move(string source, string target)
-    {
-        File.Delete(target);
-        File.Move(source, target);
-    }
-
-    public static Task<byte[]> ReadAllBytesAsync(string path, Cancel cancel) =>
-        Task.FromResult(File.ReadAllBytes(path));
-
-    public static Task<string> ReadAllTextAsync(string path, Cancel cancel) =>
-        Task.FromResult(File.ReadAllText(path));
-
-#endif
 }
