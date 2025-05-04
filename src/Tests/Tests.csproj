@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <OutputType>Exe</OutputType>
-    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Condition="$(Configuration) == 'Release'" Remove="MatrixTests.cs" />
@@ -17,6 +16,7 @@
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
     <ProjectReference Include="..\Replicant\Replicant.csproj" />
+    <Using Include="NUnit.Framework.Legacy.ClassicAssert" Static="True" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <None Update="*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

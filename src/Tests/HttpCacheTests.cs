@@ -1,6 +1,5 @@
 #if DEBUG
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework.Legacy;
 
 [TestFixture]
 public class HttpCacheTests

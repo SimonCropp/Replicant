@@ -1,6 +1,4 @@
-﻿using NUnit.Framework.Legacy;
-
-[TestFixture]
+﻿[TestFixture]
 public class IntegrationTests
 {
     [Test]
