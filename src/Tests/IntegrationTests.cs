@@ -11,11 +11,11 @@ public class IntegrationTests
         var time1 = Stopwatch.StartNew();
         var result1 = await GetResult();
         Console.WriteLine($"First: {time1.ElapsedMilliseconds}ms");
-        ClassicAssert.NotNull(result1);
+        NotNull(result1);
         var time2 = Stopwatch.StartNew();
         var result2 = await GetResult();
         Console.WriteLine($"Second: {time2.ElapsedMilliseconds}ms");
-        ClassicAssert.NotNull(result2);
+        NotNull(result2);
         await Verify(new
             {
                 result1,

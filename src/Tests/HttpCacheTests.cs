@@ -26,8 +26,8 @@ public class HttpCacheTests
         var result = await httpCache.DownloadAsync("https://httpbin.org/json");
         var path = result.File!.Value.Content;
         var time = Timestamp.FromPath(path);
-        ClassicAssert.Null(time.Expiry);
-        ClassicAssert.AreEqual(FileEx.MinFileDate, File.GetLastWriteTimeUtc(path));
+        Null(time.Expiry);
+        AreEqual(FileEx.MinFileDate, File.GetLastWriteTimeUtc(path));
     }
 
     static async Task Construction(string cacheDirectory)
@@ -60,7 +60,7 @@ public class HttpCacheTests
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
-        ClassicAssert.NotNull(httpCache);
+        NotNull(httpCache);
 
         #endregion
     }
@@ -81,7 +81,7 @@ public class HttpCacheTests
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
-        ClassicAssert.NotNull(httpCache);
+        NotNull(httpCache);
 
         #endregion
     }
@@ -115,7 +115,7 @@ public class HttpCacheTests
 
         var result1 = await task;
 
-        ClassicAssert.True(result1.Stored || result2.Stored);
+        True(result1.Stored || result2.Stored);
     }
 
 #if DEBUG
@@ -128,7 +128,7 @@ public class HttpCacheTests
         {
             var filePair = result.File!.Value;
             filePair.PurgeItem();
-            ClassicAssert.True(filePair.Exists());
+            True(filePair.Exists());
         }
     }
 
@@ -141,7 +141,7 @@ public class HttpCacheTests
         {
             var filePair = result.File!.Value;
             filePair.PurgeItem();
-            ClassicAssert.True(filePair.Exists());
+            True(filePair.Exists());
         }
     }
 #endif
@@ -204,7 +204,7 @@ public class HttpCacheTests
     public async Task NoStore()
     {
         using var result = await httpCache.DownloadAsync("https://httpbin.org/response-headers?Cache-Control=no-store");
-        ClassicAssert.NotNull(result.Response);
+        NotNull(result.Response);
         await Verify(result);
     }
 

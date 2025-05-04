@@ -76,7 +76,7 @@ services.AddSingleton(_ => new HttpCache(cachePath));
 
 using var provider = services.BuildServiceProvider();
 var httpCache = provider.GetRequiredService<HttpCache>();
-ClassicAssert.NotNull(httpCache);
+NotNull(httpCache);
 ```
 <sup><a href='/src/Tests/HttpCacheTests.cs#L56-L65' title='Snippet source file'>snippet source</a> | <a href='#snippet-DependencyInjection' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
@@ -97,7 +97,7 @@ services.AddSingleton(
 
 using var provider = services.BuildServiceProvider();
 var httpCache = provider.GetRequiredService<HttpCache>();
-ClassicAssert.NotNull(httpCache);
+NotNull(httpCache);
 ```
 <sup><a href='/src/Tests/HttpCacheTests.cs#L71-L86' title='Snippet source file'>snippet source</a> | <a href='#snippet-DependencyInjectionWithHttpFactory' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
