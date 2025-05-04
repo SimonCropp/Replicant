@@ -359,14 +359,14 @@ public partial class HttpCache :
         if (expiry != null)
         {
             contentHeaders.Add(
-                HttpResponseHeader.Expires.ToString(),
+                nameof(HttpResponseHeader.Expires),
                 expiry.Value.ToUniversalTime().ToString("r"));
         }
 
         if (modified != null)
         {
             responseHeaders.Add(
-                HttpResponseHeader.LastModified.ToString(),
+                nameof(HttpResponseHeader.LastModified),
                 modified.Value.ToUniversalTime().ToString("r"));
         }
 
