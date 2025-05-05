@@ -352,9 +352,9 @@ public partial class HttpCache :
             Etag.FromHeader(etag),
             hash);
 
-        responseHeaders ??= new();
-        contentHeaders ??= new();
-        trailingHeaders ??= new();
+        responseHeaders ??= [];
+        contentHeaders ??= [];
+        trailingHeaders ??= [];
 
         if (expiry != null)
         {
