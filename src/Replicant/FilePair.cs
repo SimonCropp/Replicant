@@ -1,4 +1,4 @@
-﻿using Replicant;
+using Replicant;
 
 [DebuggerDisplay("Content = {Content} | Meta = {Meta}")]
 readonly struct FilePair(string content, string meta)
@@ -24,14 +24,8 @@ readonly struct FilePair(string content, string meta)
 
     public void SetExpiry(DateTimeOffset? expiry)
     {
-        if (expiry == null)
-        {
-            File.SetLastWriteTimeUtc(Content, FileEx.MinFileDate);
-        }
-        else
-        {
-            File.SetLastWriteTimeUtc(Content, expiry.Value.UtcDateTime);
-        }
+        var expiryDate = expiry?.UtcDateTime ?? FileEx.MinFileDate;
+        File.SetLastWriteTimeUtc(Content, expiryDate >= FileEx.MinFileDate ? expiryDate : FileEx.MinFileDate);
     }
 
     public void PurgeItem()
