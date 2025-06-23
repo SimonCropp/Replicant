@@ -68,12 +68,12 @@ readonly struct FilePair(string content, string meta)
     {
         if (File.Exists(tempContent))
         {
-            FilePolyfill.Move(tempContent, contentPath, true);
+            File.Move(tempContent, contentPath, true);
         }
 
         if (File.Exists(tempMeta))
         {
-            FilePolyfill.Move(tempMeta, metaPath, true);
+            File.Move(tempMeta, metaPath, true);
         }
     }
 
