@@ -4,6 +4,8 @@
     public static DateTime OldMinFileDate { get; } = DateTime.FromFileTimeUtc(0);
     public static DateTime MinFileDate { get; }  = DateTime.FromFileTimeUtc(1);
 
+    public static string TempPath { get; } = Path.GetTempPath();
+
     public static Encoding Default(this Encoding? encoding) =>
         encoding ?? Encoding.UTF8;
 
@@ -12,14 +14,13 @@
 
     public static string GetTempFileName(string? extension = null)
     {
-        var tempPath = Path.GetTempPath();
         var randomFileName = Path.GetRandomFileName();
         if (extension != null)
         {
             randomFileName = $"{randomFileName}.{extension}";
         }
 
-        return Path.Combine(tempPath, randomFileName);
+        return Path.Combine(TempPath, randomFileName);
     }
 
     public static Stream OpenWrite(string path) =>

@@ -14,7 +14,7 @@ public partial class HttpCache :
         {
             if (field == null)
             {
-                var directory = Path.Combine(Path.GetTempPath(), "Replicant");
+                var directory = Path.Combine(FileEx.TempPath, "Replicant");
                 Interlocked.CompareExchange(ref field, new(directory, new HttpClient()), null);
             }
 

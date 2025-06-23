@@ -1,6 +1,4 @@
-﻿using System.Net.Http.Headers;
-
-namespace Replicant;
+﻿namespace Replicant;
 
 public class Headers :
     HttpHeaders;

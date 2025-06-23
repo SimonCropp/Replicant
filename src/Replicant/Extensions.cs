@@ -1,9 +1,4 @@
-﻿// ReSharper disable RedundantUsingDirective
-using System.Reflection;
-// ReSharper restore RedundantUsingDirective
-using System.Net.Http.Headers;
-
-static class Extensions
+﻿static class Extensions
 {
 #if NET7_0_OR_GREATER
 
