@@ -24,8 +24,25 @@ readonly struct FilePair(string content, string meta)
 
     public void SetExpiry(DateTimeOffset? expiry)
     {
-        var expiryDate = expiry?.UtcDateTime ?? FileEx.MinFileDate;
-        File.SetLastWriteTimeUtc(Content, expiryDate >= FileEx.MinFileDate ? expiryDate : FileEx.MinFileDate);
+        var lastWriteTimeUtc = ResolveWriteTime(expiry);
+        File.SetLastWriteTimeUtc(Content, lastWriteTimeUtc);
+    }
+
+    static DateTime ResolveWriteTime(DateTimeOffset? expiry)
+    {
+        if (expiry == null)
+        {
+            return FileEx.MinFileDate;
+        }
+
+        var expiryDate = expiry.Value.UtcDateTime;
+
+        if (expiryDate < FileEx.MinFileDate)
+        {
+            return FileEx.MinFileDate;
+        }
+
+        return expiryDate;
     }
 
     public void PurgeItem()

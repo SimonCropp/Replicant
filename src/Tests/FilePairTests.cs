@@ -46,6 +46,7 @@ public class FilePairTests
             File.Delete(path);
         }
     }
+
     [Test]
     public void SetExpiry_ShouldSetMinFileDate_WhenExpiryIsBeforeMinFileDate()
     {
