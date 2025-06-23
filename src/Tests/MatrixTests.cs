@@ -1,5 +1,3 @@
-using System.Net.Http.Headers;
-
 [TestFixture]
 //TODO: can LastModified or Expires for a NotModified?
 public class MatrixTests
