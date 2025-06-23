@@ -10,6 +10,6 @@ static class Hash
         using var sha = SHA1.Create();
         var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(value));
 #endif
-        return ConvertPolyfill.ToHexStringLower(hash);
+        return Convert.ToHexStringLower(hash);
     }
 }

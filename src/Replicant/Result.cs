@@ -40,7 +40,7 @@
     {
         if (Response == null)
         {
-            return FilePolyfill.ReadAllBytesAsync(File!.Value.Content, cancel);
+            return System.IO.File.ReadAllBytesAsync(File!.Value.Content, cancel);
         }
 
         return Response.Content.ReadAsByteArrayAsync(cancel);
@@ -50,7 +50,7 @@
     {
         if (Response == null)
         {
-            return FilePolyfill.ReadAllTextAsync(File!.Value.Content, cancel);
+            return System.IO.File.ReadAllTextAsync(File!.Value.Content, cancel);
         }
 
         return Response.Content.ReadAsStringAsync(cancel);
