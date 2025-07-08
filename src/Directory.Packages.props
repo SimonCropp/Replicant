@@ -9,7 +9,7 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.6" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageVersion Include="Polyfill" Version="9.0.0-beta.2" />
+    <PackageVersion Include="Polyfill" Version="9.0.0-beta.9" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.156" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Text.Json" Version="9.0.6" />
