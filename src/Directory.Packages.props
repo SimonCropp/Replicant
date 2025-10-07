@@ -14,10 +14,10 @@
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Text.Json" Version="9.0.9" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.1.2" />
-    <PackageVersion Include="Verify.NUnit" Version="30.20.0" />
+    <PackageVersion Include="Verify.NUnit" Version="30.20.1" />
     <PackageVersion Include="Verify.Http" Version="7.0.0" />
     <PackageVersion Include="NUnit" Version="4.4.0" />
-    <PackageVersion Include="NUnit3TestAdapter" Version="5.1.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="5.2.0" />
     <PackageVersion Include="Microsoft.Sbom.Targets" Version="4.1.2" />
   </ItemGroup>
 </Project>
