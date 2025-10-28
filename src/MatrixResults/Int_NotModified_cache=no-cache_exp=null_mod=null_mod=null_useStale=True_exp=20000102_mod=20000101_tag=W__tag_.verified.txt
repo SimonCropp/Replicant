@@ -6,10 +6,6 @@
     Status: 200 OK,
     Headers: {
       Cache-Control: no-cache
-    },
-    Content: {
-      Headers: {},
-      Value: 
     }
   }
 }

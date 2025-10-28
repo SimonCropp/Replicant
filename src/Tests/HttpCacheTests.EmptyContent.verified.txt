@@ -8,10 +8,6 @@
       Access-Control-Allow-Credentials: true,
       Access-Control-Allow-Origin: *,
       Date: DateTime_1
-    },
-    Content: {
-      Headers: {},
-      Value: 
     }
   }
 }

@@ -62,11 +62,7 @@ public class MatrixTests
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
-        var directory = Path.Combine(Path.GetTempPath(), $"HttpCacheTests{Namer.Runtime}{fileName}");
-        if (Directory.Exists(directory))
-        {
-            Directory.Delete(directory, true);
-        }
+        using var directory = new TempDirectory();
 
         try
         {
@@ -83,10 +79,6 @@ public class MatrixTests
         catch (HttpRequestException exception)
         {
             await Verify(exception, settings);
-        }
-        finally
-        {
-            Directory.Delete(directory, true);
         }
     }
 

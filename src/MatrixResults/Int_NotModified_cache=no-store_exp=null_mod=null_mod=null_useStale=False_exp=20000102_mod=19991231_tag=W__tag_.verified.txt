@@ -6,10 +6,6 @@
     Status: 304 Not Modified,
     Headers: {
       Cache-Control: no-store
-    },
-    Content: {
-      Headers: {},
-      Value: 
     }
   }
 }

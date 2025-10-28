@@ -4,18 +4,18 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Argon" Version="0.31.0" />
+    <PackageVersion Include="Argon" Version="0.32.0" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.0.0-beta.7" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.10" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageVersion Include="Polyfill" Version="9.0.0-beta.9" />
-    <PackageVersion Include="ProjectDefaults" Version="1.0.161" />
+    <PackageVersion Include="ProjectDefaults" Version="1.0.162" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Text.Json" Version="9.0.10" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.1.2" />
-    <PackageVersion Include="Verify.NUnit" Version="31.0.5" />
-    <PackageVersion Include="Verify.Http" Version="7.0.0" />
+    <PackageVersion Include="Verify.NUnit" Version="31.1.0" />
+    <PackageVersion Include="Verify.Http" Version="7.4.0" />
     <PackageVersion Include="NUnit" Version="4.4.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="5.2.0" />
     <PackageVersion Include="Microsoft.Sbom.Targets" Version="4.1.2" />

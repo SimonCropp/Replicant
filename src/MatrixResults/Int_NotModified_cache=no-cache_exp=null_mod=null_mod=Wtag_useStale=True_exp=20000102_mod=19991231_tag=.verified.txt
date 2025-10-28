@@ -7,10 +7,6 @@
     Headers: {
       Cache-Control: no-cache,
       ETag: W/"tag"
-    },
-    Content: {
-      Headers: {},
-      Value: 
     }
   }
 }
