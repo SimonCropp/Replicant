@@ -8,7 +8,7 @@
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.0.0-beta.7" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Polyfill" Version="9.0.0-beta.9" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.162" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
