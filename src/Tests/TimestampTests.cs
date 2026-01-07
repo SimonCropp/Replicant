@@ -36,4 +36,32 @@ public class TimestampTests
         // If there's an off-by-one error, it would be "myEtagValue" (missing S)
         AreEqual("SmyEtagValue", timestamp.Etag.ForFile);
     }
+
+    [Test]
+    public void FromPath_MalformedFilename_NoUnderscore_Throws()
+    {
+        var path = "/Dir/malformedfilewithoutunderscore.bin";
+
+        var ex = Assert.Throws<ArgumentException>(() => Timestamp.FromPath(path));
+        StringAssert.Contains("Invalid cache filename format", ex!.Message);
+    }
+
+    [Test]
+    public void FromPath_MalformedFilename_TooShort_Throws()
+    {
+        var path = "/Dir/hash_short.bin";
+
+        var ex = Assert.Throws<ArgumentException>(() => Timestamp.FromPath(path));
+        StringAssert.Contains("Invalid cache filename format", ex!.Message);
+    }
+
+    [Test]
+    public void FromPath_MalformedFilename_InvalidDate_Throws()
+    {
+        // Valid structure but invalid date format
+        var path = "/Dir/hash_notavaliddate1234_Setag.bin";
+
+        var ex = Assert.Throws<ArgumentException>(() => Timestamp.FromPath(path));
+        StringAssert.Contains("Invalid date format", ex!.Message);
+    }
 }
