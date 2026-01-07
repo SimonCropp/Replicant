@@ -123,16 +123,15 @@ public partial class HttpCache :
     FilePair? FindContentFileForUri(Uri uri)
     {
         var hash = Hash.Compute(uri.AbsoluteUri);
-        var directoryInfo = new DirectoryInfo(directory);
-        var fileInfo = directoryInfo
-            .GetFiles($"{hash}_*.bin")
-            .MinBy(_ => _.LastWriteTime);
-        if (fileInfo == null)
+        var file = Directory
+            .EnumerateFiles(directory, $"{hash}_*.bin")
+            .MinBy(File.GetLastWriteTime);
+        if (file == null)
         {
             return null;
         }
 
-        return FilePair.FromContentFile(fileInfo);
+        return FilePair.FromContentFile(file);
     }
 
     async Task<Result> HandleFileExistsAsync(
