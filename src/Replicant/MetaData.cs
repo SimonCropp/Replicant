@@ -31,13 +31,35 @@
         return result;
     }
 
-    public static MetaData ReadMeta(string path) =>
-        JsonSerializer.Deserialize<MetaData>(File.ReadAllText(path))!;
+    public static MetaData ReadMeta(string path)
+    {
+        using var stream = File.OpenRead(path);
+        return JsonSerializer.Deserialize<MetaData>(stream)!;
+    }
+
+    public static async ValueTask<MetaData> ReadMetaAsync(string path)
+    {
+        using var stream = File.OpenRead(path);
+        var data = await JsonSerializer.DeserializeAsync<MetaData>(stream);
+        return data!;
+    }
 
     public static void ApplyToResponse(string path, HttpResponseMessage response)
     {
         var meta = ReadMeta(path);
 
+        ApplyHeaders(response, meta);
+    }
+
+    public static async Task ApplyToResponseAsync(string path, HttpResponseMessage response)
+    {
+        var meta = await ReadMetaAsync(path);
+
+        ApplyHeaders(response, meta);
+    }
+
+    static void ApplyHeaders(HttpResponseMessage response, MetaData meta)
+    {
         response.Headers.AddRange(meta.ResponseHeaders);
         response.Content.Headers.AddRange(meta.ContentHeaders);
 #if NET7_0_OR_GREATER
