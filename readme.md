@@ -86,7 +86,7 @@ Using HttpClient with [HttpClientFactory](https://docs.microsoft.com/en-us/dotne
 <!-- snippet: DependencyInjectionWithHttpFactory -->
 <a id='snippet-DependencyInjectionWithHttpFactory'></a>
 ```cs
-ServiceCollection services = new();
+var services = new ServiceCollection();
 services.AddHttpClient();
 services.AddSingleton(
     _ =>
