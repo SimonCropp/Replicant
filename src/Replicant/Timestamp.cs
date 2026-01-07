@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-readonly struct Timestamp
+﻿readonly struct Timestamp
 {
     public DateTimeOffset? Expiry { get; }
     public DateTimeOffset Modified { get; }
