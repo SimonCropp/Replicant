@@ -40,29 +40,30 @@ readonly struct Timestamp
     public static Timestamp FromPath(string path)
     {
         var file = Path.GetFileNameWithoutExtension(path);
-        var indexOf = file.IndexOf('_');
+        var fileSpan = file.AsSpan();
+        var indexOf = fileSpan.IndexOf('_');
 
         // Expected format: {hash}_{yyyy-MM-ddTHHmmss}_{etag}
         // Minimum length after first underscore: 17 (date) + 1 (underscore) = 18
-        if (indexOf < 0 || file.Length < indexOf + 19)
+        if (indexOf < 0 || fileSpan.Length < indexOf + 19)
         {
             throw new ArgumentException(
                 $"Invalid cache filename format. Expected '{{hash}}_{{yyyy-MM-ddTHHmmss}}_{{etag}}', got '{file}'",
                 nameof(path));
         }
 
-        var urlHash = file[..indexOf];
+        var urlHashSpan = fileSpan[..indexOf];
+        var modifiedSpan = fileSpan.Slice(indexOf + 1, 17);
+        var etagSpan = fileSpan[(indexOf + 19)..];
 
-        var modifiedPart = file.Substring(indexOf + 1, 17);
-        if (!DateTimeOffset.TryParseExact(modifiedPart, "yyyy-MM-ddTHHmmss", null, DateTimeStyles.AssumeUniversal, out var modified))
+        if (!DateTimeOffset.TryParseExact(modifiedSpan, "yyyy-MM-ddTHHmmss".AsSpan(), null, DateTimeStyles.AssumeUniversal, out var modified))
         {
             throw new ArgumentException(
-                $"Invalid date format in cache filename. Expected 'yyyy-MM-ddTHHmmss', got '{modifiedPart}'",
+                $"Invalid date format in cache filename. Expected 'yyyy-MM-ddTHHmmss', got '{modifiedSpan.ToString()}'",
                 nameof(path));
         }
 
-        var etagPart = file[(indexOf + 19)..];
-        var etag = Etag.FromFilePart(etagPart);
+        var etag = Etag.FromFilePart(etagSpan.ToString());
 
         DateTime? expiry = File.GetLastWriteTimeUtc(path);
         if (expiry == FileEx.MinFileDate || expiry == FileEx.OldMinFileDate)
@@ -70,6 +71,6 @@ readonly struct Timestamp
             expiry = null;
         }
 
-        return new(expiry, modified, etag, urlHash);
+        return new(expiry, modified, etag, urlHashSpan.ToString());
     }
 }
