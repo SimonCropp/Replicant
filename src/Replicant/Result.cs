@@ -98,7 +98,19 @@
             return System.IO.File.ReadAllBytes(File!.Value.Content);
         }
 
+        var contentLength = Response.Content.Headers.ContentLength;
         using var stream = Response.Content.ReadAsStream(cancel);
+
+        if (contentLength.HasValue && contentLength.Value <= int.MaxValue)
+        {
+            // Known length: read directly into correctly-sized array
+            var length = (int)contentLength.Value;
+            var buffer = new byte[length];
+            stream.ReadExactly(buffer);
+            return buffer;
+        }
+
+        // Unknown length: use MemoryStream
         using var memoryStream = new MemoryStream();
         stream.CopyTo(memoryStream);
         return memoryStream.ToArray();
