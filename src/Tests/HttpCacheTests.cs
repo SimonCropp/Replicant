@@ -401,6 +401,35 @@ public class HttpCacheTests
     }
 
     [Test]
+    public async Task SyncDownload_WithNullExpiry_ShouldUseCachedFile()
+    {
+        // Add an item without expiry headers - this will result in null Expiry
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("test content")
+        };
+        // Use a real URL that we'll cache, then verify sync uses cache without network
+        var uri = "https://httpbin.org/json";
+        await httpCache.AddItemAsync(uri, response);
+
+        // Bug: HttpCache.cs does "if (timestamp.Expiry > now)" but should be
+        // "if (expiry == null || expiry > now)" like the async version.
+        // When Expiry is null, sync version incorrectly tries to re-fetch from network
+        // instead of returning the cached file.
+        // ReSharper disable once MethodHasAsyncOverload
+        var result = httpCache.Download(uri);
+
+        // If the bug exists, this will have fetched new content from httpbin.org/json
+        // If fixed, it should return our cached "test content"
+        // ReSharper disable once UseAwaitUsing
+        using var stream = result.AsStream();
+        using var reader = new StreamReader(stream);
+        // ReSharper disable once MethodHasAsyncOverload
+        var content = reader.ReadToEnd();
+        AreEqual("test content", content);
+    }
+
+    [Test]
     public Task ServerError() =>
         ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/500"));
 

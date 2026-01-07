@@ -217,7 +217,8 @@ public partial class HttpCache :
         var now = DateTimeOffset.UtcNow;
 
         var timestamp = Timestamp.FromPath(contentFile.Content);
-        if (timestamp.Expiry > now)
+        var expiry = timestamp.Expiry;
+        if (expiry == null || expiry > now)
         {
             return new(contentFile, false, false);
         }
