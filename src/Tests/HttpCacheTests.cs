@@ -70,7 +70,7 @@ public class HttpCacheTests
     {
         #region DependencyInjectionWithHttpFactory
 
-        ServiceCollection services = new();
+        var services = new ServiceCollection();
         services.AddHttpClient();
         services.AddSingleton(
             _ =>
