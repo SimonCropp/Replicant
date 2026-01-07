@@ -498,5 +498,32 @@ public class HttpCacheTests
         var remainingFiles = Directory.GetFiles(cachePath);
         AreEqual(0, remainingFiles.Length);
     }
+
+    [Test]
+    public void Default_ConcurrentAccess_IsThreadSafe()
+    {
+        // Lazy<T> ensures thread-safe initialization without leaking instances.
+        // All threads get the same instance and only one HttpCache + HttpClient is created.
+
+        const int threadCount = 10;
+        var barrier = new Barrier(threadCount);
+        var instances = new HttpCache[threadCount];
+
+        var threads = Enumerable.Range(0, threadCount)
+            .Select(i => new Thread(() =>
+            {
+                barrier.SignalAndWait(); // All threads start at the same time
+                instances[i] = HttpCache.Default;
+            }))
+            .ToList();
+
+        threads.ForEach(t => t.Start());
+        threads.ForEach(t => t.Join());
+
+        // All threads should get the same instance
+        var firstInstance = instances[0];
+        True(instances.All(inst => ReferenceEquals(inst, firstInstance)),
+            "All threads should receive the same Default instance");
+    }
 }
 #endif

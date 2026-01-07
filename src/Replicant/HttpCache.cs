@@ -7,20 +7,13 @@ public partial class HttpCache :
     HttpClient? client;
     Func<HttpClient>? clientFunc;
 
-    [field: AllowNull, MaybeNull]
-    public static HttpCache Default
+    static readonly Lazy<HttpCache> defaultInstance = new(() =>
     {
-        get
-        {
-            if (field == null)
-            {
-                var directory = Path.Combine(FileEx.TempPath, "Replicant");
-                Interlocked.CompareExchange(ref field, new(directory, new HttpClient()), null);
-            }
+        var directory = Path.Combine(FileEx.TempPath, "Replicant");
+        return new(directory, new HttpClient());
+    });
 
-            return field;
-        }
-    }
+    public static HttpCache Default => defaultInstance.Value;
 
     public static Action<string> LogError = _ =>
     {
