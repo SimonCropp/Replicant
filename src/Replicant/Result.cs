@@ -147,11 +147,25 @@
             return Response;
         }
 
-        HttpResponseMessage response = new()
+        var response = new HttpResponseMessage
         {
             Content = new StreamContent(FileEx.OpenRead(File!.Value.Content))
         };
         MetaData.ApplyToResponse(File!.Value.Meta, response);
+        return response;
+    }
+    public async Task<HttpResponseMessage> AsResponseMessageAsync()
+    {
+        if (Response != null)
+        {
+            return Response;
+        }
+
+        var response = new HttpResponseMessage
+        {
+            Content = new StreamContent(FileEx.OpenRead(File!.Value.Content))
+        };
+        await MetaData.ApplyToResponseAsync(File!.Value.Meta, response);
         return response;
     }
 

@@ -124,7 +124,7 @@ public class HttpCacheTests
     public async Task PurgeOldWhenContentFileLocked()
     {
         using var result = await httpCache.DownloadAsync("https://httpbin.org/status/200");
-        using (result.AsResponseMessage())
+        using (await result.AsResponseMessageAsync())
         {
             var filePair = result.File!.Value;
             filePair.PurgeItem();
@@ -137,7 +137,7 @@ public class HttpCacheTests
     {
         var result = await httpCache.DownloadAsync("https://httpbin.org/status/200");
 
-        using (result.AsResponseMessage())
+        using (await result.AsResponseMessageAsync())
         {
             var filePair = result.File!.Value;
             filePair.PurgeItem();
@@ -151,12 +151,12 @@ public class HttpCacheTests
     {
         var uri = "https://httpbin.org/etag/{etag}";
         var result = await httpCache.DownloadAsync(uri);
-        using (result.AsResponseMessage())
+        using (await result.AsResponseMessageAsync())
         {
             result = await httpCache.DownloadAsync(uri);
         }
 
-        using var httpResponseMessage = result.AsResponseMessage();
+        using var httpResponseMessage = await result.AsResponseMessageAsync();
         await Verify(httpResponseMessage);
     }
 
@@ -170,7 +170,7 @@ public class HttpCacheTests
             result = await httpCache.DownloadAsync(uri);
         }
 
-        using var httpResponseMessage = result.AsResponseMessage();
+        using var httpResponseMessage = await result.AsResponseMessageAsync();
         await Verify(httpResponseMessage);
     }
 

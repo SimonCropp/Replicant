@@ -18,7 +18,7 @@ public partial class HttpCache
         Cancel cancel = default)
     {
         var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
-        return result.AsResponseMessage();
+        return await result.AsResponseMessageAsync();
     }
 
     /// <inheritdoc/>
@@ -37,6 +37,6 @@ public partial class HttpCache
         Cancel cancel = default)
     {
         var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
-        return result.AsResponseMessage();
+        return await result.AsResponseMessageAsync();
     }
 }
