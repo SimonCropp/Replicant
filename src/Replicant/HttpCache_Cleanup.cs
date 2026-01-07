@@ -34,9 +34,9 @@ public partial class HttpCache
     /// <inheritdoc/>
     public virtual void PurgeOld()
     {
-        foreach (var file in new DirectoryInfo(directory)
-            .GetFiles("*_*_*.bin")
-            .OrderByDescending(_ => _.LastAccessTime)
+        foreach (var file in Directory
+            .EnumerateFiles(directory, "*_*_*.bin")
+            .OrderByDescending(File.GetLastAccessTime)
             .Skip(maxEntries))
         {
             var pair = FilePair.FromContentFile(file);
