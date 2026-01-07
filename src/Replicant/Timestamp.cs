@@ -42,10 +42,24 @@ readonly struct Timestamp
         var file = Path.GetFileNameWithoutExtension(path);
         var indexOf = file.IndexOf('_');
 
+        // Expected format: {hash}_{yyyy-MM-ddTHHmmss}_{etag}
+        // Minimum length after first underscore: 17 (date) + 1 (underscore) = 18
+        if (indexOf < 0 || file.Length < indexOf + 19)
+        {
+            throw new ArgumentException(
+                $"Invalid cache filename format. Expected '{{hash}}_{{yyyy-MM-ddTHHmmss}}_{{etag}}', got '{file}'",
+                nameof(path));
+        }
+
         var urlHash = file[..indexOf];
 
         var modifiedPart = file.Substring(indexOf + 1, 17);
-        var modified = DateTimeOffset.ParseExact(modifiedPart, "yyyy-MM-ddTHHmmss", null, DateTimeStyles.AssumeUniversal);
+        if (!DateTimeOffset.TryParseExact(modifiedPart, "yyyy-MM-ddTHHmmss", null, DateTimeStyles.AssumeUniversal, out var modified))
+        {
+            throw new ArgumentException(
+                $"Invalid date format in cache filename. Expected 'yyyy-MM-ddTHHmmss', got '{modifiedPart}'",
+                nameof(path));
+        }
 
         var etagPart = file[(indexOf + 19)..];
         var etag = Etag.FromFilePart(etagPart);
