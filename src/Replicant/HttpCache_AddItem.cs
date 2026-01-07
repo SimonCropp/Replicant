@@ -43,7 +43,7 @@ public partial class HttpCache
         Headers? trailingHeaders = null,
         Cancel cancel = default)
     {
-        using var stream = content.AsStream();
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
         await AddItemAsync(uri, stream, expiry, modified, etag, responseHeaders, contentHeaders, trailingHeaders, cancel);
     }
 }

@@ -101,7 +101,7 @@
         var contentLength = Response.Content.Headers.ContentLength;
         using var stream = Response.Content.ReadAsStream(cancel);
 
-        if (contentLength.HasValue && contentLength.Value <= int.MaxValue)
+        if (contentLength is <= int.MaxValue)
         {
             // Known length: read directly into correctly-sized array
             var length = (int)contentLength.Value;

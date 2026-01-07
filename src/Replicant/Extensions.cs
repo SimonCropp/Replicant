@@ -142,16 +142,6 @@
         [];
 #endif
 
-    public static Stream AsStream(this string value)
-    {
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
-        writer.Write(value);
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
-    }
-
     public static DateTimeOffset? GetExpiry(this HttpResponseMessage response, DateTimeOffset now)
     {
         var responseHeaders = response.Headers;
