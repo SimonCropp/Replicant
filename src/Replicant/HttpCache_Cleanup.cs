@@ -24,7 +24,7 @@ public partial class HttpCache
     /// <inheritdoc/>
     public virtual void Purge()
     {
-        foreach (var file in Directory.EnumerateFiles(directory))
+        foreach (var file in Directory.EnumerateFiles(directory, "*.bin"))
         {
             var pair = FilePair.FromContentFile(file);
             pair.PurgeItem();

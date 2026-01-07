@@ -469,5 +469,34 @@ public class HttpCacheTests
 
         await Verify(content);
     }
+
+    [Test]
+    public async Task Purge_ShouldOnlyProcessBinFiles()
+    {
+        // Add a cached item (creates both .bin and .json files)
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("test content")
+        };
+        var uri = "https://httpbin.org/purge-test";
+        await httpCache.AddItemAsync(uri, response);
+
+        // Verify both files exist before purge
+        var files = Directory.GetFiles(cachePath);
+        var binFiles = files.Where(f => f.EndsWith(".bin")).ToList();
+        var jsonFiles = files.Where(f => f.EndsWith(".json")).ToList();
+        AreEqual(1, binFiles.Count);
+        AreEqual(1, jsonFiles.Count);
+
+        // Bug: Purge() iterates over ALL files including .json files.
+        // When FilePair.FromContentFile() is called on a .json file,
+        // it creates a pair where Content=Meta (both .json), causing
+        // PurgeItem() to fail when trying to move the same file twice.
+        httpCache.Purge();
+
+        // After purge, all cache files should be deleted
+        var remainingFiles = Directory.GetFiles(cachePath);
+        AreEqual(0, remainingFiles.Length);
+    }
 }
 #endif
