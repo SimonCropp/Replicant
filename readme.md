@@ -231,6 +231,7 @@ using var response = await httpCache.ResponseAsync("https://httpbin.org/status/2
 
 `CachingHandler` is a `DelegatingHandler` that provides transparent HTTP response caching. It can be used with `HttpClient` and `HttpClientFactory` to add caching to the request pipeline.
 
+
 #### Basic Usage
 
 <!-- snippet: DelegatingHandlerBasic -->
@@ -244,6 +245,7 @@ var response = await httpClient.GetAsync("https://httpbin.org/json");
 <!-- endSnippet -->
 
 The default cache directory is `{Temp}/Replicant`.
+
 
 #### HttpClientFactory Integration
 
@@ -261,6 +263,7 @@ var client = factory.CreateClient("cached");
 <sup><a href='/src/Tests/CachingHandlerTests.cs#L210-L220' title='Snippet source file'>snippet source</a> | <a href='#snippet-DelegatingHandlerWithFactory' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
+
 #### Stale-If-Error Support
 
 Return stale cached responses when the origin server is unavailable:
@@ -272,6 +275,7 @@ var handler = new CachingHandler { StaleIfError = true };
 ```
 <sup><a href='/src/Tests/CachingHandlerTests.cs#L308-L312' title='Snippet source file'>snippet source</a> | <a href='#snippet-DelegatingHandlerStaleIfError' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
+
 
 #### Cache Status Monitoring
 
@@ -288,6 +292,7 @@ status = response.Headers
 <!-- endSnippet -->
 
 Possible values:
+
  * `hit` - Response returned from cache without revalidation
  * `miss` - Response fetched from origin and stored in cache
  * `revalidate` - Cached response revalidated with origin (304 Not Modified)
