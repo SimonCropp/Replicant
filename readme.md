@@ -227,6 +227,74 @@ using var response = await httpCache.ResponseAsync("https://httpbin.org/status/2
 <!-- endSnippet -->
 
 
+### Using with HttpClient Pipeline (DelegatingHandler)
+
+`CachingHandler` is a `DelegatingHandler` that provides transparent HTTP response caching. It can be used with `HttpClient` and `HttpClientFactory` to add caching to the request pipeline.
+
+#### Basic Usage
+
+<!-- snippet: DelegatingHandlerBasic -->
+<a id='snippet-DelegatingHandlerBasic'></a>
+```cs
+var handler = new CachingHandler();
+var httpClient = new HttpClient(handler);
+var response = await httpClient.GetAsync("https://httpbin.org/json");
+```
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L294-L300' title='Snippet source file'>snippet source</a> | <a href='#snippet-DelegatingHandlerBasic' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+The default cache directory is `{Temp}/Replicant`.
+
+#### HttpClientFactory Integration
+
+<!-- snippet: DelegatingHandlerWithFactory -->
+<a id='snippet-DelegatingHandlerWithFactory'></a>
+```cs
+var services = new ServiceCollection();
+services.AddHttpClient("cached")
+    .ConfigurePrimaryHttpMessageHandler(() => new CachingHandler());
+
+using var provider = services.BuildServiceProvider();
+var factory = provider.GetRequiredService<IHttpClientFactory>();
+var client = factory.CreateClient("cached");
+```
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L210-L220' title='Snippet source file'>snippet source</a> | <a href='#snippet-DelegatingHandlerWithFactory' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+#### Stale-If-Error Support
+
+Return stale cached responses when the origin server is unavailable:
+
+<!-- snippet: DelegatingHandlerStaleIfError -->
+<a id='snippet-DelegatingHandlerStaleIfError'></a>
+```cs
+var handler = new CachingHandler { StaleIfError = true };
+```
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L308-L312' title='Snippet source file'>snippet source</a> | <a href='#snippet-DelegatingHandlerStaleIfError' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+#### Cache Status Monitoring
+
+The cache status is reported via the `X-Replicant-Cache-Status` response header:
+
+<!-- snippet: DelegatingHandlerCacheStatus -->
+<a id='snippet-DelegatingHandlerCacheStatus'></a>
+```cs
+status = response.Headers
+    .GetValues(CachingHandler.CacheStatusHeaderName)
+    .First();
+```
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L328-L334' title='Snippet source file'>snippet source</a> | <a href='#snippet-DelegatingHandlerCacheStatus' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+Possible values:
+ * `hit` - Response returned from cache without revalidation
+ * `miss` - Response fetched from origin and stored in cache
+ * `revalidate` - Cached response revalidated with origin (304 Not Modified)
+ * `no-store` - Response not cached due to Cache-Control directives
+ * `stale` - Stale response returned due to network error (stale-if-error)
+
+
 ## Influences / Alternatives
 
  * [Tavis.HttpCache](https://github.com/tavis-software/Tavis.HttpCache)
