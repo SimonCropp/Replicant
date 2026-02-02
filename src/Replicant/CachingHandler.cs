@@ -117,15 +117,7 @@ public class CachingHandler : DelegatingHandler
     public CachingHandler(string cacheDirectory, HttpMessageHandler innerHandler, int maxEntries = 1000)
     {
         InnerHandler = innerHandler;
-
-        // Create a single HttpClient that wraps the inner handler
-        // We don't dispose the inner handler since DelegatingHandler will handle that
-        var wrappedClient = new HttpClient(InnerHandler, disposeHandler: false);
-
-        httpCache = new HttpCache(
-            cacheDirectory,
-            wrappedClient,
-            maxEntries);
+        httpCache = new(cacheDirectory, InnerHandler, maxEntries);
     }
 
     /// <summary>
@@ -148,7 +140,7 @@ public class CachingHandler : DelegatingHandler
     /// Sends an HTTP request and returns the response, utilizing the cache for GET and HEAD requests.
     /// </summary>
     /// <param name="request">The HTTP request message to send.</param>
-    /// <param name="cancellationToken">
+    /// <param name="cancel">
     /// A cancellation token to cancel the operation.
     /// </param>
     /// <returns>
@@ -156,18 +148,18 @@ public class CachingHandler : DelegatingHandler
     /// </returns>
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
-        CancellationToken cancellationToken)
+        Cancel cancel)
     {
         // Only cache GET and HEAD requests
         if (request.Method != HttpMethod.Get && request.Method != HttpMethod.Head)
         {
-            return await base.SendAsync(request, cancellationToken);
+            return await base.SendAsync(request, cancel);
         }
 
         // Check for cache bypass directives
         if (ShouldBypassCache(request))
         {
-            return await base.SendAsync(request, cancellationToken);
+            return await base.SendAsync(request, cancel);
         }
 
         // Determine stale-if-error setting (header overrides property)
@@ -205,7 +197,7 @@ public class CachingHandler : DelegatingHandler
                     }
                 }
             },
-            cancellationToken);
+            cancel);
 
         // Convert Result to HttpResponseMessage
         var response = await result.AsResponseMessageAsync();
@@ -252,25 +244,25 @@ public class CachingHandler : DelegatingHandler
     static string GetCacheStatus(Result result)
     {
         // Hit: returned from disk without revalidation
-        if (result.FromDisk && !result.Revalidated && !result.Stored)
+        if (result is { FromDisk: true, Revalidated: false, Stored: false })
         {
             return "hit";
         }
 
         // Miss: fetched from origin and stored
-        if (!result.FromDisk && result.Stored)
+        if (result is { FromDisk: false, Stored: true })
         {
             return "miss";
         }
 
         // Revalidate: cached response revalidated with 304
-        if (result.FromDisk && result.Revalidated)
+        if (result is { FromDisk: true, Revalidated: true })
         {
             return "revalidate";
         }
 
         // Stale: returned stale response due to error (stale-if-error)
-        if (result.FromDisk && result.Stored)
+        if (result is { FromDisk: true, Stored: true })
         {
             return "stale";
         }

@@ -5,9 +5,11 @@ public partial class HttpCache
     /// <inheritdoc/>
     public virtual void Dispose()
     {
-        if (clientIsOwned)
+        invoker?.Dispose();
+
+        if (handlerIsOwned)
         {
-            client!.Dispose();
+            handler!.Dispose();
         }
 
         timer.Dispose();
@@ -16,9 +18,11 @@ public partial class HttpCache
     /// <inheritdoc/>
     public virtual ValueTask DisposeAsync()
     {
-        if (clientIsOwned)
+        invoker?.Dispose();
+
+        if (handlerIsOwned)
         {
-            client!.Dispose();
+            handler!.Dispose();
         }
 #if NET7_0_OR_GREATER
         return timer.DisposeAsync();

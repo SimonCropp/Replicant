@@ -227,11 +227,11 @@ public class CachingHandlerTests
     {
         using var temp = new TempDirectory();
         var services = new ServiceCollection();
-        services.AddSingleton<CachingHandler>(_ => new CachingHandler(temp));
+        services.AddSingleton<CachingHandler>(_ => new(temp));
         services.AddHttpClient("cached")
             .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<CachingHandler>());
 
-        using var provider = services.BuildServiceProvider();
+        await using var provider = services.BuildServiceProvider();
         var factory = provider.GetRequiredService<IHttpClientFactory>();
         var client = factory.CreateClient("cached");
 
