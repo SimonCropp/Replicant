@@ -4,13 +4,15 @@ public partial class HttpCache :
     IHttpCache
 {
     string directory;
-    HttpClient? client;
+    HttpMessageHandler? handler;
+    Func<HttpMessageHandler>? handlerFunc;
     Func<HttpClient>? clientFunc;
+    HttpMessageInvoker? invoker;
 
     static readonly Lazy<HttpCache> defaultInstance = new(() =>
     {
         var directory = Path.Combine(FileEx.TempPath, "Replicant");
-        return new(directory, new HttpClient());
+        return new(directory, handler: null);
     });
 
     public static HttpCache Default => defaultInstance.Value;
@@ -19,7 +21,7 @@ public partial class HttpCache :
     {
     };
 
-    bool clientIsOwned;
+    bool handlerIsOwned;
 
     HttpCache(string directory, int maxEntries = 1000)
     {
@@ -41,6 +43,16 @@ public partial class HttpCache :
     /// Instantiate a new instance of <see cref="HttpCache"/>.
     /// </summary>
     /// <param name="directory">The directory to store the cache files.</param>
+    /// <param name="handlerFunc">A factory to retrieve a <see cref="HttpMessageHandler"/> each time a resource is downloaded.</param>
+    /// <param name="maxEntries">The maximum entries to store in the cache.</param>
+    public HttpCache(string directory, Func<HttpMessageHandler> handlerFunc, int maxEntries = 1000) :
+        this(directory, maxEntries) =>
+        this.handlerFunc = handlerFunc;
+
+    /// <summary>
+    /// Instantiate a new instance of <see cref="HttpCache"/>.
+    /// </summary>
+    /// <param name="directory">The directory to store the cache files.</param>
     /// <param name="clientFunc">A factory to retrieve a <see cref="HttpClient"/> each time a resource is downloaded.</param>
     /// <param name="maxEntries">The maximum entries to store in the cache.</param>
     public HttpCache(string directory, Func<HttpClient> clientFunc, int maxEntries = 1000) :
@@ -51,21 +63,34 @@ public partial class HttpCache :
     /// Instantiate a new instance of <see cref="HttpCache"/>.
     /// </summary>
     /// <param name="directory">The directory to store the cache files.</param>
-    /// <param name="client">The <see cref="HttpCache"/> to use do web calls. If not supplied an instance will be instantiate.</param>
+    /// <param name="handler">The <see cref="HttpMessageHandler"/> to use for web calls. If not supplied an instance will be instantiated.</param>
     /// <param name="maxEntries">The maximum entries to store in the cache.</param>
-    public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000) :
+    public HttpCache(string directory, HttpMessageHandler? handler = null, int maxEntries = 1000) :
         this(directory, maxEntries)
     {
-        if (client == null)
+        if (handler == null)
         {
-            clientIsOwned = true;
-            this.client = new();
+            handlerIsOwned = true;
+            this.handler = new HttpClientHandler();
         }
         else
         {
-            this.client = client;
+            this.handler = handler;
         }
+
+        invoker = new(this.handler, disposeHandler: false);
     }
+
+    /// <summary>
+    /// Instantiate a new instance of <see cref="HttpCache"/>.
+    /// </summary>
+    /// <param name="directory">The directory to store the cache files.</param>
+    /// <param name="client">The <see cref="HttpClient"/> to use for web calls.</param>
+    /// <param name="maxEntries">The maximum entries to store in the cache.</param>
+    /// <remarks>HttpClient is itself an HttpMessageInvoker, so it is used directly.</remarks>
+    public HttpCache(string directory, HttpClient client, int maxEntries = 1000) :
+        this(directory, maxEntries) =>
+        invoker = client;
 
     internal Task<Result> DownloadAsync(
         string uri,
@@ -155,10 +180,10 @@ public partial class HttpCache :
 
         HttpResponseMessage? response;
 
-        var httpClient = GetClient();
+        var invoker = GetInvoker();
         try
         {
-            response = await httpClient.SendAsyncEx(request, cancel);
+            response = await invoker.SendAsyncEx(request, cancel);
         }
         catch (Exception exception)
         {
@@ -220,10 +245,10 @@ public partial class HttpCache :
 
         HttpResponseMessage? response;
 
-        var httpClient = GetClient();
+        var invoker = GetInvoker();
         try
         {
-            response = httpClient.SendEx(request, cancel);
+            response = invoker.SendEx(request, cancel);
         }
         catch (Exception exception)
         {
@@ -277,9 +302,9 @@ public partial class HttpCache :
         Action<HttpRequestMessage>? modifyRequest,
         Cancel cancel)
     {
-        var httpClient = GetClient();
+        var invoker = GetInvoker();
         using var request = BuildRequest(uri, modifyRequest);
-        var response = await httpClient.SendAsyncEx(request, cancel);
+        var response = await invoker.SendAsyncEx(request, cancel);
         response.EnsureSuccess();
         if (response.IsNoStore())
         {
@@ -297,9 +322,9 @@ public partial class HttpCache :
         Action<HttpRequestMessage>? modifyRequest,
         Cancel cancel)
     {
-        var httpClient = GetClient();
+        var invoker = GetInvoker();
         using var request = BuildRequest(uri, modifyRequest);
-        var response = httpClient.SendEx(request, cancel);
+        var response = invoker.SendEx(request, cancel);
         response.EnsureSuccess();
         if (response.IsNoStore())
         {
@@ -319,8 +344,21 @@ public partial class HttpCache :
         return request;
     }
 
-    HttpClient GetClient() =>
-        client ?? clientFunc!();
+    HttpMessageInvoker GetInvoker()
+    {
+        if (invoker != null)
+        {
+            return invoker;
+        }
+
+        if (clientFunc != null)
+        {
+            return clientFunc();
+        }
+
+        var newHandler = handlerFunc!();
+        return new(newHandler, disposeHandler: false);
+    }
 
     /// <summary>
     /// Manually add an item to the cache.
