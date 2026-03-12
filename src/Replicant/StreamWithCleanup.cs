@@ -22,6 +22,7 @@
     public override bool Equals(object? obj) =>
         inner.Equals(obj);
 
+    // ReSharper disable once ReturnTypeCanBeNotNullable
     public override string? ToString() =>
         inner.ToString();
 

@@ -6,13 +6,13 @@
         content.CopyTo(target, null, cancel);
 
     public static HttpResponseMessage SendEx(
-        this HttpClient client,
+        this HttpMessageInvoker invoker,
         HttpRequestMessage request,
         Cancel cancel)
     {
         try
         {
-            return client.Send(request);
+            return invoker.Send(request, cancel);
         }
         catch (HttpRequestException exception)
         {
@@ -23,24 +23,13 @@
 #else
 
     public static HttpResponseMessage SendEx(
-        this HttpClient client,
+        this HttpMessageInvoker invoker,
         HttpRequestMessage request,
         Cancel cancel)
     {
         try
         {
-            // Called outside of async state machine to propagate certain exception even without awaiting the returned task.
-            // See decompile send on net 5 version of http client
-
-            //SetOperationStarted();
-            var setOperationStarted = typeof(HttpClient).GetMethod("SetOperationStarted", BindingFlags.Instance | BindingFlags.NonPublic)!;
-            setOperationStarted.Invoke(client, null);
-
-            //PrepareRequestMessage(request);
-            var prepareRequestMessage = typeof(HttpClient).GetMethod("PrepareRequestMessage", BindingFlags.Instance | BindingFlags.NonPublic)!;
-            prepareRequestMessage.Invoke(client, [request]);
-
-            return client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancel)
+            return invoker.SendAsync(request, cancel)
                 .GetAwaiter().GetResult();
         }
         catch (HttpRequestException exception)
@@ -121,13 +110,13 @@
     }
 
     public static async Task<HttpResponseMessage> SendAsyncEx(
-        this HttpClient client,
+        this HttpMessageInvoker invoker,
         HttpRequestMessage request,
         Cancel cancel)
     {
         try
         {
-            return await client.SendAsync(request, cancel);
+            return await invoker.SendAsync(request, cancel);
         }
         catch (HttpRequestException exception)
         {
