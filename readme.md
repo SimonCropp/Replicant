@@ -282,6 +282,43 @@ using var response = await httpCache.ResponseAsync("https://httpbin.org/status/2
 <!-- endSnippet -->
 
 
+## Architecture
+
+```mermaid
+graph TD
+    IHttpCache["IHttpCache<br/>(interface)"]
+    HttpCache["HttpCache<br/>implements IHttpCache"]
+    ReplicantHandler["ReplicantHandler<br/>extends DelegatingHandler"]
+    ReplicantCache["ReplicantCache"]
+    CacheSession["CacheSession"]
+    CacheStore["CacheStore"]
+    FilePair["FilePair<br/>(struct)"]
+    Timestamp["Timestamp<br/>(struct)"]
+    MetaData["MetaData"]
+    Result["Result<br/>(struct)"]
+    DeriveCacheStatus["DeriveCacheStatus"]
+    CacheStatus["CacheStatus<br/>(enum)"]
+
+    HttpCache -->|implements| IHttpCache
+    HttpCache -->|owns| CacheStore
+    HttpCache -->|creates per call| CacheSession
+    HttpCache -->|returns| Result
+    ReplicantHandler -->|owns or references| CacheSession
+    ReplicantHandler -->|can share| ReplicantCache
+    ReplicantCache -->|owns| CacheStore
+    CacheSession -->|uses| CacheStore
+    CacheSession -->|uses| DeriveCacheStatus
+    DeriveCacheStatus -->|returns| CacheStatus
+    CacheStore -->|manages| FilePair
+    CacheStore -->|uses| Timestamp
+    CacheStore -->|serializes| MetaData
+    Result -->|holds| FilePair
+    Timestamp -->|encodes| FilePair
+```
+
+`HttpCache` is the standalone API that owns an `HttpClient`. `ReplicantHandler` is a `DelegatingHandler` that plugs into an existing `HttpClient` pipeline. Both delegate to `CacheSession` which orchestrates the cache protocol using `CacheStore` for disk I/O. When multiple handlers need to share a cache, a single `ReplicantCache` is registered as a singleton.
+
+
 ## Cache decision flow
 
 ```mermaid
