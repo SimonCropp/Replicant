@@ -41,12 +41,19 @@ Tests target net10.0 only. The library targets net48, net7.0, net8.0, net9.0, an
 
 **Key types:**
 - `IHttpCache` — public interface with async/sync dual APIs
-- `HttpCache` — main implementation; also exposes a static `HttpCache.Default` singleton
+- `HttpCache` — standalone API that owns an `HttpClient`; also exposes a static `HttpCache.Default` singleton
+- `ReplicantHandler` — `DelegatingHandler` that plugs caching into an `HttpClient` pipeline
+- `ReplicantCache` — shared cache singleton for use with `ReplicantHandler` and HttpClientFactory
+- `CacheSession` — mid-level cache protocol orchestrator; captures `staleIfError` as instance state
+- `CacheStore` — low-level disk I/O, file management, purge timer. Only one instance per directory is allowed (throws `InvalidOperationException` on duplicate)
 - `Result` — wraps a download outcome (file reference or HttpResponseMessage) with cache state flags
 - `FilePair` — manages paired `{content.bin, metadata.json}` cache files
 - `Timestamp` — parses/generates cache filenames: `{sha1hash}_{timestamp}_{etag}.bin`
 - `MetaData` — JSON-serialized HTTP headers stored alongside cached content
 - `DeriveCacheStatus` — decision logic for cache behavior based on HTTP headers
+- `CacheStatus` — enum: `Hit`, `Stored`, `NoStore`, `Revalidate`, `UseStaleDueToError`
+
+**Layering:** `HttpCache` and `ReplicantHandler` both delegate to `CacheSession` → `CacheStore`. `HttpCache` creates a `CacheSession` per call (staleIfError varies per call). `ReplicantHandler` owns a single `CacheSession` instance.
 
 **Cache storage format:** Each cached response is two files in the cache directory — a `.bin` content file and a `.json` metadata file. File last-write-time encodes expiry; last-access-time tracks staleness for cleanup.
 
@@ -56,7 +63,10 @@ Tests target net10.0 only. The library targets net48, net7.0, net8.0, net9.0, an
 - **Snapshot files:** `*.verified.txt` files in `src/Tests/` — these are committed and compared on test runs
 - **On test failure:** `*.received.*` files are generated showing actual output. Compare against the corresponding `.verified.txt` to see differences. Accept new snapshots by replacing `.verified.txt` with `.received.txt`.
 - Tests are marked `[NonParallelizable]` at assembly level to avoid cache directory conflicts
-- `MockHttpClient.cs` provides a mock for unit tests; `IntegrationTests.cs` hits httpbin.org
+- `MockHttpClient.cs` provides a mock for `HttpCache` unit tests; `MockHttpMessageHandler` in `CachingHandlerTests.cs` provides a mock `HttpMessageHandler` for `ReplicantHandler` tests
+- `HttpCacheTests.cs` is `#if DEBUG` — those tests hit httpbin.org. `CachingHandlerTests.cs` is mock-only and runs in both Debug and Release
+- `IntegrationTests.cs` hits httpbin.org
+- Each test that creates a `CacheStore`/`HttpCache`/`ReplicantCache`/`ReplicantHandler` for a directory must dispose it before another instance can use the same directory
 
 ## Documentation
 
