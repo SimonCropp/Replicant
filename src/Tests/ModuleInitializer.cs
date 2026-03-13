@@ -1,4 +1,3 @@
-[assembly: NonParallelizable]
 public static class ModuleInitializer
 {
     [ModuleInitializer]

@@ -4,16 +4,20 @@
 using Microsoft.Extensions.DependencyInjection;
 
 [TestFixture]
+[Parallelizable(ParallelScope.Children)]
 public class CachingHandlerTests
 {
-    static string cachePath = Path.Combine(Path.GetTempPath(), "ReplicantHandlerTests");
+    static string root = Path.Combine(Path.GetTempPath(), "ReplicantHandlerTests");
 
-    [TearDown]
+    static string CachePath([CallerMemberName] string name = "") =>
+        Path.Combine(root, name);
+
+    [OneTimeTearDown]
     public void Cleanup()
     {
-        if (Directory.Exists(cachePath))
+        if (Directory.Exists(root))
         {
-            Directory.Delete(cachePath, true);
+            Directory.Delete(root, true);
         }
     }
 
@@ -57,12 +61,13 @@ public class CachingHandlerTests
     [Test]
     public async Task BasicCaching()
     {
+        var path = CachePath();
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("hello")
             });
-        using var handler = new ReplicantHandler(cachePath, inner);
+        using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
         var content1 = await client.GetStringAsync("http://example.com/test");
@@ -72,19 +77,20 @@ public class CachingHandlerTests
         var content2 = await client.GetStringAsync("http://example.com/test");
         AreEqual("hello", content2);
 
-        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(1, binFiles.Length);
     }
 
     [Test]
     public async Task HeadRequest()
     {
+        var path = CachePath();
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("")
             });
-        using var handler = new ReplicantHandler(cachePath, inner);
+        using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
         using var request1 = new HttpRequestMessage(HttpMethod.Head, "http://example.com/head");
@@ -100,6 +106,7 @@ public class CachingHandlerTests
     [Test]
     public async Task CacheHit_NotModified()
     {
+        var path = CachePath();
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -109,7 +116,7 @@ public class CachingHandlerTests
             {
                 Content = new StringContent("")
             });
-        using var handler = new ReplicantHandler(cachePath, inner);
+        using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
         // First request: stored
@@ -117,7 +124,7 @@ public class CachingHandlerTests
         AreEqual("original content", content1);
 
         // Expire the cached file
-        var binFile = Directory.GetFiles(cachePath, "*.bin").Single();
+        var binFile = Directory.GetFiles(path, "*.bin").Single();
         File.SetLastWriteTimeUtc(binFile, new(2020, 1, 1));
 
         // Second request: revalidation returns 304, cached content served
@@ -128,6 +135,7 @@ public class CachingHandlerTests
     [Test]
     public async Task NoStore()
     {
+        var path = CachePath();
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -140,20 +148,21 @@ public class CachingHandlerTests
                     }
                 }
             });
-        using var handler = new ReplicantHandler(cachePath, inner);
+        using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
         var content = await client.GetStringAsync("http://example.com/nostore");
         AreEqual("no-store content", content);
 
         // No files should be cached
-        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(0, binFiles.Length);
     }
 
     [Test]
     public async Task StaleIfError()
     {
+        var path = CachePath();
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -163,7 +172,7 @@ public class CachingHandlerTests
             {
                 Content = new StringContent("error")
             });
-        using var handler = new ReplicantHandler(cachePath, inner, staleIfError: true);
+        using var handler = new ReplicantHandler(path, inner, staleIfError: true);
         using var client = new HttpClient(handler);
 
         // First request: stored
@@ -171,7 +180,7 @@ public class CachingHandlerTests
         AreEqual("cached content", content1);
 
         // Expire the cached file
-        var binFile = Directory.GetFiles(cachePath, "*.bin").Single();
+        var binFile = Directory.GetFiles(path, "*.bin").Single();
         File.SetLastWriteTimeUtc(binFile, new(2020, 1, 1));
 
         // Second request: server error, stale content returned
@@ -182,12 +191,13 @@ public class CachingHandlerTests
     [Test]
     public async Task NonGetPostPassthrough()
     {
+        var path = CachePath();
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("post response")
             });
-        using var handler = new ReplicantHandler(cachePath, inner);
+        using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
         var response = await client.PostAsync(
@@ -197,34 +207,36 @@ public class CachingHandlerTests
         AreEqual("post response", content);
 
         // POST should not be cached
-        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(0, binFiles.Length);
     }
 
     [Test]
     public async Task Purge()
     {
+        var path = CachePath();
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("to purge")
             });
-        using var handler = new ReplicantHandler(cachePath, inner);
+        using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
         await client.GetStringAsync("http://example.com/purge");
-        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(1, binFiles.Length);
 
         handler.Purge();
 
-        binFiles = Directory.GetFiles(cachePath, "*.bin");
+        binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(0, binFiles.Length);
     }
 
     [Test]
     public async Task NoCache_StoresButRevalidates()
     {
+        var path = CachePath();
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -237,21 +249,22 @@ public class CachingHandlerTests
                     }
                 }
             });
-        using var handler = new ReplicantHandler(cachePath, inner);
+        using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
         // no-cache responses are still stored
         var content = await client.GetStringAsync("http://example.com/nocache");
         AreEqual("content", content);
 
-        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(1, binFiles.Length);
     }
 
     [Test]
     public async Task HttpClientFactory_NamedClient()
     {
-        using var cache = new ReplicantCache(cachePath);
+        var path = CachePath();
+        using var cache = new ReplicantCache(path);
         var services = new ServiceCollection();
         services.AddSingleton(cache);
         services.AddHttpClient("CachedClient")
@@ -275,14 +288,15 @@ public class CachingHandlerTests
         var content2 = await client.GetStringAsync("http://example.com/factory");
         AreEqual("factory content", content2);
 
-        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(1, binFiles.Length);
     }
 
     [Test]
     public async Task HttpClientFactory_SharedCache()
     {
-        using var cache = new ReplicantCache(cachePath);
+        var path = CachePath();
+        using var cache = new ReplicantCache(path);
         var services = new ServiceCollection();
         services.AddSingleton(cache);
         services.AddHttpClient("Client1")
@@ -312,14 +326,15 @@ public class CachingHandlerTests
         var content2 = await client2.GetStringAsync("http://example.com/shared");
         AreEqual("shared content", content2);
 
-        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(1, binFiles.Length);
     }
 
     [Test]
     public async Task HttpClientFactory_NonGetPassthrough()
     {
-        using var cache = new ReplicantCache(cachePath);
+        var path = CachePath();
+        using var cache = new ReplicantCache(path);
         var services = new ServiceCollection();
         services.AddSingleton(cache);
         services.AddHttpClient("CachedClient")
@@ -343,61 +358,67 @@ public class CachingHandlerTests
         AreEqual("post response", content);
 
         // POST should not be cached
-        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(0, binFiles.Length);
     }
 
     [Test]
     public void DuplicateDirectory_Throws()
     {
-        using var handler1 = new ReplicantHandler(cachePath, new MockHttpMessageHandler());
+        var path = CachePath();
+        using var handler1 = new ReplicantHandler(path, new MockHttpMessageHandler());
 
-        Assert.Throws<InvalidOperationException>(
-            () => new ReplicantHandler(cachePath, new MockHttpMessageHandler()));
+        Assert.Throws<Exception>(
+            () => new ReplicantHandler(path, new MockHttpMessageHandler()));
     }
 
     [Test]
     public void DuplicateDirectory_AfterDispose_Allowed()
     {
-        var handler1 = new ReplicantHandler(cachePath, new MockHttpMessageHandler());
+        var path = CachePath();
+        var handler1 = new ReplicantHandler(path, new MockHttpMessageHandler());
         handler1.Dispose();
 
         // After dispose, same directory can be reused
-        using var handler2 = new ReplicantHandler(cachePath, new MockHttpMessageHandler());
+        using var handler2 = new ReplicantHandler(path, new MockHttpMessageHandler());
     }
 
     [Test]
     public void DuplicateDirectory_SharedCache_Throws()
     {
-        using var cache = new ReplicantCache(cachePath);
+        var path = CachePath();
+        using var cache = new ReplicantCache(path);
 
-        Assert.Throws<InvalidOperationException>(
-            () => new ReplicantCache(cachePath));
+        Assert.Throws<Exception>(
+            () => new ReplicantCache(path));
     }
 
     [Test]
     public void DuplicateDirectory_SharedCache_AfterDispose_Allowed()
     {
-        var cache1 = new ReplicantCache(cachePath);
+        var path = CachePath();
+        var cache1 = new ReplicantCache(path);
         cache1.Dispose();
 
-        using var cache2 = new ReplicantCache(cachePath);
+        using var cache2 = new ReplicantCache(path);
     }
 
     [Test]
     public void DuplicateDirectory_HandlerAndCache_Throws()
     {
-        using var handler = new ReplicantHandler(cachePath, new MockHttpMessageHandler());
+        var path = CachePath();
+        using var handler = new ReplicantHandler(path, new MockHttpMessageHandler());
 
-        Assert.Throws<InvalidOperationException>(
-            () => new ReplicantCache(cachePath));
+        Assert.Throws<Exception>(
+            () => new ReplicantCache(path));
     }
 
     [Test]
     public void DuplicateDirectory_SharedCacheHandler_DoesNotThrow()
     {
+        var path = CachePath();
         // Multiple handlers sharing a ReplicantCache should not throw
-        using var cache = new ReplicantCache(cachePath);
+        using var cache = new ReplicantCache(path);
         using var handler1 = new ReplicantHandler(cache);
         using var handler2 = new ReplicantHandler(cache);
     }
@@ -405,10 +426,11 @@ public class CachingHandlerTests
     [Test]
     public Task AddReplicantCache_CalledTwice_Throws()
     {
+        var path = CachePath();
         var services = new ServiceCollection();
-        services.AddReplicantCache(cachePath);
+        services.AddReplicantCache(path);
 
-        return Throws(() => services.AddReplicantCache(cachePath));
+        return Throws(() => services.AddReplicantCache(path));
     }
 
     [Test]
