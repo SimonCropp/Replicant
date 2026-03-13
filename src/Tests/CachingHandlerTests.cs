@@ -403,13 +403,25 @@ public class CachingHandlerTests
     }
 
     [Test]
-    public void AddReplicantCache_CalledTwice_Throws()
+    public Task AddReplicantCache_CalledTwice_Throws()
     {
         var services = new ServiceCollection();
         services.AddReplicantCache(cachePath);
 
-        Assert.Throws<InvalidOperationException>(
-            () => services.AddReplicantCache(cachePath));
+        return Verifier.Throws(() => services.AddReplicantCache(cachePath));
+    }
+
+    [Test]
+    public Task AddReplicantCaching_WithoutCache_Throws()
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient("CachedClient")
+            .AddReplicantCaching();
+
+        using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+
+        return Verifier.Throws(() => factory.CreateClient("CachedClient"));
     }
 }
 

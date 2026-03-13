@@ -40,9 +40,13 @@ public static class ReplicantServiceExtensions
         bool staleIfError = false)
     {
         builder.AddHttpMessageHandler(
-            provider => new ReplicantHandler(
-                provider.GetRequiredService<ReplicantCache>(),
-                staleIfError));
+            provider =>
+            {
+                var cache = provider.GetService<ReplicantCache>()
+                    ?? throw new InvalidOperationException(
+                        "No ReplicantCache has been registered. Call services.AddReplicantCache() before AddReplicantCaching().");
+                return new ReplicantHandler(cache, staleIfError);
+            });
         return builder;
     }
 }
