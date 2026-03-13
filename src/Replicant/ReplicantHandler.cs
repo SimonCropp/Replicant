@@ -6,6 +6,7 @@ namespace Replicant;
 public class ReplicantHandler : DelegatingHandler
 {
     CacheSession session;
+    bool ownsSession = true;
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/>.
@@ -14,7 +15,7 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="maxEntries">The maximum entries to store in the cache.</param>
     /// <param name="staleIfError">If true, return stale cached content when the server returns an error.</param>
     public ReplicantHandler(string directory, int maxEntries = 1000, bool staleIfError = false) =>
-        session = new(new(directory, maxEntries), staleIfError);
+        session = new(new CacheStore(directory, maxEntries), staleIfError);
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/>.
@@ -25,7 +26,33 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="staleIfError">If true, return stale cached content when the server returns an error.</param>
     public ReplicantHandler(string directory, HttpMessageHandler innerHandler, int maxEntries = 1000, bool staleIfError = false)
         : base(innerHandler) =>
-        session = new(new(directory, maxEntries), staleIfError);
+        session = new(new CacheStore(directory, maxEntries), staleIfError);
+
+    /// <summary>
+    /// Instantiate a new instance of <see cref="ReplicantHandler"/> using a shared <see cref="ReplicantCache"/>.
+    /// The cache is not disposed when this handler is disposed.
+    /// </summary>
+    /// <param name="cache">The shared cache.</param>
+    /// <param name="staleIfError">If true, return stale cached content when the server returns an error.</param>
+    public ReplicantHandler(ReplicantCache cache, bool staleIfError = false)
+    {
+        session = new(cache.Store, staleIfError);
+        ownsSession = false;
+    }
+
+    /// <summary>
+    /// Instantiate a new instance of <see cref="ReplicantHandler"/> using a shared <see cref="ReplicantCache"/>.
+    /// The cache is not disposed when this handler is disposed.
+    /// </summary>
+    /// <param name="cache">The shared cache.</param>
+    /// <param name="innerHandler">The inner <see cref="HttpMessageHandler"/>.</param>
+    /// <param name="staleIfError">If true, return stale cached content when the server returns an error.</param>
+    public ReplicantHandler(ReplicantCache cache, HttpMessageHandler innerHandler, bool staleIfError = false)
+        : base(innerHandler)
+    {
+        session = new(cache.Store, staleIfError);
+        ownsSession = false;
+    }
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, Cancel cancel)
@@ -93,7 +120,7 @@ public class ReplicantHandler : DelegatingHandler
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing)
+        if (disposing && ownsSession)
         {
             session.Dispose();
         }

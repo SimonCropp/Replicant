@@ -117,7 +117,37 @@ var handler = new ReplicantHandler(cacheDirectory)
 using var client = new HttpClient(handler);
 var response = await client.GetAsync("https://example.com");
 ```
-<sup><a href='/src/Tests/CachingHandlerTests.cs#L21-L30' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReplicantHandlerUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L23-L32' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReplicantHandlerUsage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### DelegatingHandler with HttpClientFactory
+
+ReplicantHandler integrates with [HttpClientFactory](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests) using `AddHttpMessageHandler`:
+
+<!-- snippet: HttpClientFactoryUsage -->
+<a id='snippet-HttpClientFactoryUsage'></a>
+```cs
+var services = new ServiceCollection();
+services.AddHttpClient("CachedClient")
+    .AddHttpMessageHandler(() => new ReplicantHandler(cacheDirectory));
+```
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L37-L43' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryUsage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+To share a single cache (and purge timer) across multiple named clients, register a `ReplicantCache` as a singleton:
+
+<!-- snippet: HttpClientFactorySharedCacheUsage -->
+<a id='snippet-HttpClientFactorySharedCacheUsage'></a>
+```cs
+var services = new ServiceCollection();
+services.AddSingleton(new ReplicantCache(cacheDirectory));
+services.AddHttpClient("CachedClient")
+    .AddHttpMessageHandler(
+        provider => new ReplicantHandler(
+            provider.GetRequiredService<ReplicantCache>()));
+```
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L48-L57' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactorySharedCacheUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

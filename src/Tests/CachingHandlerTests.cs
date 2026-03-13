@@ -2,6 +2,8 @@
 // ReSharper disable UnusedVariable
 #if DEBUG
 
+using Microsoft.Extensions.DependencyInjection;
+
 [TestFixture]
 public class CachingHandlerTests
 {
@@ -26,6 +28,31 @@ public class CachingHandlerTests
         };
         using var client = new HttpClient(handler);
         var response = await client.GetAsync("https://example.com");
+
+        #endregion
+    }
+
+    static void HttpClientFactoryUsage(string cacheDirectory)
+    {
+        #region HttpClientFactoryUsage
+
+        var services = new ServiceCollection();
+        services.AddHttpClient("CachedClient")
+            .AddHttpMessageHandler(() => new ReplicantHandler(cacheDirectory));
+
+        #endregion
+    }
+
+    static void HttpClientFactorySharedCacheUsage(string cacheDirectory)
+    {
+        #region HttpClientFactorySharedCacheUsage
+
+        var services = new ServiceCollection();
+        services.AddSingleton(new ReplicantCache(cacheDirectory));
+        services.AddHttpClient("CachedClient")
+            .AddHttpMessageHandler(
+                provider => new ReplicantHandler(
+                    provider.GetRequiredService<ReplicantCache>()));
 
         #endregion
     }
@@ -222,6 +249,105 @@ public class CachingHandlerTests
 
         var binFiles = Directory.GetFiles(cachePath, "*.bin");
         AreEqual(1, binFiles.Length);
+    }
+
+    [Test]
+    public async Task HttpClientFactory_NamedClient()
+    {
+        using var cache = new ReplicantCache(cachePath);
+        var services = new ServiceCollection();
+        services.AddSingleton(cache);
+        services.AddHttpClient("CachedClient")
+            .ConfigurePrimaryHttpMessageHandler(
+                () => new MockHttpMessageHandler(
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("factory content")
+                    }))
+            .AddHttpMessageHandler(
+                p => new ReplicantHandler(p.GetRequiredService<ReplicantCache>()));
+
+        using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+        using var client = factory.CreateClient("CachedClient");
+
+        var content1 = await client.GetStringAsync("http://example.com/factory");
+        AreEqual("factory content", content1);
+
+        // Second request served from cache
+        var content2 = await client.GetStringAsync("http://example.com/factory");
+        AreEqual("factory content", content2);
+
+        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        AreEqual(1, binFiles.Length);
+    }
+
+    [Test]
+    public async Task HttpClientFactory_SharedCache()
+    {
+        using var cache = new ReplicantCache(cachePath);
+        var services = new ServiceCollection();
+        services.AddSingleton(cache);
+        services.AddHttpClient("Client1")
+            .ConfigurePrimaryHttpMessageHandler(
+                () => new MockHttpMessageHandler(
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("shared content")
+                    }))
+            .AddHttpMessageHandler(
+                p => new ReplicantHandler(p.GetRequiredService<ReplicantCache>()));
+        services.AddHttpClient("Client2")
+            .ConfigurePrimaryHttpMessageHandler(() => new MockHttpMessageHandler())
+            .AddHttpMessageHandler(
+                p => new ReplicantHandler(p.GetRequiredService<ReplicantCache>()));
+
+        using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+
+        // Client1 fetches and caches
+        using var client1 = factory.CreateClient("Client1");
+        var content1 = await client1.GetStringAsync("http://example.com/shared");
+        AreEqual("shared content", content1);
+
+        // Client2 serves from the shared cache (mock has no responses)
+        using var client2 = factory.CreateClient("Client2");
+        var content2 = await client2.GetStringAsync("http://example.com/shared");
+        AreEqual("shared content", content2);
+
+        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        AreEqual(1, binFiles.Length);
+    }
+
+    [Test]
+    public async Task HttpClientFactory_NonGetPassthrough()
+    {
+        using var cache = new ReplicantCache(cachePath);
+        var services = new ServiceCollection();
+        services.AddSingleton(cache);
+        services.AddHttpClient("CachedClient")
+            .ConfigurePrimaryHttpMessageHandler(
+                () => new MockHttpMessageHandler(
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("post response")
+                    }))
+            .AddHttpMessageHandler(
+                p => new ReplicantHandler(p.GetRequiredService<ReplicantCache>()));
+
+        using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+        using var client = factory.CreateClient("CachedClient");
+
+        var response = await client.PostAsync(
+            "http://example.com/post",
+            new StringContent("body"));
+        var content = await response.Content.ReadAsStringAsync();
+        AreEqual("post response", content);
+
+        // POST should not be cached
+        var binFiles = Directory.GetFiles(cachePath, "*.bin");
+        AreEqual(0, binFiles.Length);
     }
 }
 
