@@ -117,7 +117,7 @@ var handler = new ReplicantHandler(cacheDirectory)
 using var client = new HttpClient(handler);
 var response = await client.GetAsync("https://example.com");
 ```
-<sup><a href='/src/Tests/CachingHandlerTests.cs#L23-L32' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReplicantHandlerUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L22-L31' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReplicantHandlerUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -132,7 +132,7 @@ var services = new ServiceCollection();
 services.AddHttpClient("CachedClient")
     .AddHttpMessageHandler(() => new ReplicantHandler(cacheDirectory));
 ```
-<sup><a href='/src/Tests/CachingHandlerTests.cs#L37-L43' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L36-L42' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 To share a single cache (and purge timer) across multiple named clients, register a `ReplicantCache` as a singleton:
@@ -147,7 +147,7 @@ services.AddHttpClient("CachedClient")
         provider => new ReplicantHandler(
             provider.GetRequiredService<ReplicantCache>()));
 ```
-<sup><a href='/src/Tests/CachingHandlerTests.cs#L48-L57' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactorySharedCacheUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L47-L56' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactorySharedCacheUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

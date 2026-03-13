@@ -1,6 +1,5 @@
 // ReSharper disable ShortLivedHttpClient
 // ReSharper disable UnusedVariable
-#if DEBUG
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -418,5 +417,3 @@ class MockHttpMessageHandler(params HttpResponseMessage[] responses) :
         return Task.FromResult((HttpResponseMessage) responses.Current!);
     }
 }
-
-#endif
