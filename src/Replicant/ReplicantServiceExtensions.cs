@@ -19,7 +19,7 @@ public static class ReplicantServiceExtensions
     {
         if (services.Any(_ => _.ServiceType == typeof(ReplicantCache)))
         {
-            throw new InvalidOperationException("A ReplicantCache has already been registered.");
+            throw new("A ReplicantCache has already been registered.");
         }
 
         services.AddSingleton(_ => new ReplicantCache(directory, maxEntries));
@@ -40,13 +40,12 @@ public static class ReplicantServiceExtensions
             provider =>
             {
                 var cache = provider.GetService<ReplicantCache>();
-                if (cache == null)
+                if (cache != null)
                 {
-                    throw new InvalidOperationException(
-                        "No ReplicantCache has been registered. Call services.AddReplicantCache() before AddReplicantCaching().");
+                    return new ReplicantHandler(cache, staleIfError);
                 }
 
-                return new ReplicantHandler(cache, staleIfError);
+                throw new("No ReplicantCache has been registered. Call services.AddReplicantCache() before AddReplicantCaching().");
             });
         return builder;
     }

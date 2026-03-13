@@ -1,4 +1,4 @@
 ﻿{
-  Type: InvalidOperationException,
+  Type: Exception,
   Message: No ReplicantCache has been registered. Call services.AddReplicantCache() before AddReplicantCaching().
 }

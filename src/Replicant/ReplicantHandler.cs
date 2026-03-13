@@ -57,7 +57,8 @@ public class ReplicantHandler : DelegatingHandler
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, Cancel cancel)
     {
-        if (request.Method != HttpMethod.Get && request.Method != HttpMethod.Head)
+        if (request.Method != HttpMethod.Get &&
+            request.Method != HttpMethod.Head)
         {
             return await base.SendAsync(request, cancel);
         }
@@ -65,11 +66,11 @@ public class ReplicantHandler : DelegatingHandler
         var uri = request.RequestUri!;
         var (_, _, resultFile, response) = await session.ProcessAsync(
             uri,
-            timestamp =>
+            possibleTimestamp =>
             {
-                if (timestamp is { } t)
+                if (possibleTimestamp is { } timestamp)
                 {
-                    t.ApplyHeadersToRequest(request);
+                    timestamp.ApplyHeadersToRequest(request);
                 }
 
                 return base.SendAsync(request, cancel);

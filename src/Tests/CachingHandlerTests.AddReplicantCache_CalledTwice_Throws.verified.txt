@@ -1,4 +1,4 @@
 ﻿{
-  Type: InvalidOperationException,
+  Type: Exception,
   Message: A ReplicantCache has already been registered.
 }

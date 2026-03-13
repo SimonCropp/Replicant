@@ -32,9 +32,7 @@ class CacheStore
 
         if (!activeDirectories.TryAdd(this.directory, 0))
         {
-            throw new InvalidOperationException(
-                $"A cache already exists for directory '{this.directory}'. " +
-                "Use a shared ReplicantCache instance instead of creating multiple caches for the same directory.");
+            throw new($"A cache already exists for directory '{this.directory}'. Use a shared ReplicantCache instance instead of creating multiple caches for the same directory.");
         }
 
         this.maxEntries = maxEntries;
