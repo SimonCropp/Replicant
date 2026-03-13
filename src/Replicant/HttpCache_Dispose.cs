@@ -1,4 +1,4 @@
-﻿namespace Replicant;
+namespace Replicant;
 
 public partial class HttpCache
 {
@@ -10,7 +10,7 @@ public partial class HttpCache
             client!.Dispose();
         }
 
-        timer.Dispose();
+        store.Dispose();
     }
 
     /// <inheritdoc/>
@@ -20,11 +20,7 @@ public partial class HttpCache
         {
             client!.Dispose();
         }
-#if NET7_0_OR_GREATER
-        return timer.DisposeAsync();
-#else
-        timer.Dispose();
-        return default;
-#endif
+
+        return store.DisposeAsync();
     }
 }

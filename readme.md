@@ -103,6 +103,24 @@ NotNull(httpCache);
 <!-- endSnippet -->
 
 
+### DelegatingHandler
+
+ReplicantHandler can be used as a DelegatingHandler in the HttpClient pipeline:
+
+<!-- snippet: ReplicantHandlerUsage -->
+<a id='snippet-ReplicantHandlerUsage'></a>
+```cs
+var handler = new ReplicantHandler(cacheDirectory)
+{
+    InnerHandler = new HttpClientHandler()
+};
+using var client = new HttpClient(handler);
+var response = await client.GetAsync("https://example.com");
+```
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L19-L28' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReplicantHandlerUsage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
 ### Get a string
 
 <!-- snippet: string -->
