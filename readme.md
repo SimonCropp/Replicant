@@ -282,6 +282,85 @@ using var response = await httpCache.ResponseAsync("https://httpbin.org/status/2
 <!-- endSnippet -->
 
 
+## Cache decision flow
+
+```mermaid
+graph TD
+    Request[Incoming HTTP Request]
+    IsGetOrHead{GET or HEAD?}
+    Passthrough[Pass through to server]
+    CacheExists{Cached file<br/>exists for URI?}
+    SendNew[Send request to server]
+    IsSuccess{Response 2xx?}
+    ThrowException[Throw exception]
+    IsNoStoreNew{Cache-Control:<br/>no-store?}
+    ReturnDirect[Return response directly<br/>nothing cached]
+    Store[Store response to disk]
+    ReturnCached[Return content from cache]
+    IsExpired{Expired?<br/>file last-write-time<br/>vs now}
+    CacheHit[Cache hit<br/>return cached content]
+    SendConditional["Send conditional request<br/>If-Modified-Since: {last-modified}<br/>If-None-Match: {etag}"]
+    IsNetworkError{Network error?}
+    IsStaleIfError{staleIfError<br/>enabled?}
+    ReturnStale[Return stale<br/>cached content]
+    IsNoStore{Cache-Control:<br/>no-store?}
+    IsNoCache{Cache-Control:<br/>no-cache?}
+    StoreRevalidate[Store response<br/>always revalidate next time]
+    IsNotModified{HTTP 304<br/>Not Modified?}
+    IsSuccessRevalidate{HTTP 2xx?}
+    IsStaleIfErrorRevalidate{staleIfError<br/>enabled?}
+
+    Request --> IsGetOrHead
+    IsGetOrHead -->|No| Passthrough
+    IsGetOrHead -->|Yes| CacheExists
+    CacheExists -->|No| SendNew
+    SendNew --> IsSuccess
+    IsSuccess -->|No| ThrowException
+    IsSuccess -->|Yes| IsNoStoreNew
+    IsNoStoreNew -->|Yes| ReturnDirect
+    IsNoStoreNew -->|No| Store
+    Store --> ReturnCached
+    CacheExists -->|Yes| IsExpired
+    IsExpired -->|Not expired| CacheHit
+    IsExpired -->|Expired| SendConditional
+    SendConditional --> IsNetworkError
+    IsNetworkError -->|Yes| IsStaleIfError
+    IsStaleIfError -->|Yes| ReturnStale
+    IsStaleIfError -->|No| ThrowException
+    IsNetworkError -->|No| IsNoStore
+    IsNoStore -->|Yes| ReturnDirect
+    IsNoStore -->|No| IsNoCache
+    IsNoCache -->|Yes| StoreRevalidate
+    StoreRevalidate --> ReturnCached
+    IsNoCache -->|No| IsNotModified
+    IsNotModified -->|Yes| CacheHit
+    IsNotModified -->|No| IsSuccessRevalidate
+    IsSuccessRevalidate -->|Yes| Store
+    IsSuccessRevalidate -->|No| IsStaleIfErrorRevalidate
+    IsStaleIfErrorRevalidate -->|Yes| ReturnStale
+    IsStaleIfErrorRevalidate -->|No| ThrowException
+```
+
+### How expiry is determined
+
+When storing a response, the cache expiry is derived from response headers in this order:
+
+ 1. `Expires` header — used as the absolute expiry time
+ 2. `Cache-Control: max-age` — expiry = now + max-age
+ 3. Neither present — no expiry, file last-write-time set to min date (always revalidate)
+
+The expiry is persisted as the cached file's **last-write-time** in the filesystem.
+
+### Conditional request headers
+
+When a cached entry has expired, a conditional request is sent with:
+
+ * `If-Modified-Since` — from the `Last-Modified` value stored in the cache filename
+ * `If-None-Match` — from the `ETag` value stored in the cache filename (if present)
+
+If the server responds `304 Not Modified`, the cached content is reused without re-downloading.
+
+
 ## Influences / Alternatives
 
  * [Tavis.HttpCache](https://github.com/tavis-software/Tavis.HttpCache)
