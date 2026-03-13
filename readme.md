@@ -141,13 +141,11 @@ To share a single cache (and purge timer) across multiple named clients, registe
 <a id='snippet-HttpClientFactorySharedCacheUsage'></a>
 ```cs
 var services = new ServiceCollection();
-services.AddSingleton(new ReplicantCache(cacheDirectory));
+services.AddReplicantCache(cacheDirectory);
 services.AddHttpClient("CachedClient")
-    .AddHttpMessageHandler(
-        provider => new ReplicantHandler(
-            provider.GetRequiredService<ReplicantCache>()));
+    .AddReplicantCaching();
 ```
-<sup><a href='/src/Tests/CachingHandlerTests.cs#L47-L56' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactorySharedCacheUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L47-L54' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactorySharedCacheUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

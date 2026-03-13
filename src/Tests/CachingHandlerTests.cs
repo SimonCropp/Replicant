@@ -47,11 +47,9 @@ public class CachingHandlerTests
         #region HttpClientFactorySharedCacheUsage
 
         var services = new ServiceCollection();
-        services.AddSingleton(new ReplicantCache(cacheDirectory));
+        services.AddReplicantCache(cacheDirectory);
         services.AddHttpClient("CachedClient")
-            .AddHttpMessageHandler(
-                provider => new ReplicantHandler(
-                    provider.GetRequiredService<ReplicantCache>()));
+            .AddReplicantCaching();
 
         #endregion
     }
@@ -402,6 +400,16 @@ public class CachingHandlerTests
         using var cache = new ReplicantCache(cachePath);
         using var handler1 = new ReplicantHandler(cache);
         using var handler2 = new ReplicantHandler(cache);
+    }
+
+    [Test]
+    public void AddReplicantCache_CalledTwice_Throws()
+    {
+        var services = new ServiceCollection();
+        services.AddReplicantCache(cachePath);
+
+        Assert.Throws<InvalidOperationException>(
+            () => services.AddReplicantCache(cachePath));
     }
 }
 
