@@ -61,20 +61,30 @@ public partial class HttpCache :
         Cancel cancel = default) =>
         DownloadAsync(new Uri(uri), staleIfError, modifyRequest, cancel);
 
-    internal Task<Result> DownloadAsync(
+    internal async Task<Result> DownloadAsync(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancel cancel = default)
     {
-        var contentFile = store.FindContentFileForUri(uri);
+        var session = new CacheSession(store, staleIfError);
+        var (revalidated, stored, resultFile, response) = await session.ProcessAsync(
+            uri,
+            async timestamp =>
+            {
+                using var request = BuildRequest(uri, modifyRequest);
+                if (timestamp is { } t && !(t.Expiry < DateTimeOffset.UtcNow))
+                {
+                    t.ApplyHeadersToRequest(request);
+                }
 
-        if (contentFile == null)
-        {
-            return HandleFileMissingAsync(uri, modifyRequest, cancel);
-        }
+                return await GetClient().SendAsyncEx(request, cancel);
+            },
+            cancel);
 
-        return HandleFileExistsAsync(uri, staleIfError, modifyRequest, cancel, contentFile.Value);
+        return response != null
+            ? new(response)
+            : new(resultFile!.Value, revalidated, stored);
     }
 
     internal Result Download(
@@ -90,55 +100,17 @@ public partial class HttpCache :
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancel cancel = default)
     {
-        var contentFile = store.FindContentFileForUri(uri);
-
-        if (contentFile == null)
-        {
-            return HandleFileMissing(uri, modifyRequest, cancel);
-        }
-
-        return HandleFileExists(uri, staleIfError, modifyRequest, contentFile.Value, cancel);
-    }
-
-    async Task<Result> HandleFileExistsAsync(
-        Uri uri,
-        bool staleIfError,
-        Action<HttpRequestMessage>? modifyRequest,
-        Cancel cancel,
-        FilePair file)
-    {
-        var (revalidated, stored, resultFile, response) = await store.RevalidateAsync(
-            file, staleIfError, uri,
-            async timestamp =>
-            {
-                using var request = BuildRequest(uri, modifyRequest);
-                if (!(timestamp.Expiry < DateTimeOffset.UtcNow))
-                {
-                    timestamp.ApplyHeadersToRequest(request);
-                }
-
-                return await GetClient().SendAsyncEx(request, cancel);
-            },
-            cancel);
-
-        return response != null
-            ? new(response)
-            : new(resultFile!.Value, revalidated, stored);
-    }
-
-    Result HandleFileExists(
-        Uri uri,
-        bool staleIfError,
-        Action<HttpRequestMessage>? modifyRequest,
-        FilePair contentFile,
-        Cancel cancel)
-    {
-        var (revalidated, stored, resultFile, response) = store.Revalidate(
-            contentFile, staleIfError, uri,
+        var session = new CacheSession(store, staleIfError);
+        var (revalidated, stored, resultFile, response) = session.Process(
+            uri,
             timestamp =>
             {
                 using var request = BuildRequest(uri, modifyRequest);
-                timestamp.ApplyHeadersToRequest(request);
+                if (timestamp is { } t)
+                {
+                    t.ApplyHeadersToRequest(request);
+                }
+
                 return GetClient().SendEx(request, cancel);
             },
             cancel);
@@ -146,28 +118,6 @@ public partial class HttpCache :
         return response != null
             ? new(response)
             : new(resultFile!.Value, revalidated, stored);
-    }
-
-    async Task<Result> HandleFileMissingAsync(
-        Uri uri,
-        Action<HttpRequestMessage>? modifyRequest,
-        Cancel cancel)
-    {
-        using var request = BuildRequest(uri, modifyRequest);
-        var response = await GetClient().SendAsyncEx(request, cancel);
-        var (file, passthrough) = await store.StoreNewResponseAsync(response, uri, cancel);
-        return file != null ? new(file.Value, true, true) : new(passthrough!);
-    }
-
-    Result HandleFileMissing(
-        Uri uri,
-        Action<HttpRequestMessage>? modifyRequest,
-        Cancel cancel)
-    {
-        using var request = BuildRequest(uri, modifyRequest);
-        var response = GetClient().SendEx(request, cancel);
-        var (file, passthrough) = store.StoreNewResponse(response, uri, cancel);
-        return file != null ? new(file.Value, true, true) : new(passthrough!);
     }
 
     static HttpRequestMessage BuildRequest(Uri uri, Action<HttpRequestMessage>? modifyRequest)

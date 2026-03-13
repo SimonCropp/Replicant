@@ -101,13 +101,13 @@ class CacheStore
         }
     }
 
-    public async Task<FilePair> StoreResponseAsync(
+    public Task<FilePair> StoreResponseAsync(
         HttpResponseMessage response, Uri uri, Cancel cancel)
     {
         var timestamp = Timestamp.FromResponse(uri, response);
         var meta = MetaData.FromEnumerables(
             uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders());
-        return await AddItemAsync(cancel, c => response.Content.ReadAsStreamAsync(c), meta, timestamp);
+        return AddItemAsync(cancel, c => response.Content.ReadAsStreamAsync(c), meta, timestamp);
     }
 
     public FilePair StoreResponse(
@@ -152,174 +152,6 @@ class CacheStore
         }
 
         return new(contentFile, metaFile);
-    }
-
-    public async Task<(bool stored, FilePair? file)> HandleCacheStatusAsync(
-        HttpResponseMessage response, bool staleIfError, FilePair existingFile, Uri uri, Cancel cancel)
-    {
-        var status = response.GetCacheStatus(staleIfError);
-        switch (status)
-        {
-            case CacheStatus.Hit:
-            case CacheStatus.UseStaleDueToError:
-            {
-                response.Dispose();
-                return (false, existingFile);
-            }
-            case CacheStatus.Stored:
-            case CacheStatus.Revalidate:
-            {
-                using (response)
-                {
-                    return (true, await StoreResponseAsync(response, uri, cancel));
-                }
-            }
-            case CacheStatus.NoStore:
-            {
-                return (false, null);
-            }
-            default:
-            {
-                response.Dispose();
-                throw new ArgumentOutOfRangeException();
-            }
-        }
-    }
-
-    public (bool stored, FilePair? file) HandleCacheStatus(
-        HttpResponseMessage response, bool staleIfError, FilePair existingFile, Uri uri, Cancel cancel)
-    {
-        var status = response.GetCacheStatus(staleIfError);
-        switch (status)
-        {
-            case CacheStatus.Hit:
-            case CacheStatus.UseStaleDueToError:
-            {
-                response.Dispose();
-                return (false, existingFile);
-            }
-            case CacheStatus.Stored:
-            case CacheStatus.Revalidate:
-            {
-                using (response)
-                {
-                    return (true, StoreResponse(response, uri, cancel));
-                }
-            }
-            case CacheStatus.NoStore:
-            {
-                return (false, null);
-            }
-            default:
-            {
-                response.Dispose();
-                throw new ArgumentOutOfRangeException();
-            }
-        }
-    }
-
-    public async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> RevalidateAsync(
-        FilePair existingFile,
-        bool staleIfError,
-        Uri uri,
-        Func<Timestamp, Task<HttpResponseMessage>> sendAsync,
-        Cancel cancel)
-    {
-        var now = DateTimeOffset.UtcNow;
-        var timestamp = Timestamp.FromPath(existingFile.Content);
-        var expiry = timestamp.Expiry;
-
-        if (expiry == null || expiry > now)
-        {
-            return (false, false, existingFile, null);
-        }
-
-        HttpResponseMessage response;
-        try
-        {
-            response = await sendAsync(timestamp);
-        }
-        catch (Exception exception)
-        {
-            if (ShouldReturnStaleIfError(staleIfError, exception, cancel))
-            {
-                return (true, false, existingFile, null);
-            }
-
-            throw;
-        }
-
-        var (stored, resultFile) = await HandleCacheStatusAsync(response, staleIfError, existingFile, uri, cancel);
-        return resultFile == null
-            ? (true, stored, null, response)
-            : (true, stored, resultFile, null);
-    }
-
-    public (bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response) Revalidate(
-        FilePair existingFile,
-        bool staleIfError,
-        Uri uri,
-        Func<Timestamp, HttpResponseMessage> send,
-        Cancel cancel)
-    {
-        var now = DateTimeOffset.UtcNow;
-        var timestamp = Timestamp.FromPath(existingFile.Content);
-        var expiry = timestamp.Expiry;
-
-        if (expiry == null || expiry > now)
-        {
-            return (false, false, existingFile, null);
-        }
-
-        HttpResponseMessage response;
-        try
-        {
-            response = send(timestamp);
-        }
-        catch (Exception exception)
-        {
-            if (ShouldReturnStaleIfError(staleIfError, exception, cancel))
-            {
-                return (true, false, existingFile, null);
-            }
-
-            throw;
-        }
-
-        var (stored, resultFile) = HandleCacheStatus(response, staleIfError, existingFile, uri, cancel);
-        return resultFile == null
-            ? (true, stored, null, response)
-            : (true, stored, resultFile, null);
-    }
-
-    public async Task<(FilePair? file, HttpResponseMessage? response)> StoreNewResponseAsync(
-        HttpResponseMessage response, Uri uri, Cancel cancel)
-    {
-        response.EnsureSuccess();
-        if (response.IsNoStore())
-        {
-            return (null, response);
-        }
-
-        using (response)
-        {
-            return (await StoreResponseAsync(response, uri, cancel), null);
-        }
-    }
-
-    public (FilePair? file, HttpResponseMessage? response) StoreNewResponse(
-        HttpResponseMessage response, Uri uri, Cancel cancel)
-    {
-        response.EnsureSuccess();
-        if (response.IsNoStore())
-        {
-            return (null, response);
-        }
-
-        using (response)
-        {
-            return (StoreResponse(response, uri, cancel), null);
-        }
     }
 
     public static HttpResponseMessage BuildResponseFromCache(FilePair file)
