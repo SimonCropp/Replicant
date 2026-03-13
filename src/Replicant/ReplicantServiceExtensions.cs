@@ -1,6 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
 namespace Replicant;
 
 /// <summary>
@@ -20,7 +17,7 @@ public static class ReplicantServiceExtensions
         string directory,
         int maxEntries = 1000)
     {
-        if (services.Any(d => d.ServiceType == typeof(ReplicantCache)))
+        if (services.Any(_ => _.ServiceType == typeof(ReplicantCache)))
         {
             throw new InvalidOperationException("A ReplicantCache has already been registered.");
         }
@@ -42,9 +39,13 @@ public static class ReplicantServiceExtensions
         builder.AddHttpMessageHandler(
             provider =>
             {
-                var cache = provider.GetService<ReplicantCache>()
-                    ?? throw new InvalidOperationException(
+                var cache = provider.GetService<ReplicantCache>();
+                if (cache == null)
+                {
+                    throw new InvalidOperationException(
                         "No ReplicantCache has been registered. Call services.AddReplicantCache() before AddReplicantCaching().");
+                }
+
                 return new ReplicantHandler(cache, staleIfError);
             });
         return builder;

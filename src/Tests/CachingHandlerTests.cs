@@ -408,7 +408,7 @@ public class CachingHandlerTests
         var services = new ServiceCollection();
         services.AddReplicantCache(cachePath);
 
-        return Verifier.Throws(() => services.AddReplicantCache(cachePath));
+        return Throws(() => services.AddReplicantCache(cachePath));
     }
 
     [Test]
@@ -421,19 +421,6 @@ public class CachingHandlerTests
         using var provider = services.BuildServiceProvider();
         var factory = provider.GetRequiredService<IHttpClientFactory>();
 
-        return Verifier.Throws(() => factory.CreateClient("CachedClient"));
-    }
-}
-
-class MockHttpMessageHandler(params HttpResponseMessage[] responses) :
-    HttpMessageHandler
-{
-    IEnumerator responses = responses.GetEnumerator();
-
-    protected override Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, Cancel cancel)
-    {
-        responses.MoveNext();
-        return Task.FromResult((HttpResponseMessage) responses.Current!);
+        return Throws(() => factory.CreateClient("CachedClient"));
     }
 }

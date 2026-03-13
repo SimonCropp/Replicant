@@ -42,7 +42,8 @@ class CacheSession(CacheStore store, bool staleIfError)
         var timestamp = Timestamp.FromPath(existingFile.Content);
         var expiry = timestamp.Expiry;
 
-        if (expiry == null || expiry > now)
+        if (expiry == null ||
+            expiry > now)
         {
             return (false, false, existingFile, null);
         }
@@ -78,7 +79,8 @@ class CacheSession(CacheStore store, bool staleIfError)
         var timestamp = Timestamp.FromPath(existingFile.Content);
         var expiry = timestamp.Expiry;
 
-        if (expiry == null || expiry > now)
+        if (expiry == null ||
+            expiry > now)
         {
             return (false, false, existingFile, null);
         }

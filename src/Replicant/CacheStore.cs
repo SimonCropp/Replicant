@@ -15,6 +15,11 @@ class CacheStore
         WriteIndented = true
     };
 
+    static JsonWriterOptions writerOptions = new()
+    {
+        Indented = true
+    };
+
     public CacheStore(string directory, int maxEntries, Action? onTimerPurge = null)
     {
         Guard.AgainstNullOrEmpty(directory, nameof(directory));
@@ -46,6 +51,7 @@ class CacheStore
         var file = Directory
             .EnumerateFiles(directory, $"{hash}_*.bin")
             .MinBy(File.GetLastWriteTime);
+
         if (file == null)
         {
             return null;
@@ -97,7 +103,7 @@ class CacheStore
         {
             using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
             using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
-            using (var writer = new Utf8JsonWriter(metaFileStream, new() { Indented = true }))
+            using (var writer = new Utf8JsonWriter(metaFileStream, writerOptions))
             {
                 JsonSerializer.Serialize(writer, meta, serializerOptions);
                 content.CopyTo(contentFileStream);
