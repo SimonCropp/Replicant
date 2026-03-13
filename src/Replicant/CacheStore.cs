@@ -1,5 +1,7 @@
 class CacheStore
 {
+    static ConcurrentDictionary<string, byte> activeDirectories = new(StringComparer.OrdinalIgnoreCase);
+
     string directory;
     int maxEntries;
     Timer timer;
@@ -21,10 +23,18 @@ class CacheStore
             throw new ArgumentOutOfRangeException(nameof(maxEntries), "maxEntries must be greater than 100");
         }
 
-        this.directory = directory;
+        this.directory = Path.GetFullPath(directory);
+
+        if (!activeDirectories.TryAdd(this.directory, 0))
+        {
+            throw new InvalidOperationException(
+                $"A cache already exists for directory '{this.directory}'. " +
+                "Use a shared ReplicantCache instance instead of creating multiple caches for the same directory.");
+        }
+
         this.maxEntries = maxEntries;
 
-        Directory.CreateDirectory(directory);
+        Directory.CreateDirectory(this.directory);
 
         purgeOldAction = onTimerPurge ?? PurgeOld;
         timer = new(_ => PauseAndPurgeOld(), null, ignoreTimeSpan, purgeInterval);
@@ -206,10 +216,15 @@ class CacheStore
         }
     }
 
-    public void Dispose() => timer.Dispose();
+    public void Dispose()
+    {
+        timer.Dispose();
+        activeDirectories.TryRemove(directory, out _);
+    }
 
     public ValueTask DisposeAsync()
     {
+        activeDirectories.TryRemove(directory, out _);
 #if NET7_0_OR_GREATER
         return timer.DisposeAsync();
 #else

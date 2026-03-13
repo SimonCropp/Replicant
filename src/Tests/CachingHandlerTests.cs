@@ -349,6 +349,61 @@ public class CachingHandlerTests
         var binFiles = Directory.GetFiles(cachePath, "*.bin");
         AreEqual(0, binFiles.Length);
     }
+
+    [Test]
+    public void DuplicateDirectory_Throws()
+    {
+        using var handler1 = new ReplicantHandler(cachePath, new MockHttpMessageHandler());
+
+        Assert.Throws<InvalidOperationException>(
+            () => new ReplicantHandler(cachePath, new MockHttpMessageHandler()));
+    }
+
+    [Test]
+    public void DuplicateDirectory_AfterDispose_Allowed()
+    {
+        var handler1 = new ReplicantHandler(cachePath, new MockHttpMessageHandler());
+        handler1.Dispose();
+
+        // After dispose, same directory can be reused
+        using var handler2 = new ReplicantHandler(cachePath, new MockHttpMessageHandler());
+    }
+
+    [Test]
+    public void DuplicateDirectory_SharedCache_Throws()
+    {
+        using var cache = new ReplicantCache(cachePath);
+
+        Assert.Throws<InvalidOperationException>(
+            () => new ReplicantCache(cachePath));
+    }
+
+    [Test]
+    public void DuplicateDirectory_SharedCache_AfterDispose_Allowed()
+    {
+        var cache1 = new ReplicantCache(cachePath);
+        cache1.Dispose();
+
+        using var cache2 = new ReplicantCache(cachePath);
+    }
+
+    [Test]
+    public void DuplicateDirectory_HandlerAndCache_Throws()
+    {
+        using var handler = new ReplicantHandler(cachePath, new MockHttpMessageHandler());
+
+        Assert.Throws<InvalidOperationException>(
+            () => new ReplicantCache(cachePath));
+    }
+
+    [Test]
+    public void DuplicateDirectory_SharedCacheHandler_DoesNotThrow()
+    {
+        // Multiple handlers sharing a ReplicantCache should not throw
+        using var cache = new ReplicantCache(cachePath);
+        using var handler1 = new ReplicantHandler(cache);
+        using var handler2 = new ReplicantHandler(cache);
+    }
 }
 
 class MockHttpMessageHandler(params HttpResponseMessage[] responses) :

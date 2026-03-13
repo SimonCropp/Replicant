@@ -53,21 +53,30 @@ public class HttpCacheTests
     [Test]
     public void DependencyInjection()
     {
+        var diPath = Path.Combine(Path.GetTempPath(), "DownloadTests_DI");
+
         #region DependencyInjection
 
         var services = new ServiceCollection();
-        services.AddSingleton(_ => new HttpCache(cachePath));
+        services.AddSingleton(_ => new HttpCache(diPath));
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
         NotNull(httpCache);
 
         #endregion
+
+        if (Directory.Exists(diPath))
+        {
+            Directory.Delete(diPath, true);
+        }
     }
 
     [Test]
     public void DependencyInjectionWithHttpFactory()
     {
+        var diPath = Path.Combine(Path.GetTempPath(), "DownloadTests_DIFactory");
+
         #region DependencyInjectionWithHttpFactory
 
         var services = new ServiceCollection();
@@ -76,7 +85,7 @@ public class HttpCacheTests
             _ =>
             {
                 var clientFactory = _.GetRequiredService<IHttpClientFactory>();
-                return new HttpCache(cachePath, () => clientFactory.CreateClient());
+                return new HttpCache(diPath, () => clientFactory.CreateClient());
             });
 
         using var provider = services.BuildServiceProvider();
@@ -84,6 +93,11 @@ public class HttpCacheTests
         NotNull(httpCache);
 
         #endregion
+
+        if (Directory.Exists(diPath))
+        {
+            Directory.Delete(diPath, true);
+        }
     }
 
     [Test]
@@ -366,25 +380,31 @@ public class HttpCacheTests
     [Test]
     public async Task Timeout()
     {
+        var timeoutPath = Path.Combine(Path.GetTempPath(), "DownloadTests_Timeout");
         HttpClient httpClient = new()
         {
             Timeout = TimeSpan.FromMilliseconds(10)
         };
-        var cache = new HttpCache(cachePath, httpClient);
+        await using var cache = new HttpCache(timeoutPath, httpClient);
         var uri = "https://httpbin.org/delay/1";
         await ThrowsTask(() => cache.StringAsync(uri))
             .UniqueForRuntime()
             .IgnoreMembers("InnerException", "CancellationToken");
+        if (Directory.Exists(timeoutPath))
+        {
+            Directory.Delete(timeoutPath, true);
+        }
     }
 
     [Test]
     public async Task TimeoutUseStale()
     {
+        var timeoutPath = Path.Combine(Path.GetTempPath(), "DownloadTests_TimeoutStale");
         var httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromMilliseconds(1)
         };
-        var httpCache = new HttpCache(cachePath, httpClient);
+        var httpCache = new HttpCache(timeoutPath, httpClient);
         var uri = "https://httpbin.org/delay/1";
 
         #region AddItem
@@ -398,6 +418,11 @@ public class HttpCacheTests
         #endregion
 
         await Verify(httpCache.DownloadAsync(uri, true));
+        await httpCache.DisposeAsync();
+        if (Directory.Exists(timeoutPath))
+        {
+            Directory.Delete(timeoutPath, true);
+        }
     }
 
     [Test]
