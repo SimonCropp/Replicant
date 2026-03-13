@@ -1,3 +1,5 @@
+// ReSharper disable ShortLivedHttpClient
+// ReSharper disable UnusedVariable
 #if DEBUG
 
 [TestFixture]
@@ -92,7 +94,7 @@ public class CachingHandlerTests
 
         // Expire the cached file
         var binFile = Directory.GetFiles(cachePath, "*.bin").Single();
-        File.SetLastWriteTimeUtc(binFile, new DateTime(2020, 1, 1));
+        File.SetLastWriteTimeUtc(binFile, new(2020, 1, 1));
 
         // Second request: revalidation returns 304, cached content served
         var content2 = await client.GetStringAsync("http://example.com/revalidate");
@@ -106,7 +108,13 @@ public class CachingHandlerTests
             new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("no-store content"),
-                Headers = { CacheControl = new CacheControlHeaderValue { NoStore = true } }
+                Headers =
+                {
+                    CacheControl = new()
+                    {
+                        NoStore = true
+                    }
+                }
             });
         using var handler = new ReplicantHandler(cachePath, inner);
         using var client = new HttpClient(handler);
@@ -140,7 +148,7 @@ public class CachingHandlerTests
 
         // Expire the cached file
         var binFile = Directory.GetFiles(cachePath, "*.bin").Single();
-        File.SetLastWriteTimeUtc(binFile, new DateTime(2020, 1, 1));
+        File.SetLastWriteTimeUtc(binFile, new(2020, 1, 1));
 
         // Second request: server error, stale content returned
         var content2 = await client.GetStringAsync("http://example.com/stale");
@@ -199,7 +207,10 @@ public class CachingHandlerTests
                 Content = new StringContent("content"),
                 Headers =
                 {
-                    CacheControl = new CacheControlHeaderValue { NoCache = true }
+                    CacheControl = new()
+                    {
+                        NoCache = true
+                    }
                 }
             });
         using var handler = new ReplicantHandler(cachePath, inner);
@@ -214,18 +225,16 @@ public class CachingHandlerTests
     }
 }
 
-class MockHttpMessageHandler : HttpMessageHandler
+class MockHttpMessageHandler(params HttpResponseMessage[] responses) :
+    HttpMessageHandler
 {
-    IEnumerator responses;
-
-    public MockHttpMessageHandler(params HttpResponseMessage[] responses) =>
-        this.responses = responses.GetEnumerator();
+    IEnumerator responses = responses.GetEnumerator();
 
     protected override Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, CancellationToken cancellationToken)
+        HttpRequestMessage request, Cancel cancel)
     {
         responses.MoveNext();
-        return Task.FromResult((HttpResponseMessage)responses.Current!);
+        return Task.FromResult((HttpResponseMessage) responses.Current!);
     }
 }
 

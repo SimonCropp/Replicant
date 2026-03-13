@@ -34,12 +34,12 @@ public class ReplicantHandler : DelegatingHandler
         this.staleIfError = staleIfError;
     }
 
-    protected override async Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, Cancel cancel)
     {
         if (request.Method != HttpMethod.Get && request.Method != HttpMethod.Head)
         {
-            return await base.SendAsync(request, cancellationToken);
+            return base.SendAsync(request, cancel);
         }
 
         var uri = request.RequestUri!;
@@ -47,20 +47,20 @@ public class ReplicantHandler : DelegatingHandler
 
         if (file == null)
         {
-            return await HandleFileMissingAsync(request, uri, cancellationToken);
+            return HandleFileMissingAsync(request, uri, cancel);
         }
 
-        return await HandleFileExistsAsync(request, uri, cancellationToken, file.Value);
+        return HandleFileExistsAsync(request, uri, cancel, file.Value);
     }
 
 #if NET7_0_OR_GREATER
 
     protected override HttpResponseMessage Send(
-        HttpRequestMessage request, CancellationToken cancellationToken)
+        HttpRequestMessage request, Cancel cancel)
     {
         if (request.Method != HttpMethod.Get && request.Method != HttpMethod.Head)
         {
-            return base.Send(request, cancellationToken);
+            return base.Send(request, cancel);
         }
 
         var uri = request.RequestUri!;
@@ -68,16 +68,16 @@ public class ReplicantHandler : DelegatingHandler
 
         if (file == null)
         {
-            return HandleFileMissing(request, uri, cancellationToken);
+            return HandleFileMissing(request, uri, cancel);
         }
 
-        return HandleFileExists(request, uri, cancellationToken, file.Value);
+        return HandleFileExists(request, uri, cancel, file.Value);
     }
 
 #endif
 
     async Task<HttpResponseMessage> HandleFileMissingAsync(
-        HttpRequestMessage request, Uri uri, CancellationToken cancel)
+        HttpRequestMessage request, Uri uri, Cancel cancel)
     {
         var response = await base.SendAsync(request, cancel);
         response.EnsureSuccess();
@@ -95,7 +95,7 @@ public class ReplicantHandler : DelegatingHandler
     }
 
     async Task<HttpResponseMessage> HandleFileExistsAsync(
-        HttpRequestMessage request, Uri uri, CancellationToken cancel, FilePair file)
+        HttpRequestMessage request, Uri uri, Cancel cancel, FilePair file)
     {
         var now = DateTimeOffset.UtcNow;
         var timestamp = Timestamp.FromPath(file.Content);
@@ -123,40 +123,19 @@ public class ReplicantHandler : DelegatingHandler
             throw;
         }
 
-        var status = response.GetCacheStatus(staleIfError);
-        switch (status)
+        var (_, resultFile) = await store.HandleCacheStatusAsync(response, staleIfError, file, uri, cancel);
+        if (resultFile == null)
         {
-            case CacheStatus.Hit:
-            case CacheStatus.UseStaleDueToError:
-            {
-                response.Dispose();
-                return CacheStore.BuildResponseFromCache(file);
-            }
-            case CacheStatus.Stored:
-            case CacheStatus.Revalidate:
-            {
-                using (response)
-                {
-                    var filePair = await store.StoreResponseAsync(response, uri, cancel);
-                    return CacheStore.BuildResponseFromCache(filePair);
-                }
-            }
-            case CacheStatus.NoStore:
-            {
-                return response;
-            }
-            default:
-            {
-                response.Dispose();
-                throw new ArgumentOutOfRangeException();
-            }
+            return response;
         }
+
+        return CacheStore.BuildResponseFromCache(resultFile.Value);
     }
 
 #if NET7_0_OR_GREATER
 
     HttpResponseMessage HandleFileMissing(
-        HttpRequestMessage request, Uri uri, CancellationToken cancel)
+        HttpRequestMessage request, Uri uri, Cancel cancel)
     {
         var response = base.Send(request, cancel);
         response.EnsureSuccess();
@@ -174,7 +153,7 @@ public class ReplicantHandler : DelegatingHandler
     }
 
     HttpResponseMessage HandleFileExists(
-        HttpRequestMessage request, Uri uri, CancellationToken cancel, FilePair file)
+        HttpRequestMessage request, Uri uri, Cancel cancel, FilePair file)
     {
         var now = DateTimeOffset.UtcNow;
         var timestamp = Timestamp.FromPath(file.Content);
@@ -202,34 +181,13 @@ public class ReplicantHandler : DelegatingHandler
             throw;
         }
 
-        var status = response.GetCacheStatus(staleIfError);
-        switch (status)
+        var (_, resultFile) = store.HandleCacheStatus(response, staleIfError, file, uri, cancel);
+        if (resultFile == null)
         {
-            case CacheStatus.Hit:
-            case CacheStatus.UseStaleDueToError:
-            {
-                response.Dispose();
-                return CacheStore.BuildResponseFromCache(file);
-            }
-            case CacheStatus.Stored:
-            case CacheStatus.Revalidate:
-            {
-                using (response)
-                {
-                    var filePair = store.StoreResponse(response, uri, cancel);
-                    return CacheStore.BuildResponseFromCache(filePair);
-                }
-            }
-            case CacheStatus.NoStore:
-            {
-                return response;
-            }
-            default:
-            {
-                response.Dispose();
-                throw new ArgumentOutOfRangeException();
-            }
+            return response;
         }
+
+        return CacheStore.BuildResponseFromCache(resultFile.Value);
     }
 
 #endif

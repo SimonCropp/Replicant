@@ -154,6 +154,70 @@ class CacheStore
         return new(contentFile, metaFile);
     }
 
+    public async Task<(bool stored, FilePair? file)> HandleCacheStatusAsync(
+        HttpResponseMessage response, bool staleIfError, FilePair existingFile, Uri uri, Cancel cancel)
+    {
+        var status = response.GetCacheStatus(staleIfError);
+        switch (status)
+        {
+            case CacheStatus.Hit:
+            case CacheStatus.UseStaleDueToError:
+            {
+                response.Dispose();
+                return (false, existingFile);
+            }
+            case CacheStatus.Stored:
+            case CacheStatus.Revalidate:
+            {
+                using (response)
+                {
+                    return (true, await StoreResponseAsync(response, uri, cancel));
+                }
+            }
+            case CacheStatus.NoStore:
+            {
+                return (false, null);
+            }
+            default:
+            {
+                response.Dispose();
+                throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
+
+    public (bool stored, FilePair? file) HandleCacheStatus(
+        HttpResponseMessage response, bool staleIfError, FilePair existingFile, Uri uri, Cancel cancel)
+    {
+        var status = response.GetCacheStatus(staleIfError);
+        switch (status)
+        {
+            case CacheStatus.Hit:
+            case CacheStatus.UseStaleDueToError:
+            {
+                response.Dispose();
+                return (false, existingFile);
+            }
+            case CacheStatus.Stored:
+            case CacheStatus.Revalidate:
+            {
+                using (response)
+                {
+                    return (true, StoreResponse(response, uri, cancel));
+                }
+            }
+            case CacheStatus.NoStore:
+            {
+                return (false, null);
+            }
+            default:
+            {
+                response.Dispose();
+                throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
+
     public static HttpResponseMessage BuildResponseFromCache(FilePair file)
     {
         var response = new HttpResponseMessage
@@ -164,7 +228,7 @@ class CacheStore
         return response;
     }
 
-    public static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, CancellationToken cancel) =>
+    public static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, Cancel cancel) =>
         (
             exception is HttpRequestException ||
             exception is TaskCanceledException &&

@@ -143,33 +143,13 @@ public partial class HttpCache :
             throw;
         }
 
-        var status = response.GetCacheStatus(staleIfError);
-        switch (status)
+        var (stored, resultFile) = await store.HandleCacheStatusAsync(response, staleIfError, file, uri, cancel);
+        if (resultFile == null)
         {
-            case CacheStatus.Hit:
-            case CacheStatus.UseStaleDueToError:
-            {
-                response.Dispose();
-                return new(file, true, false);
-            }
-            case CacheStatus.Stored:
-            case CacheStatus.Revalidate:
-            {
-                using (response)
-                {
-                    return await AddItemAsync(response, uri, cancel);
-                }
-            }
-            case CacheStatus.NoStore:
-            {
-                return new(response);
-            }
-            default:
-            {
-                response.Dispose();
-                throw new ArgumentOutOfRangeException();
-            }
+            return new(response);
         }
+
+        return new(resultFile.Value, true, stored);
     }
 
     Result HandleFileExists(
@@ -208,33 +188,13 @@ public partial class HttpCache :
             throw;
         }
 
-        var status = response.GetCacheStatus(staleIfError);
-        switch (status)
+        var (stored, resultFile) = store.HandleCacheStatus(response, staleIfError, contentFile, uri, cancel);
+        if (resultFile == null)
         {
-            case CacheStatus.Hit:
-            case CacheStatus.UseStaleDueToError:
-            {
-                response.Dispose();
-                return new(contentFile, true, false);
-            }
-            case CacheStatus.Stored:
-            case CacheStatus.Revalidate:
-            {
-                using (response)
-                {
-                    return AddItem(response, uri, cancel);
-                }
-            }
-            case CacheStatus.NoStore:
-            {
-                return new(response);
-            }
-            default:
-            {
-                response.Dispose();
-                throw new ArgumentOutOfRangeException();
-            }
+            return new(response);
         }
+
+        return new(resultFile.Value, true, stored);
     }
 
     async Task<Result> HandleFileMissingAsync(
