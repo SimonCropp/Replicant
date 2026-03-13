@@ -218,6 +218,110 @@ class CacheStore
         }
     }
 
+    public async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> RevalidateAsync(
+        FilePair existingFile,
+        bool staleIfError,
+        Uri uri,
+        Func<Timestamp, Task<HttpResponseMessage>> sendAsync,
+        Cancel cancel)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var timestamp = Timestamp.FromPath(existingFile.Content);
+        var expiry = timestamp.Expiry;
+
+        if (expiry == null || expiry > now)
+        {
+            return (false, false, existingFile, null);
+        }
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await sendAsync(timestamp);
+        }
+        catch (Exception exception)
+        {
+            if (ShouldReturnStaleIfError(staleIfError, exception, cancel))
+            {
+                return (true, false, existingFile, null);
+            }
+
+            throw;
+        }
+
+        var (stored, resultFile) = await HandleCacheStatusAsync(response, staleIfError, existingFile, uri, cancel);
+        return resultFile == null
+            ? (true, stored, null, response)
+            : (true, stored, resultFile, null);
+    }
+
+    public (bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response) Revalidate(
+        FilePair existingFile,
+        bool staleIfError,
+        Uri uri,
+        Func<Timestamp, HttpResponseMessage> send,
+        Cancel cancel)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var timestamp = Timestamp.FromPath(existingFile.Content);
+        var expiry = timestamp.Expiry;
+
+        if (expiry == null || expiry > now)
+        {
+            return (false, false, existingFile, null);
+        }
+
+        HttpResponseMessage response;
+        try
+        {
+            response = send(timestamp);
+        }
+        catch (Exception exception)
+        {
+            if (ShouldReturnStaleIfError(staleIfError, exception, cancel))
+            {
+                return (true, false, existingFile, null);
+            }
+
+            throw;
+        }
+
+        var (stored, resultFile) = HandleCacheStatus(response, staleIfError, existingFile, uri, cancel);
+        return resultFile == null
+            ? (true, stored, null, response)
+            : (true, stored, resultFile, null);
+    }
+
+    public async Task<(FilePair? file, HttpResponseMessage? response)> StoreNewResponseAsync(
+        HttpResponseMessage response, Uri uri, Cancel cancel)
+    {
+        response.EnsureSuccess();
+        if (response.IsNoStore())
+        {
+            return (null, response);
+        }
+
+        using (response)
+        {
+            return (await StoreResponseAsync(response, uri, cancel), null);
+        }
+    }
+
+    public (FilePair? file, HttpResponseMessage? response) StoreNewResponse(
+        HttpResponseMessage response, Uri uri, Cancel cancel)
+    {
+        response.EnsureSuccess();
+        if (response.IsNoStore())
+        {
+            return (null, response);
+        }
+
+        using (response)
+        {
+            return (StoreResponse(response, uri, cancel), null);
+        }
+    }
+
     public static HttpResponseMessage BuildResponseFromCache(FilePair file)
     {
         var response = new HttpResponseMessage

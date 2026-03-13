@@ -117,7 +117,7 @@ var handler = new ReplicantHandler(cacheDirectory)
 using var client = new HttpClient(handler);
 var response = await client.GetAsync("https://example.com");
 ```
-<sup><a href='/src/Tests/CachingHandlerTests.cs#L19-L28' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReplicantHandlerUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L21-L30' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReplicantHandlerUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

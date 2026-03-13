@@ -80,56 +80,23 @@ public class ReplicantHandler : DelegatingHandler
         HttpRequestMessage request, Uri uri, Cancel cancel)
     {
         var response = await base.SendAsync(request, cancel);
-        response.EnsureSuccess();
-
-        if (response.IsNoStore())
-        {
-            return response;
-        }
-
-        using (response)
-        {
-            var filePair = await store.StoreResponseAsync(response, uri, cancel);
-            return CacheStore.BuildResponseFromCache(filePair);
-        }
+        var (file, passthrough) = await store.StoreNewResponseAsync(response, uri, cancel);
+        return file != null ? CacheStore.BuildResponseFromCache(file.Value) : passthrough!;
     }
 
     async Task<HttpResponseMessage> HandleFileExistsAsync(
         HttpRequestMessage request, Uri uri, Cancel cancel, FilePair file)
     {
-        var now = DateTimeOffset.UtcNow;
-        var timestamp = Timestamp.FromPath(file.Content);
-        var expiry = timestamp.Expiry;
-
-        if (expiry == null || expiry > now)
-        {
-            return CacheStore.BuildResponseFromCache(file);
-        }
-
-        timestamp.ApplyHeadersToRequest(request);
-
-        HttpResponseMessage response;
-        try
-        {
-            response = await base.SendAsync(request, cancel);
-        }
-        catch (Exception exception)
-        {
-            if (CacheStore.ShouldReturnStaleIfError(staleIfError, exception, cancel))
+        var (_, _, resultFile, response) = await store.RevalidateAsync(
+            file, staleIfError, uri,
+            timestamp =>
             {
-                return CacheStore.BuildResponseFromCache(file);
-            }
+                timestamp.ApplyHeadersToRequest(request);
+                return base.SendAsync(request, cancel);
+            },
+            cancel);
 
-            throw;
-        }
-
-        var (_, resultFile) = await store.HandleCacheStatusAsync(response, staleIfError, file, uri, cancel);
-        if (resultFile == null)
-        {
-            return response;
-        }
-
-        return CacheStore.BuildResponseFromCache(resultFile.Value);
+        return response ?? CacheStore.BuildResponseFromCache(resultFile!.Value);
     }
 
 #if NET7_0_OR_GREATER
@@ -138,56 +105,23 @@ public class ReplicantHandler : DelegatingHandler
         HttpRequestMessage request, Uri uri, Cancel cancel)
     {
         var response = base.Send(request, cancel);
-        response.EnsureSuccess();
-
-        if (response.IsNoStore())
-        {
-            return response;
-        }
-
-        using (response)
-        {
-            var filePair = store.StoreResponse(response, uri, cancel);
-            return CacheStore.BuildResponseFromCache(filePair);
-        }
+        var (file, passthrough) = store.StoreNewResponse(response, uri, cancel);
+        return file != null ? CacheStore.BuildResponseFromCache(file.Value) : passthrough!;
     }
 
     HttpResponseMessage HandleFileExists(
         HttpRequestMessage request, Uri uri, Cancel cancel, FilePair file)
     {
-        var now = DateTimeOffset.UtcNow;
-        var timestamp = Timestamp.FromPath(file.Content);
-        var expiry = timestamp.Expiry;
-
-        if (expiry == null || expiry > now)
-        {
-            return CacheStore.BuildResponseFromCache(file);
-        }
-
-        timestamp.ApplyHeadersToRequest(request);
-
-        HttpResponseMessage response;
-        try
-        {
-            response = base.Send(request, cancel);
-        }
-        catch (Exception exception)
-        {
-            if (CacheStore.ShouldReturnStaleIfError(staleIfError, exception, cancel))
+        var (_, _, resultFile, response) = store.Revalidate(
+            file, staleIfError, uri,
+            timestamp =>
             {
-                return CacheStore.BuildResponseFromCache(file);
-            }
+                timestamp.ApplyHeadersToRequest(request);
+                return base.Send(request, cancel);
+            },
+            cancel);
 
-            throw;
-        }
-
-        var (_, resultFile) = store.HandleCacheStatus(response, staleIfError, file, uri, cancel);
-        if (resultFile == null)
-        {
-            return response;
-        }
-
-        return CacheStore.BuildResponseFromCache(resultFile.Value);
+        return response ?? CacheStore.BuildResponseFromCache(resultFile!.Value);
     }
 
 #endif
