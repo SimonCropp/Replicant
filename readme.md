@@ -151,6 +151,13 @@ services.AddHttpClient("CachedClient")
 <!-- endSnippet -->
 
 
+### Single cache per directory
+
+Only one cache instance (`HttpCache`, `ReplicantCache`, or `ReplicantHandler` with its own directory) can exist per cache directory at any time. Creating a second instance for the same directory will throw an `InvalidOperationException`. This prevents multiple purge timers from running against the same files.
+
+To share a cache across multiple handlers or consumers, use a single `ReplicantCache` instance (see above).
+
+
 ### Get a string
 
 <!-- snippet: string -->
