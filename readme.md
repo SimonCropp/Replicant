@@ -92,7 +92,7 @@ services.AddSingleton(
     _ =>
     {
         var clientFactory = _.GetRequiredService<IHttpClientFactory>();
-        return new HttpCache(diPath, () => clientFactory.CreateClient());
+        return new HttpCache(diPath, clientFactory.CreateClient);
     });
 
 using var provider = services.BuildServiceProvider();
