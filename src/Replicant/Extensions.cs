@@ -60,7 +60,7 @@
     {
         var uri = response.RequestMessage?.RequestUri?.OriginalString;
         var message = $"{exception.Message} Uri: {uri}";
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         return new(message, exception.InnerException, exception.StatusCode);
 #else
         return new(message, exception.InnerException);
@@ -71,7 +71,7 @@
     {
         var uri = request.RequestUri?.OriginalString;
         var message = $"{exception.Message} Uri: {uri}";
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         return new(message, exception.InnerException, exception.StatusCode);
 #else
         return new(message, exception.InnerException);
@@ -94,7 +94,7 @@
     }
 
     public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> TrailingHeaders(this HttpResponseMessage response) =>
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         response.TrailingHeaders;
 #else
         [];

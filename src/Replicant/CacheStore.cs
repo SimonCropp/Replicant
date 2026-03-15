@@ -67,7 +67,7 @@ class CacheStore
         var tempFile = FilePair.GetTemp();
         try
         {
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
             await using var httpStream = await contentFunc(cancel);
             await using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
             await using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
@@ -229,7 +229,7 @@ class CacheStore
     public ValueTask DisposeAsync()
     {
         activeDirectories.TryRemove(directory, out _);
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         return timer.DisposeAsync();
 #else
         timer.Dispose();
