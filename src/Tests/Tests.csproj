@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Condition="$(Configuration) == 'Release'" Remove="MatrixTests.cs" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Argon" />

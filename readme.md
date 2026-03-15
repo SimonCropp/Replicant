@@ -149,6 +149,21 @@ services.AddHttpClient("CachedClient")
 <!-- endSnippet -->
 
 
+### HybridCache support
+
+Replicant can serve as a disk-based L2 cache for [HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid). Register `ReplicantDistributedCache` as the `IDistributedCache` backend, and HybridCache will automatically use it for its L2 layer (with in-memory L1 handled by HybridCache itself):
+
+<!-- snippet: DistributedCacheUsage -->
+<a id='snippet-DistributedCacheUsage'></a>
+```cs
+var services = new ServiceCollection();
+services.AddReplicantDistributedCache(cacheDirectory);
+services.AddHybridCache();
+```
+<sup><a href='/src/Tests/DistributedCacheTests.cs#L25-L31' title='Snippet source file'>snippet source</a> | <a href='#snippet-DistributedCacheUsage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
 ### Single cache per directory
 
 Only one cache instance (`HttpCache`, `ReplicantCache`, or `ReplicantHandler` with its own directory) can exist per cache directory at any time. Creating a second instance for the same directory will throw an `InvalidOperationException`. This prevents multiple purge timers from running against the same files.
@@ -296,6 +311,8 @@ graph TD
     Result["Result<br/>(struct)"]
     DeriveCacheStatus["DeriveCacheStatus"]
     CacheStatus["CacheStatus<br/>(enum)"]
+    ReplicantDistributedCache["ReplicantDistributedCache<br/>implements IDistributedCache"]
+    HybridCache["HybridCache<br/>(L1 memory + L2 disk)"]
 
     HttpCache -->|implements| IHttpCache
     HttpCache -->|owns| CacheStore
@@ -312,9 +329,10 @@ graph TD
     CacheStore -->|serializes| MetaData
     Result -->|holds| FilePair
     Timestamp -->|encodes| FilePair
+    HybridCache -->|L2 backend| ReplicantDistributedCache
 ```
 
-`HttpCache` is the standalone API that owns an `HttpClient`. `ReplicantHandler` is a `DelegatingHandler` that plugs into an existing `HttpClient` pipeline. Both delegate to `CacheSession` which orchestrates the cache protocol using `CacheStore` for disk I/O. When multiple handlers need to share a cache, a single `ReplicantCache` is registered as a singleton.
+`HttpCache` is the standalone API that owns an `HttpClient`. `ReplicantHandler` is a `DelegatingHandler` that plugs into an existing `HttpClient` pipeline. Both delegate to `CacheSession` which orchestrates the cache protocol using `CacheStore` for disk I/O. When multiple handlers need to share a cache, a single `ReplicantCache` is registered as a singleton. `ReplicantDistributedCache` implements `IDistributedCache` for use as a disk-based L2 backend with `HybridCache`.
 
 
 ## Cache decision flow
