@@ -34,7 +34,7 @@
         set => inner.ReadTimeout = value;
     }
 
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, Cancel cancel = default) =>
         inner.WriteAsync(buffer, cancel);
