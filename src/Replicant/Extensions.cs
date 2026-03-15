@@ -1,7 +1,5 @@
 ﻿static class Extensions
 {
-#if NET7_0_OR_GREATER
-
     public static void CopyTo(this HttpContent content, Stream target, Cancel cancel) =>
         content.CopyTo(target, null, cancel);
 
@@ -12,53 +10,13 @@
     {
         try
         {
-            return client.Send(request);
+            return client.Send(request, cancel);
         }
         catch (HttpRequestException exception)
         {
             throw BuildHttpException(request, exception);
         }
     }
-
-#else
-
-    public static HttpResponseMessage SendEx(
-        this HttpClient client,
-        HttpRequestMessage request,
-        Cancel cancel)
-    {
-        try
-        {
-            // Called outside of async state machine to propagate certain exception even without awaiting the returned task.
-            // See decompile send on net 5 version of http client
-
-            //SetOperationStarted();
-            var setOperationStarted = typeof(HttpClient).GetMethod("SetOperationStarted", BindingFlags.Instance | BindingFlags.NonPublic)!;
-            setOperationStarted.Invoke(client, null);
-
-            //PrepareRequestMessage(request);
-            var prepareRequestMessage = typeof(HttpClient).GetMethod("PrepareRequestMessage", BindingFlags.Instance | BindingFlags.NonPublic)!;
-            prepareRequestMessage.Invoke(client, [request]);
-
-            return client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancel)
-                .GetAwaiter().GetResult();
-        }
-        catch (HttpRequestException exception)
-        {
-            throw BuildHttpException(request, exception);
-        }
-    }
-
-    public static Task CopyToAsync(this HttpContent content, Stream target, Cancel cancel) =>
-        content.CopyToAsync(target);
-
-    public static void CopyTo(this HttpContent content, Stream target, Cancel cancel) =>
-        content.CopyToAsync(target).GetAwaiter().GetResult();
-
-    public static Stream ReadAsStream(this HttpContent content, Cancel cancel) =>
-        content.ReadAsStreamAsync().GetAwaiter().GetResult();
-
-#endif
 
     public static DateTimeOffset GetLastModified(this HttpResponseMessage response, DateTimeOffset now)
     {
