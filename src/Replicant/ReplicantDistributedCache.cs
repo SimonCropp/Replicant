@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Caching.Distributed;
-
 namespace Replicant;
 
 /// <summary>
@@ -77,7 +75,7 @@ public class ReplicantDistributedCache :
     }
 
     /// <inheritdoc/>
-    public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
+    public async Task<byte[]?> GetAsync(string key, Cancel cancel = default)
     {
         var (dataPath, metaPath) = GetPaths(key);
 
@@ -86,7 +84,7 @@ public class ReplicantDistributedCache :
             return null;
         }
 
-        var meta = await ReadMetaAsync(metaPath, token);
+        var meta = await ReadMetaAsync(metaPath, cancel);
         if (IsExpired(meta))
         {
             TryDelete(dataPath);
@@ -94,11 +92,11 @@ public class ReplicantDistributedCache :
             return null;
         }
 
-        await RefreshSlidingAsync(metaPath, meta, token);
+        await RefreshSlidingAsync(metaPath, meta, cancel);
 
         try
         {
-            return await File.ReadAllBytesAsync(dataPath, token);
+            return await File.ReadAllBytesAsync(dataPath, cancel);
         }
         catch (IOException)
         {
@@ -130,7 +128,7 @@ public class ReplicantDistributedCache :
 
     /// <inheritdoc/>
     public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options,
-        CancellationToken token = default)
+        Cancel cancel = default)
     {
         var (dataPath, metaPath) = GetPaths(key);
         var meta = BuildMeta(options);
@@ -139,8 +137,8 @@ public class ReplicantDistributedCache :
         var tempMeta = FileEx.GetTempFileName();
         try
         {
-            await File.WriteAllBytesAsync(tempData, value, token);
-            await WriteMetaAsync(tempMeta, meta, token);
+            await File.WriteAllBytesAsync(tempData, value, cancel);
+            await WriteMetaAsync(tempMeta, meta, cancel);
             File.Move(tempData, dataPath, true);
             File.Move(tempMeta, metaPath, true);
         }
@@ -160,11 +158,11 @@ public class ReplicantDistributedCache :
     }
 
     /// <inheritdoc/>
-    public async Task RefreshAsync(string key, CancellationToken token = default)
+    public async Task RefreshAsync(string key, Cancel cancel = default)
     {
         var (_, metaPath) = GetPaths(key);
-        var meta = await ReadMetaAsync(metaPath, token);
-        await RefreshSlidingAsync(metaPath, meta, token);
+        var meta = await ReadMetaAsync(metaPath, cancel);
+        await RefreshSlidingAsync(metaPath, meta, cancel);
     }
 
     /// <inheritdoc/>
@@ -176,7 +174,7 @@ public class ReplicantDistributedCache :
     }
 
     /// <inheritdoc/>
-    public Task RemoveAsync(string key, CancellationToken token = default)
+    public Task RemoveAsync(string key, Cancel cancel = default)
     {
         Remove(key);
         return Task.CompletedTask;
@@ -282,11 +280,11 @@ public class ReplicantDistributedCache :
         WriteMeta(metaPath, meta);
     }
 
-    static async Task RefreshSlidingAsync(string metaPath, CacheEntryMeta? meta, CancellationToken token)
+    static Task RefreshSlidingAsync(string metaPath, CacheEntryMeta? meta, Cancel cancel)
     {
         if (meta is not { SlidingExpiration: > 0 })
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var now = DateTimeOffset.UtcNow.UtcTicks;
@@ -297,7 +295,7 @@ public class ReplicantDistributedCache :
             meta.SlidingDeadline = meta.AbsoluteExpiration;
         }
 
-        await WriteMetaAsync(metaPath, meta, token);
+        return WriteMetaAsync(metaPath, meta, cancel);
     }
 
     static CacheEntryMeta? ReadMeta(string path)
@@ -312,13 +310,14 @@ public class ReplicantDistributedCache :
             var json = File.ReadAllBytes(path);
             return JsonSerializer.Deserialize<CacheEntryMeta>(json);
         }
-        catch
+        catch (Exception exception)
+            when (exception is IOException or JsonException)
         {
             return null;
         }
     }
 
-    static async Task<CacheEntryMeta?> ReadMetaAsync(string path, CancellationToken token)
+    static async Task<CacheEntryMeta?> ReadMetaAsync(string path, Cancel cancel)
     {
         if (!File.Exists(path))
         {
@@ -327,10 +326,11 @@ public class ReplicantDistributedCache :
 
         try
         {
-            var json = await File.ReadAllBytesAsync(path, token);
+            var json = await File.ReadAllBytesAsync(path, cancel);
             return JsonSerializer.Deserialize<CacheEntryMeta>(json);
         }
-        catch
+        catch (Exception exception)
+            when (exception is IOException or JsonException)
         {
             return null;
         }
@@ -342,10 +342,10 @@ public class ReplicantDistributedCache :
         File.WriteAllBytes(path, json);
     }
 
-    static async Task WriteMetaAsync(string path, CacheEntryMeta meta, CancellationToken token)
+    static Task WriteMetaAsync(string path, CacheEntryMeta meta, Cancel cancel)
     {
         var json = JsonSerializer.SerializeToUtf8Bytes(meta);
-        await File.WriteAllBytesAsync(path, json, token);
+        return File.WriteAllBytesAsync(path, json, cancel);
     }
 
     static void TryDelete(string path)
