@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Caching.Distributed;
+
 namespace Replicant;
 
 /// <summary>
@@ -48,5 +50,21 @@ public static class ReplicantServiceExtensions
                 throw new("No ReplicantCache has been registered. Call services.AddReplicantCache() before AddReplicantCaching().");
             });
         return builder;
+    }
+
+    /// <summary>
+    /// Register a <see cref="ReplicantDistributedCache"/> as <see cref="IDistributedCache"/>
+    /// for use as an L2 cache backend with HybridCache.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="directory">The directory to store cache files.</param>
+    /// <param name="maxEntries">The maximum entries to store in the cache.</param>
+    public static IServiceCollection AddReplicantDistributedCache(
+        this IServiceCollection services,
+        string directory,
+        int maxEntries = 1000)
+    {
+        services.AddSingleton<IDistributedCache>(_ => new ReplicantDistributedCache(directory, maxEntries));
+        return services;
     }
 }
