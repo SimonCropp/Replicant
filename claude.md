@@ -19,7 +19,7 @@ dotnet test src --configuration Release
 dotnet test src --configuration Release --filter "FullyQualifiedName~Tests.HttpCacheTests.MethodName"
 ```
 
-Tests target net10.0 only. The library targets net48, net7.0, net8.0, net9.0, and net10.0.
+Tests target net10.0 only. The library targets net48, net8.0, net9.0, and net10.0.
 
 ## Build Settings
 

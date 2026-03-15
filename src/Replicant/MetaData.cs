@@ -52,7 +52,7 @@
     {
         response.Headers.AddRange(meta.ResponseHeaders);
         response.Content.Headers.AddRange(meta.ContentHeaders);
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         if (meta.TrailingHeaders != null)
         {
             response.TrailingHeaders.AddRange(meta.TrailingHeaders);
