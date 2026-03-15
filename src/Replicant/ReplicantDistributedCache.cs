@@ -305,16 +305,8 @@ public class ReplicantDistributedCache :
             return null;
         }
 
-        try
-        {
-            var json = File.ReadAllBytes(path);
-            return JsonSerializer.Deserialize<CacheEntryMeta>(json);
-        }
-        catch (Exception exception)
-            when (exception is IOException or JsonException)
-        {
-            return null;
-        }
+        var json = File.ReadAllBytes(path);
+        return JsonSerializer.Deserialize<CacheEntryMeta>(json);
     }
 
     static async Task<CacheEntryMeta?> ReadMetaAsync(string path, Cancel cancel)
@@ -324,16 +316,8 @@ public class ReplicantDistributedCache :
             return null;
         }
 
-        try
-        {
-            var json = await File.ReadAllBytesAsync(path, cancel);
-            return JsonSerializer.Deserialize<CacheEntryMeta>(json);
-        }
-        catch (Exception exception)
-            when (exception is IOException or JsonException)
-        {
-            return null;
-        }
+        var json = await File.ReadAllBytesAsync(path, cancel);
+        return JsonSerializer.Deserialize<CacheEntryMeta>(json);
     }
 
     static void WriteMeta(string path, CacheEntryMeta meta)
@@ -398,7 +382,7 @@ public class ReplicantDistributedCache :
     public ValueTask DisposeAsync()
     {
         activeDirectories.TryRemove(directory, out _);
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         return timer.DisposeAsync();
 #else
         timer.Dispose();

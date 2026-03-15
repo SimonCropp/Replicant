@@ -171,6 +171,125 @@ public class DistributedCacheTests
     }
 
     [Test]
+    public void AbsoluteExpiration_DateTimeOffset()
+    {
+        var path = CachePath();
+        using var cache = new ReplicantDistributedCache(path);
+
+        cache.Set("key1", "hello"u8.ToArray(), new()
+        {
+            AbsoluteExpiration = DateTimeOffset.UtcNow.AddMilliseconds(1)
+        });
+
+        Thread.Sleep(50);
+
+        var result = cache.Get("key1");
+        IsNull(result);
+    }
+
+    [Test]
+    public void SlidingExpiration_CappedByAbsolute()
+    {
+        var path = CachePath();
+        using var cache = new ReplicantDistributedCache(path);
+
+        cache.Set("key1", "hello"u8.ToArray(), new()
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(1),
+            SlidingExpiration = TimeSpan.FromHours(1)
+        });
+
+        Thread.Sleep(50);
+
+        // Sliding is long but absolute has passed — should be expired
+        var result = cache.Get("key1");
+        IsNull(result);
+    }
+
+    [Test]
+    public void AbsoluteExpiration_CleansUpFiles()
+    {
+        var path = CachePath();
+        using var cache = new ReplicantDistributedCache(path);
+
+        cache.Set("key1", "hello"u8.ToArray(), new()
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(1)
+        });
+
+        Thread.Sleep(50);
+
+        cache.Get("key1");
+
+        var datFiles = Directory.GetFiles(path, "*.dat");
+        var metaFiles = Directory.GetFiles(path, "*.meta");
+        AreEqual(0, datFiles.Length);
+        AreEqual(0, metaFiles.Length);
+    }
+
+    [Test]
+    public async Task RemoveAsync_DeletesEntry()
+    {
+        var path = CachePath();
+        await using var cache = new ReplicantDistributedCache(path);
+
+        await cache.SetAsync("key1", "hello"u8.ToArray(), new());
+        await cache.RemoveAsync("key1");
+
+        var result = await cache.GetAsync("key1");
+        IsNull(result);
+    }
+
+    [Test]
+    public async Task RefreshAsync_KeepsAlive()
+    {
+        var path = CachePath();
+        await using var cache = new ReplicantDistributedCache(path);
+
+        await cache.SetAsync("key1", "hello"u8.ToArray(), new()
+        {
+            SlidingExpiration = TimeSpan.FromSeconds(30)
+        });
+
+        await cache.RefreshAsync("key1");
+
+        var result = await cache.GetAsync("key1");
+        AreEqual("hello"u8.ToArray(), result);
+    }
+
+    [Test]
+    public void PurgeOld_EnforcesMaxEntries()
+    {
+        var path = CachePath();
+        using var cache = new ReplicantDistributedCache(path, maxEntries: 100);
+
+        for (var i = 0; i < 150; i++)
+        {
+            cache.Set($"key{i}", "hello"u8.ToArray(), new());
+        }
+
+        cache.PurgeOld();
+
+        var datFiles = Directory.GetFiles(path, "*.dat");
+        IsTrue(datFiles.Length <= 100);
+    }
+
+    [Test]
+    public void Constructor_NullDirectory_Throws() =>
+        Assert.Throws<ArgumentNullException>(
+            () => new ReplicantDistributedCache(null!));
+
+    [Test]
+    public void Constructor_EmptyDirectory_Throws() =>
+        Assert.Throws<ArgumentNullException>(
+            () => new ReplicantDistributedCache(""));
+
+    [Test]
+    public void Constructor_MaxEntriesTooLow_Throws() =>
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => new ReplicantDistributedCache(CachePath(), maxEntries: 50));
+
+    [Test]
     public void DuplicateDirectory_Throws()
     {
         var path = CachePath();
