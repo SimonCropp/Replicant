@@ -1,10 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace Replicant;
 
 /// <summary>
 /// A disk-based <see cref="IDistributedCache"/> implementation.
 /// Can be used as an L2 cache backend for HybridCache.
 /// </summary>
-public class ReplicantDistributedCache :
+public partial class ReplicantDistributedCache :
     IDistributedCache,
     IDisposable,
     IAsyncDisposable
@@ -308,8 +310,8 @@ public class ReplicantDistributedCache :
             return null;
         }
 
-        var json = File.ReadAllBytes(path);
-        return JsonSerializer.Deserialize<CacheEntryMeta>(json);
+        using var stream = File.OpenRead(path);
+        return JsonSerializer.Deserialize(stream, CacheEntryMetaContext.Default.CacheEntryMeta);
     }
 
     static async Task<CacheEntryMeta?> ReadMetaAsync(string path, Cancel cancel)
@@ -319,20 +321,28 @@ public class ReplicantDistributedCache :
             return null;
         }
 
-        var json = await File.ReadAllBytesAsync(path, cancel);
-        return JsonSerializer.Deserialize<CacheEntryMeta>(json);
+#if NET8_0_OR_GREATER
+        await using var stream = File.OpenRead(path);
+#else
+        using var stream = File.OpenRead(path);
+#endif
+        return await JsonSerializer.DeserializeAsync(stream, CacheEntryMetaContext.Default.CacheEntryMeta, cancel);
     }
 
     static void WriteMeta(string path, CacheEntryMeta meta)
     {
-        var json = JsonSerializer.SerializeToUtf8Bytes(meta);
-        File.WriteAllBytes(path, json);
+        using var stream = File.Create(path);
+        JsonSerializer.Serialize(stream, meta, CacheEntryMetaContext.Default.CacheEntryMeta);
     }
 
-    static Task WriteMetaAsync(string path, CacheEntryMeta meta, Cancel cancel)
+    static async Task WriteMetaAsync(string path, CacheEntryMeta meta, Cancel cancel)
     {
-        var json = JsonSerializer.SerializeToUtf8Bytes(meta);
-        return File.WriteAllBytesAsync(path, json, cancel);
+#if NET8_0_OR_GREATER
+        await using var stream = File.Create(path);
+#else
+        using var stream = File.Create(path);
+#endif
+        await JsonSerializer.SerializeAsync(stream, meta, CacheEntryMetaContext.Default.CacheEntryMeta, cancel);
     }
 
     static void TryDelete(string path)
@@ -399,4 +409,7 @@ public class ReplicantDistributedCache :
         public long SlidingExpiration { get; set; }
         public long SlidingDeadline { get; set; }
     }
+
+    [JsonSerializable(typeof(CacheEntryMeta))]
+    partial class CacheEntryMetaContext : JsonSerializerContext;
 }

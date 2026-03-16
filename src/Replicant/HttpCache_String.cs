@@ -37,6 +37,6 @@ public partial class HttpCache
         Cancel cancel = default)
     {
         using var result = Download(uri, staleIfError, modifyRequest, cancel);
-        return result.AsString();
+        return result.AsString(cancel);
     }
 }

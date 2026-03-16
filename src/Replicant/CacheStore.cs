@@ -69,13 +69,13 @@ class CacheStore
         {
 #if NET8_0_OR_GREATER
             await using var httpStream = await contentFunc(cancel);
-            await using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
-            await using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
+            await using (var contentFileStream = FileEx.OpenWriteForAsync(tempFile.Content))
+            await using (var metaFileStream = FileEx.OpenWriteForAsync(tempFile.Meta))
             {
 #else
             using var httpStream = await contentFunc(cancel);
-            using (var contentFileStream = FileEx.OpenWrite(tempFile.Content))
-            using (var metaFileStream = FileEx.OpenWrite(tempFile.Meta))
+            using (var contentFileStream = FileEx.OpenWriteForAsync(tempFile.Content))
+            using (var metaFileStream = FileEx.OpenWriteForAsync(tempFile.Meta))
             {
 #endif
                 await JsonSerializer.SerializeAsync(metaFileStream, meta, serializerOptions, cancel);

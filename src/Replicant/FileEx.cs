@@ -10,6 +10,9 @@
         encoding ?? Encoding.UTF8;
 
     public static Stream OpenRead(string path) =>
+        new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, false);
+
+    public static Stream OpenReadForAsync(string path) =>
         new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
 
     public static string GetTempFileName(string? extension = null)
@@ -24,5 +27,8 @@
     }
 
     public static Stream OpenWrite(string path) =>
+        new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, false);
+
+    public static Stream OpenWriteForAsync(string path) =>
         new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
 }

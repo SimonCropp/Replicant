@@ -29,7 +29,7 @@
     {
         if (Response == null)
         {
-            return FileEx.OpenRead(File!.Value.Content);
+            return FileEx.OpenReadForAsync(File!.Value.Content);
         }
 
         var stream = await Response.Content.ReadAsStreamAsync(cancel);
@@ -60,7 +60,7 @@
     {
         if (Response == null)
         {
-            using var openRead = FileEx.OpenRead(File!.Value.Content);
+            using var openRead = FileEx.OpenReadForAsync(File!.Value.Content);
             await openRead.CopyToAsync(stream, cancel);
             return;
         }
@@ -76,7 +76,7 @@
             return;
         }
 
-        using var stream = FileEx.OpenWrite(path);
+        using var stream = FileEx.OpenWriteForAsync(path);
         await Response.Content.CopyToAsync(stream, cancel);
     }
 
@@ -175,7 +175,7 @@
 
         var response = new HttpResponseMessage
         {
-            Content = new StreamContent(FileEx.OpenRead(File!.Value.Content))
+            Content = new StreamContent(FileEx.OpenReadForAsync(File!.Value.Content))
         };
         await MetaData.ApplyToResponseAsync(File!.Value.Meta, response);
         return response;
