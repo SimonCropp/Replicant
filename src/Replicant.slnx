@@ -7,6 +7,7 @@
     <File Path="global.json" />
     <File Path="mdsnippets.json" />
   </Folder>
+  <Project Path="Benchmarks/Benchmarks.csproj" />
   <Project Path="Replicant/Replicant.csproj" />
   <Project Path="Tests/Tests.csproj" />
 </Solution>

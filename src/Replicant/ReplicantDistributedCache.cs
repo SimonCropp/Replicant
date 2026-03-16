@@ -254,48 +254,51 @@ public class ReplicantDistributedCache :
 
         var now = DateTimeOffset.UtcNow.UtcTicks;
 
-        if (meta.AbsoluteExpiration > 0 && now > meta.AbsoluteExpiration)
+        if (meta.AbsoluteExpiration > 0 &&
+            now > meta.AbsoluteExpiration)
         {
             return true;
         }
 
-        return meta.SlidingExpiration > 0 && now > meta.SlidingDeadline;
+        return meta.SlidingExpiration > 0 &&
+               now > meta.SlidingDeadline;
+    }
+
+    static bool TryRefreshSlidingDeadline([NotNullWhen(true)] CacheEntryMeta? meta)
+    {
+        if (meta is not { SlidingExpiration: > 0 })
+        {
+            return false;
+        }
+
+        var now = DateTimeOffset.UtcNow.UtcTicks;
+        meta.SlidingDeadline = now + meta.SlidingExpiration;
+
+        if (meta.AbsoluteExpiration > 0 &&
+            meta.SlidingDeadline > meta.AbsoluteExpiration)
+        {
+            meta.SlidingDeadline = meta.AbsoluteExpiration;
+        }
+
+        return true;
     }
 
     static void RefreshSliding(string metaPath, CacheEntryMeta? meta)
     {
-        if (meta is not { SlidingExpiration: > 0 })
+        if (TryRefreshSlidingDeadline(meta))
         {
-            return;
+            WriteMeta(metaPath, meta);
         }
-
-        var now = DateTimeOffset.UtcNow.UtcTicks;
-        meta.SlidingDeadline = now + meta.SlidingExpiration;
-
-        if (meta.AbsoluteExpiration > 0 && meta.SlidingDeadline > meta.AbsoluteExpiration)
-        {
-            meta.SlidingDeadline = meta.AbsoluteExpiration;
-        }
-
-        WriteMeta(metaPath, meta);
     }
 
     static Task RefreshSlidingAsync(string metaPath, CacheEntryMeta? meta, Cancel cancel)
     {
-        if (meta is not { SlidingExpiration: > 0 })
+        if (TryRefreshSlidingDeadline(meta))
         {
-            return Task.CompletedTask;
+            return WriteMetaAsync(metaPath, meta, cancel);
         }
 
-        var now = DateTimeOffset.UtcNow.UtcTicks;
-        meta.SlidingDeadline = now + meta.SlidingExpiration;
-
-        if (meta.AbsoluteExpiration > 0 && meta.SlidingDeadline > meta.AbsoluteExpiration)
-        {
-            meta.SlidingDeadline = meta.AbsoluteExpiration;
-        }
-
-        return WriteMetaAsync(metaPath, meta, cancel);
+        return Task.CompletedTask;
     }
 
     static CacheEntryMeta? ReadMeta(string path)
