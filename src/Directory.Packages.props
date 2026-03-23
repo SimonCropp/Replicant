@@ -20,7 +20,7 @@
     <PackageVersion Include="Verify.NUnit" Version="31.13.5" />
     <PackageVersion Include="Verify.Http" Version="7.5.1" />
     <PackageVersion Include="NUnit" Version="4.5.1" />
-    <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
     <PackageVersion Include="Microsoft.Sbom.Targets" Version="4.1.5" />
     <PackageVersion Include="DiffEngine" Version="19.1.2" />
     <PackageVersion Include="EmptyFiles" Version="8.17.2" />
