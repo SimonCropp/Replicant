@@ -263,6 +263,34 @@ var content = httpCache.StringAsync(uri, staleIfError: true);
 <!-- endSnippet -->
 
 
+### Retry on transient failure
+
+Transient HTTP failures and network exceptions are automatically retried with exponential backoff when `maxRetries` is set. This works with both `HttpCache` and `ReplicantHandler`.
+
+Retried status codes:
+
+ * `408` Request Timeout
+ * `500` Internal Server Error
+ * `502` Bad Gateway
+ * `503` Service Unavailable
+ * `504` Gateway Timeout
+
+<!-- snippet: RetryUsage -->
+<a id='snippet-RetryUsage'></a>
+```cs
+var handler = new ReplicantHandler(cacheDirectory, maxRetries: 3)
+{
+    InnerHandler = new HttpClientHandler()
+};
+using var client = new HttpClient(handler);
+var response = await client.GetAsync("https://example.com");
+```
+<sup><a href='/src/Tests/RetryTests.cs#L23-L32' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryUsage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+Retries use exponential backoff (200ms, 400ms, 800ms, ...). When combined with `staleIfError`, retries are attempted first; if all retries are exhausted, stale cached content is returned as a fallback.
+
+
 ### Customizing HttpRequestMessage
 
 The HttpRequestMessage used can be customized using a callback.

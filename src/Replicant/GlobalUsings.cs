@@ -5,6 +5,7 @@ global using System.Text.Json;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Globalization;
 global using System.Net.Http.Headers;
+global using System.Net.Sockets;
 global using System.Security.Cryptography;
 global using Microsoft.Extensions.Caching.Distributed;
 global using Microsoft.Extensions.DependencyInjection;

@@ -90,9 +90,7 @@ class CacheStore
         }
     }
 
-    public FilePair AddItem(
-        Cancel cancel,
-        Stream content,
+    public FilePair AddItem(Stream content,
         MetaData meta,
         Timestamp timestamp)
     {
@@ -131,7 +129,7 @@ class CacheStore
         var meta = MetaData.FromEnumerables(
             uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders());
         using var stream = response.Content.ReadAsStream(cancel);
-        return AddItem(cancel, stream, meta, timestamp);
+        return AddItem(stream, meta, timestamp);
     }
 
     FilePair MoveToFinalLocation(Timestamp timestamp, FilePair tempFile)
