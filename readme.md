@@ -275,8 +275,17 @@ Retried status codes:
  * `503` Service Unavailable
  * `504` Gateway Timeout
 
-<!-- snippet: RetryUsage -->
-<a id='snippet-RetryUsage'></a>
+<!-- snippet: RetryHttpCacheUsage -->
+<a id='snippet-RetryHttpCacheUsage'></a>
+```cs
+using var httpCache = new HttpCache(cacheDirectory, maxRetries: 3);
+var content = await httpCache.StringAsync("https://example.com");
+```
+<sup><a href='/src/Tests/RetryTests.cs#L23-L28' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryHttpCacheUsage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+<!-- snippet: RetryHandlerUsage -->
+<a id='snippet-RetryHandlerUsage'></a>
 ```cs
 var handler = new ReplicantHandler(cacheDirectory, maxRetries: 3)
 {
@@ -285,7 +294,7 @@ var handler = new ReplicantHandler(cacheDirectory, maxRetries: 3)
 using var client = new HttpClient(handler);
 var response = await client.GetAsync("https://example.com");
 ```
-<sup><a href='/src/Tests/RetryTests.cs#L23-L32' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/RetryTests.cs#L33-L42' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryHandlerUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Retries use exponential backoff (200ms, 400ms, 800ms, ...). When combined with `staleIfError`, retries are attempted first; if all retries are exhausted, stale cached content is returned as a fallback.

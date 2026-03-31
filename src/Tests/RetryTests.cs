@@ -18,9 +18,19 @@ public class RetryTests
         }
     }
 
-    static async Task RetryUsage(string cacheDirectory)
+    static async Task RetryHttpCacheUsage(string cacheDirectory)
     {
-        #region RetryUsage
+        #region RetryHttpCacheUsage
+
+        using var httpCache = new HttpCache(cacheDirectory, maxRetries: 3);
+        var content = await httpCache.StringAsync("https://example.com");
+
+        #endregion
+    }
+
+    static async Task RetryHandlerUsage(string cacheDirectory)
+    {
+        #region RetryHandlerUsage
 
         var handler = new ReplicantHandler(cacheDirectory, maxRetries: 3)
         {
