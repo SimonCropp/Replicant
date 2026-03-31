@@ -1,3 +1,5 @@
+// ReSharper disable UnusedVariable
+// ReSharper disable ShortLivedHttpClient
 [TestFixture]
 [Parallelizable(ParallelScope.Children)]
 public class RetryTests
