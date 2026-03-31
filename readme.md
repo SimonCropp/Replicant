@@ -285,7 +285,7 @@ var handler = new ReplicantHandler(cacheDirectory, maxRetries: 3)
 using var client = new HttpClient(handler);
 var response = await client.GetAsync("https://example.com");
 ```
-<sup><a href='/src/Tests/RetryTests.cs#L21-L30' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/RetryTests.cs#L23-L32' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Retries use exponential backoff (200ms, 400ms, 800ms, ...). When combined with `staleIfError`, retries are attempted first; if all retries are exhausted, stale cached content is returned as a fallback.
