@@ -2,7 +2,27 @@
 {
     public static string Compute(string value)
     {
-        var hash = SHA1.HashData(Encoding.UTF8.GetBytes(value));
-        return Convert.ToHexStringLower(hash);
+        var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+        if (maxByteCount <= 256)
+        {
+            Span<byte> utf8 = stackalloc byte[256];
+            var bytesWritten = Encoding.UTF8.GetBytes(value.AsSpan(), utf8);
+            Span<byte> hash = stackalloc byte[20];
+            SHA1.HashData(utf8[..bytesWritten], hash);
+            return Convert.ToHexStringLower(hash);
+        }
+
+        var rented = ArrayPool<byte>.Shared.Rent(maxByteCount);
+        try
+        {
+            var bytesWritten = Encoding.UTF8.GetBytes(value.AsSpan(), rented);
+            Span<byte> hash = stackalloc byte[20];
+            SHA1.HashData(rented.AsSpan(0, bytesWritten), hash);
+            return Convert.ToHexStringLower(hash);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(rented);
+        }
     }
 }
