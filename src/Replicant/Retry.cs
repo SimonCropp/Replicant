@@ -31,8 +31,9 @@ static class Retry
         return exception is HttpRequestException;
     }
 
-    public static async Task<HttpResponseMessage> SendAsync(
-        Func<Task<HttpResponseMessage>> sendAsync,
+    public static async Task<HttpResponseMessage> SendAsync<TArg>(
+        Func<TArg, Task<HttpResponseMessage>> sendAsync,
+        TArg arg,
         int maxRetries,
         Cancel cancel)
     {
@@ -41,7 +42,7 @@ static class Retry
             HttpResponseMessage response;
             try
             {
-                response = await sendAsync();
+                response = await sendAsync(arg);
             }
             catch (Exception exception) when
                 (attempt < maxRetries && IsRetryableException(exception))
@@ -62,8 +63,9 @@ static class Retry
         }
     }
 
-    public static HttpResponseMessage Send(
-        Func<HttpResponseMessage> send,
+    public static HttpResponseMessage Send<TArg>(
+        Func<TArg, HttpResponseMessage> send,
+        TArg arg,
         int maxRetries)
     {
         for (var attempt = 0; ; attempt++)
@@ -71,7 +73,7 @@ static class Retry
             HttpResponseMessage response;
             try
             {
-                response = send();
+                response = send(arg);
             }
             catch (Exception exception) when
                 (attempt < maxRetries && IsRetryableException(exception))

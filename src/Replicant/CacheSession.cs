@@ -10,7 +10,7 @@ class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
         if (existingFile == null)
         {
             var response = maxRetries > 0
-                ? await Retry.SendAsync(() => sendAsync(null), maxRetries, cancel)
+                ? await Retry.SendAsync(sendAsync, null, maxRetries, cancel)
                 : await sendAsync(null);
             return await StoreNewResponseAsync(response, uri, cancel);
         }
@@ -28,7 +28,7 @@ class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
         if (existingFile == null)
         {
             var response = maxRetries > 0
-                ? Retry.Send(() => send(null), maxRetries)
+                ? Retry.Send(send, null, maxRetries)
                 : send(null);
             return StoreNewResponse(response, uri, cancel);
         }
@@ -56,7 +56,7 @@ class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
         try
         {
             response = maxRetries > 0
-                ? await Retry.SendAsync(() => sendAsync(timestamp), maxRetries, cancel)
+                ? await Retry.SendAsync(sendAsync, timestamp, maxRetries, cancel)
                 : await sendAsync(timestamp);
         }
         catch (Exception exception)
@@ -95,7 +95,7 @@ class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
         try
         {
             response = maxRetries > 0
-                ? Retry.Send(() => send(timestamp), maxRetries)
+                ? Retry.Send(send, timestamp, maxRetries)
                 : send(timestamp);
         }
         catch (Exception exception)
