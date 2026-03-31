@@ -1,4 +1,4 @@
-class CacheSession(CacheStore store, bool staleIfError)
+class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
 {
     public async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> ProcessAsync(
         Uri uri,
@@ -9,7 +9,9 @@ class CacheSession(CacheStore store, bool staleIfError)
 
         if (existingFile == null)
         {
-            var response = await sendAsync(null);
+            var response = maxRetries > 0
+                ? await Retry.SendAsync(() => sendAsync(null), maxRetries, cancel)
+                : await sendAsync(null);
             return await StoreNewResponseAsync(response, uri, cancel);
         }
 
@@ -25,7 +27,9 @@ class CacheSession(CacheStore store, bool staleIfError)
 
         if (existingFile == null)
         {
-            var response = send(null);
+            var response = maxRetries > 0
+                ? Retry.Send(() => send(null), maxRetries)
+                : send(null);
             return StoreNewResponse(response, uri, cancel);
         }
 
@@ -51,7 +55,9 @@ class CacheSession(CacheStore store, bool staleIfError)
         HttpResponseMessage response;
         try
         {
-            response = await sendAsync(timestamp);
+            response = maxRetries > 0
+                ? await Retry.SendAsync(() => sendAsync(timestamp), maxRetries, cancel)
+                : await sendAsync(timestamp);
         }
         catch (Exception exception)
         {
@@ -88,7 +94,9 @@ class CacheSession(CacheStore store, bool staleIfError)
         HttpResponseMessage response;
         try
         {
-            response = send(timestamp);
+            response = maxRetries > 0
+                ? Retry.Send(() => send(timestamp), maxRetries)
+                : send(timestamp);
         }
         catch (Exception exception)
         {

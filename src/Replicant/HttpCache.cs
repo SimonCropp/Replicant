@@ -21,8 +21,18 @@ public partial class HttpCache :
 
     bool clientIsOwned;
 
-    HttpCache(string directory, int maxEntries = 1000) =>
+    int maxRetries;
+
+    HttpCache(string directory, int maxEntries = 1000, int maxRetries = 0)
+    {
+        if (maxRetries < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxRetries), "maxRetries must be greater than or equal to 0");
+        }
+
+        this.maxRetries = maxRetries;
         store = new(directory, maxEntries, PurgeOld);
+    }
 
     /// <summary>
     /// Instantiate a new instance of <see cref="HttpCache"/>.
@@ -30,8 +40,9 @@ public partial class HttpCache :
     /// <param name="directory">The directory to store the cache files.</param>
     /// <param name="clientFunc">A factory to retrieve a <see cref="HttpClient"/> each time a resource is downloaded.</param>
     /// <param name="maxEntries">The maximum entries to store in the cache.</param>
-    public HttpCache(string directory, Func<HttpClient> clientFunc, int maxEntries = 1000) :
-        this(directory, maxEntries) =>
+    /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
+    public HttpCache(string directory, Func<HttpClient> clientFunc, int maxEntries = 1000, int maxRetries = 0) :
+        this(directory, maxEntries, maxRetries) =>
         this.clientFunc = clientFunc;
 
     /// <summary>
@@ -40,8 +51,9 @@ public partial class HttpCache :
     /// <param name="directory">The directory to store the cache files.</param>
     /// <param name="client">The <see cref="HttpCache"/> to use do web calls. If not supplied an instance will be instantiate.</param>
     /// <param name="maxEntries">The maximum entries to store in the cache.</param>
-    public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000) :
-        this(directory, maxEntries)
+    /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
+    public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000, int maxRetries = 0) :
+        this(directory, maxEntries, maxRetries)
     {
         if (client == null)
         {
@@ -67,7 +79,7 @@ public partial class HttpCache :
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancel cancel = default)
     {
-        var session = new CacheSession(store, staleIfError);
+        var session = new CacheSession(store, staleIfError, maxRetries);
         var (revalidated, stored, resultFile, response) = await session.ProcessAsync(
             uri,
             async timestamp =>
@@ -100,7 +112,7 @@ public partial class HttpCache :
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancel cancel = default)
     {
-        var session = new CacheSession(store, staleIfError);
+        var session = new CacheSession(store, staleIfError, maxRetries);
         var (revalidated, stored, resultFile, response) = session.Process(
             uri,
             timestamp =>
