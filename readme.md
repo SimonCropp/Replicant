@@ -497,13 +497,6 @@ When a cached entry has expired, a conditional request is sent with:
 If the server responds `304 Not Modified`, the cached content is reused without re-downloading.
 
 
-## Influences / Alternatives
-
- * [Tavis.HttpCache](https://github.com/tavis-software/Tavis.HttpCache)
- * [CacheCow](https://github.com/aliostad/CacheCow)
- * [Monkey Cache](https://github.com/jamesmontemagno/monkey-cache)
-
-
 ## Icon
 
 [Cyborg](https://thenounproject.com/term/cyborg/689871/) designed by [Symbolon](https://thenounproject.com/symbolon/) from [The Noun Project](https://thenounproject.com).
