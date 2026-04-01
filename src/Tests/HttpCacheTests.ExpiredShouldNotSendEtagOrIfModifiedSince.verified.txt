@@ -1,7 +1,7 @@
 ﻿{
   target: {
     FromDisk: true,
-    Stored: true,
+    Stored: false,
     Revalidated: true,
     Response: {
       Status: 200 OK,
@@ -26,22 +26,18 @@
     Status: Created,
     Request: {
       Uri: https://httpbin.org/etag/{etag},
-      Headers: {}
+      Headers: {
+        If-Modified-Since: Wed, 01 Apr 2026 11:26:02 GMT,
+        If-None-Match: "{etag}"
+      }
     },
     Response: {
-      Status: 200 OK,
+      Status: 304 NotModified,
       Headers: {
         Access-Control-Allow-Credentials: true,
         Access-Control-Allow-Origin: *,
         Date: DateTime_1,
         ETag: {etag}
-      },
-      ContentHeaders: {},
-      ContentStringParsed: {
-        headers: {
-          Host: httpbin.org
-        },
-        url: https://httpbin.org/etag/{etag}
       }
     }
   }

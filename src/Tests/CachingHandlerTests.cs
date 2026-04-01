@@ -645,4 +645,32 @@ public class CachingHandlerTests
         var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(1, binFiles.Length);
     }
+
+    [Test]
+    public async Task ExpiredEntry_SendsConditionalHeaders()
+    {
+        var path = CachePath();
+        var mock = new MockHttpClient(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("new content")
+            });
+
+        await using var cache = new HttpCache(path, mock);
+
+        // Seed cache with an expired entry that has an etag
+        await cache.AddItemAsync(
+            "http://test/resource",
+            "original content",
+            expiry: DateTimeOffset.UtcNow.AddDays(-1),
+            modified: new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            etag: "\"test-etag\"");
+
+        // Download should revalidate the expired entry and send conditional headers
+        using var result = await cache.DownloadAsync("http://test/resource");
+
+        var request = mock.Requests.Single();
+        NotNull(request.Headers.IfModifiedSince);
+        True(request.Headers.TryGetValues("If-None-Match", out _));
+    }
 }
