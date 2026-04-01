@@ -496,6 +496,20 @@ public class HttpCacheTests
     }
 
     [Test]
+    public async Task Cache404()
+    {
+        var uri = "https://httpbin.org/status/404";
+
+        #region cache404
+
+        var content = await httpCache.StringAsync(uri, cache404: true);
+
+        #endregion
+
+        await Verify(content);
+    }
+
+    [Test]
     public async Task Purge_ShouldOnlyProcessBinFiles()
     {
         // Add a cached item (creates both .bin and .json files)

@@ -1,4 +1,4 @@
-﻿namespace Replicant;
+namespace Replicant;
 
 public partial class HttpCache
 {
@@ -8,8 +8,9 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
+        bool cache404 = false,
         Cancel cancel = default) =>
-        ToFileAsync(new Uri(uri), path, staleIfError, modifyRequest, cancel);
+        ToFileAsync(new Uri(uri), path, staleIfError, modifyRequest, cache404, cancel);
 
     /// <inheritdoc/>
     public virtual async Task ToFileAsync(
@@ -17,9 +18,10 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
+        bool cache404 = false,
         Cancel cancel = default)
     {
-        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cancel);
+        using var result = await DownloadAsync(uri, staleIfError, modifyRequest, cache404, cancel);
         await result.ToFileAsync(path, cancel);
     }
 
@@ -29,8 +31,9 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
+        bool cache404 = false,
         Cancel cancel = default) =>
-        ToFile(new Uri(uri), path, staleIfError, modifyRequest, cancel);
+        ToFile(new Uri(uri), path, staleIfError, modifyRequest, cache404, cancel);
 
     /// <inheritdoc/>
     public virtual void ToFile(
@@ -38,9 +41,10 @@ public partial class HttpCache
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
+        bool cache404 = false,
         Cancel cancel = default)
     {
-        using var result = Download(uri, staleIfError, modifyRequest, cancel);
+        using var result = Download(uri, staleIfError, modifyRequest, cache404, cancel);
         result.ToFile(path, cancel);
     }
 }

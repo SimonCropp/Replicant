@@ -1,6 +1,6 @@
 ﻿static class DeriveCacheStatus
 {
-    public static CacheStatus GetCacheStatus(this HttpResponseMessage response, bool staleIfError)
+    public static CacheStatus GetCacheStatus(this HttpResponseMessage response, bool staleIfError, bool cache404)
     {
         if (response.IsNoStore())
         {
@@ -19,6 +19,11 @@
 
         if (!response.IsSuccessStatusCode)
         {
+            if (cache404 && response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return CacheStatus.Stored;
+            }
+
             if (staleIfError)
             {
                 return CacheStatus.UseStaleDueToError;

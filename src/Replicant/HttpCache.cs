@@ -70,16 +70,18 @@ public partial class HttpCache :
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
+        bool cache404 = false,
         Cancel cancel = default) =>
-        DownloadAsync(new Uri(uri), staleIfError, modifyRequest, cancel);
+        DownloadAsync(new Uri(uri), staleIfError, modifyRequest, cache404, cancel);
 
     internal async Task<Result> DownloadAsync(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
+        bool cache404 = false,
         Cancel cancel = default)
     {
-        var session = new CacheSession(store, staleIfError, maxRetries);
+        var session = new CacheSession(store, staleIfError, cache404, maxRetries);
         var (revalidated, stored, resultFile, response) = await session.ProcessAsync(
             uri,
             async timestamp =>
@@ -103,16 +105,18 @@ public partial class HttpCache :
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
+        bool cache404 = false,
         Cancel cancel = default) =>
-        Download(new Uri(uri), staleIfError, modifyRequest, cancel);
+        Download(new Uri(uri), staleIfError, modifyRequest, cache404, cancel);
 
     internal Result Download(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
+        bool cache404 = false,
         Cancel cancel = default)
     {
-        var session = new CacheSession(store, staleIfError, maxRetries);
+        var session = new CacheSession(store, staleIfError, cache404, maxRetries);
         var (revalidated, stored, resultFile, response) = session.Process(
             uri,
             timestamp =>

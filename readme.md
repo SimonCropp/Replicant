@@ -263,6 +263,19 @@ var content = httpCache.StringAsync(uri, staleIfError: true);
 <!-- endSnippet -->
 
 
+### Cache 404 responses
+
+By default, 404 responses are not cached and throw an exception. Set `cache404: true` to cache 404 Not Found responses to disk, avoiding repeated requests for resources known to be missing.
+
+<!-- snippet: cache404 -->
+<a id='snippet-cache404'></a>
+```cs
+var content = await httpCache.StringAsync(uri, cache404: true);
+```
+<sup><a href='/src/Tests/HttpCacheTests.cs#L503-L507' title='Snippet source file'>snippet source</a> | <a href='#snippet-cache404' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
 ### Retry on transient failure
 
 Transient HTTP failures and network exceptions are automatically retried with exponential backoff when `maxRetries` is set. This works with both `HttpCache` and `ReplicantHandler`.
@@ -382,6 +395,8 @@ graph TD
     CacheExists{Cached file<br/>exists for URI?}
     SendNew[Send request to server]
     IsSuccess{Response 2xx?}
+    Is404{HTTP 404?}
+    IsCache404{cache404<br/>enabled?}
     ThrowException[Throw exception]
     IsNoStoreNew{Cache-Control:<br/>no-store?}
     ReturnDirect[Return response directly<br/>nothing cached]
@@ -398,6 +413,8 @@ graph TD
     StoreRevalidate[Store response<br/>always revalidate next time]
     IsNotModified{HTTP 304<br/>Not Modified?}
     IsSuccessRevalidate{HTTP 2xx?}
+    Is404Revalidate{HTTP 404?}
+    IsCache404Revalidate{cache404<br/>enabled?}
     IsStaleIfErrorRevalidate{staleIfError<br/>enabled?}
 
     Request --> IsGetOrHead
@@ -405,7 +422,11 @@ graph TD
     IsGetOrHead -->|Yes| CacheExists
     CacheExists -->|No| SendNew
     SendNew --> IsSuccess
-    IsSuccess -->|No| ThrowException
+    IsSuccess -->|No| Is404
+    Is404 -->|Yes| IsCache404
+    IsCache404 -->|Yes| Store
+    IsCache404 -->|No| ThrowException
+    Is404 -->|No| ThrowException
     IsSuccess -->|Yes| IsNoStoreNew
     IsNoStoreNew -->|Yes| ReturnDirect
     IsNoStoreNew -->|No| Store
@@ -426,7 +447,11 @@ graph TD
     IsNotModified -->|Yes| CacheHit
     IsNotModified -->|No| IsSuccessRevalidate
     IsSuccessRevalidate -->|Yes| Store
-    IsSuccessRevalidate -->|No| IsStaleIfErrorRevalidate
+    IsSuccessRevalidate -->|No| Is404Revalidate
+    Is404Revalidate -->|Yes| IsCache404Revalidate
+    IsCache404Revalidate -->|Yes| Store
+    IsCache404Revalidate -->|No| IsStaleIfErrorRevalidate
+    Is404Revalidate -->|No| IsStaleIfErrorRevalidate
     IsStaleIfErrorRevalidate -->|Yes| ReturnStale
     IsStaleIfErrorRevalidate -->|No| ThrowException
 ```

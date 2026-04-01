@@ -1,4 +1,4 @@
-class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
+class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, int maxRetries = 0)
 {
     public async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> ProcessAsync(
         Uri uri,
@@ -117,7 +117,7 @@ class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
     async Task<(bool stored, FilePair? file)> HandleCacheStatusAsync(
         HttpResponseMessage response, FilePair existingFile, Uri uri, Cancel cancel)
     {
-        var status = response.GetCacheStatus(staleIfError);
+        var status = response.GetCacheStatus(staleIfError, cache404);
         switch (status)
         {
             case CacheStatus.Hit:
@@ -149,7 +149,7 @@ class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
     (bool stored, FilePair? file) HandleCacheStatus(
         HttpResponseMessage response, FilePair existingFile, Uri uri, Cancel cancel)
     {
-        var status = response.GetCacheStatus(staleIfError);
+        var status = response.GetCacheStatus(staleIfError, cache404);
         switch (status)
         {
             case CacheStatus.Hit:
@@ -181,7 +181,11 @@ class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
     async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> StoreNewResponseAsync(
         HttpResponseMessage response, Uri uri, Cancel cancel)
     {
-        response.EnsureSuccess();
+        if (!cache404 || response.StatusCode != HttpStatusCode.NotFound)
+        {
+            response.EnsureSuccess();
+        }
+
         if (response.IsNoStore())
         {
             return (true, false, null, response);
@@ -196,7 +200,11 @@ class CacheSession(CacheStore store, bool staleIfError, int maxRetries = 0)
     (bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response) StoreNewResponse(
         HttpResponseMessage response, Uri uri, Cancel cancel)
     {
-        response.EnsureSuccess();
+        if (!cache404 || response.StatusCode != HttpStatusCode.NotFound)
+        {
+            response.EnsureSuccess();
+        }
+
         if (response.IsNoStore())
         {
             return (true, false, null, response);
