@@ -645,4 +645,49 @@ public class CachingHandlerTests
         var binFiles = Directory.GetFiles(path, "*.bin");
         AreEqual(1, binFiles.Length);
     }
+
+    [Test]
+    public void ShouldReturnStaleIfError_HttpRequestException_WithStale()
+    {
+        var cancel = new CancellationTokenSource().Token;
+        True(CacheStore.ShouldReturnStaleIfError(true, new HttpRequestException(), cancel));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_HttpRequestException_WithoutStale()
+    {
+        var cancel = new CancellationTokenSource().Token;
+        False(CacheStore.ShouldReturnStaleIfError(false, new HttpRequestException(), cancel));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_Timeout_WithStale()
+    {
+        // TaskCanceledException from a timeout (not user cancellation)
+        var cancel = new CancellationTokenSource().Token;
+        True(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cancel));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_Timeout_WithoutStale()
+    {
+        var cancel = new CancellationTokenSource().Token;
+        False(CacheStore.ShouldReturnStaleIfError(false, new TaskCanceledException(), cancel));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_UserCancellation_WithStale()
+    {
+        // User-initiated cancellation should NOT return stale
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+        False(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cts.Token));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_OtherException_WithStale()
+    {
+        var cancel = new CancellationTokenSource().Token;
+        False(CacheStore.ShouldReturnStaleIfError(true, new InvalidOperationException(), cancel));
+    }
 }
