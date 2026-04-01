@@ -649,14 +649,14 @@ public class CachingHandlerTests
     [Test]
     public void ShouldReturnStaleIfError_HttpRequestException_WithStale()
     {
-        var cancel = new CancellationTokenSource().Token;
+        var cancel = new CancelSource().Token;
         True(CacheStore.ShouldReturnStaleIfError(true, new HttpRequestException(), cancel));
     }
 
     [Test]
     public void ShouldReturnStaleIfError_HttpRequestException_WithoutStale()
     {
-        var cancel = new CancellationTokenSource().Token;
+        var cancel = new CancelSource().Token;
         False(CacheStore.ShouldReturnStaleIfError(false, new HttpRequestException(), cancel));
     }
 
@@ -664,14 +664,14 @@ public class CachingHandlerTests
     public void ShouldReturnStaleIfError_Timeout_WithStale()
     {
         // TaskCanceledException from a timeout (not user cancellation)
-        var cancel = new CancellationTokenSource().Token;
+        var cancel = new CancelSource().Token;
         True(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cancel));
     }
 
     [Test]
     public void ShouldReturnStaleIfError_Timeout_WithoutStale()
     {
-        var cancel = new CancellationTokenSource().Token;
+        var cancel = new CancelSource().Token;
         False(CacheStore.ShouldReturnStaleIfError(false, new TaskCanceledException(), cancel));
     }
 
@@ -679,7 +679,7 @@ public class CachingHandlerTests
     public void ShouldReturnStaleIfError_UserCancellation_WithStale()
     {
         // User-initiated cancellation should NOT return stale
-        var cts = new CancellationTokenSource();
+        var cts = new CancelSource();
         cts.Cancel();
         False(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cts.Token));
     }
@@ -687,7 +687,7 @@ public class CachingHandlerTests
     [Test]
     public void ShouldReturnStaleIfError_OtherException_WithStale()
     {
-        var cancel = new CancellationTokenSource().Token;
+        var cancel = new CancelSource().Token;
         False(CacheStore.ShouldReturnStaleIfError(true, new InvalidOperationException(), cancel));
     }
 
