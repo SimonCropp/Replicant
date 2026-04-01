@@ -56,7 +56,10 @@ public class MatrixTests
         }
         else
         {
-            fileName = $"Int_{response}_useStale={useStale}_exp={data.Expiry:yyyyMMdd}_mod={data.Modified:yyyyMMdd}_tag={data.Etag?.Replace('/', '_').Replace('"', '_')}";
+            var modified = data.Modified?.ToString("yyyyMMdd") ?? "null";
+            var expiry = data.Expiry?.ToString("yyyyMMdd") ?? "null";
+            var tag = data.Etag?.Replace('/', '_').Replace('"', '_');
+            fileName = $"Int_{response}_useStale={useStale}_exp={expiry}_mod={modified}_tag={tag}";
         }
 
         var settings = new VerifySettings(sharedSettings);

@@ -3,7 +3,7 @@
   Stored: true,
   Revalidated: true,
   Response: {
-    Status: 200 OK,
+    Status: 304 Not Modified,
     Headers: {
       Cache-Control: no-cache,
       ETag: "tag"
