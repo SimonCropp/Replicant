@@ -724,4 +724,77 @@ public class CachingHandlerTests
             AreEqual(0, leaked.Count, $"Cache files leaked to working directory: {cwd}");
         }
     }
+
+    [Test]
+    public void ShouldReturnStaleIfError_HttpRequestException_WithStale()
+    {
+        var cancel = new CancellationTokenSource().Token;
+        True(CacheStore.ShouldReturnStaleIfError(true, new HttpRequestException(), cancel));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_HttpRequestException_WithoutStale()
+    {
+        var cancel = new CancellationTokenSource().Token;
+        False(CacheStore.ShouldReturnStaleIfError(false, new HttpRequestException(), cancel));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_Timeout_WithStale()
+    {
+        // TaskCanceledException from a timeout (not user cancellation)
+        var cancel = new CancellationTokenSource().Token;
+        True(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cancel));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_Timeout_WithoutStale()
+    {
+        var cancel = new CancellationTokenSource().Token;
+        False(CacheStore.ShouldReturnStaleIfError(false, new TaskCanceledException(), cancel));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_UserCancellation_WithStale()
+    {
+        // User-initiated cancellation should NOT return stale
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+        False(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cts.Token));
+    }
+
+    [Test]
+    public void ShouldReturnStaleIfError_OtherException_WithStale()
+    {
+        var cancel = new CancellationTokenSource().Token;
+        False(CacheStore.ShouldReturnStaleIfError(true, new InvalidOperationException(), cancel));
+    }
+
+    [Test]
+    public async Task ExpiredEntry_SendsConditionalHeaders()
+    {
+        var path = CachePath();
+        var mock = new MockHttpClient(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("new content")
+            });
+
+        await using var cache = new HttpCache(path, mock);
+
+        // Seed cache with an expired entry that has an etag
+        await cache.AddItemAsync(
+            "http://test/resource",
+            "original content",
+            expiry: DateTimeOffset.UtcNow.AddDays(-1),
+            modified: new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            etag: "\"test-etag\"");
+
+        // Download should revalidate the expired entry and send conditional headers
+        using var result = await cache.DownloadAsync("http://test/resource");
+
+        var request = mock.Requests.Single();
+        NotNull(request.Headers.IfModifiedSince);
+        True(request.Headers.TryGetValues("If-None-Match", out _));
+    }
 }

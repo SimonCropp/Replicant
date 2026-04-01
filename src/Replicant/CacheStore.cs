@@ -178,8 +178,8 @@ class CacheStore
     public static bool ShouldReturnStaleIfError(bool staleIfError, Exception exception, Cancel cancel) =>
         (
             exception is HttpRequestException ||
-            exception is TaskCanceledException &&
-            !cancel.IsCancellationRequested
+            (exception is TaskCanceledException &&
+             !cancel.IsCancellationRequested)
         )
         && staleIfError;
 
