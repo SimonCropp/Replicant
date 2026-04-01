@@ -318,7 +318,7 @@ Retries use exponential backoff (200ms, 400ms, 800ms, ...). When combined with `
 
 By default, cached entries are revalidated when the server-provided expiry (from `Expires` or `Cache-Control: max-age`) has passed. When no expiry header is present, cached entries are served indefinitely without revalidation.
 
-For servers that set short expiry times on content that rarely or never changes (e.g. symbol servers, package registries), set `minFreshness` to override the server's expiry and keep cached entries fresh for a minimum duration. This avoids unnecessary conditional GET round-trips for immutable content.
+For servers that set short expiry times on content that rarely or never changes (e.g. symbol servers, package registries), set `minFreshness` to override the server's expiry and keep cached entries fresh for a minimum duration. This avoids unnecessary conditional GET round-trips for immutable content. This is a client-side form of [heuristic freshness](https://httpwg.org/specs/rfc9111.html#heuristic.freshness) — useful when the server doesn't send [`Cache-Control: immutable`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#immutable) or long-lived expiry headers.
 
 <!-- snippet: MinFreshness -->
 <a id='snippet-MinFreshness'></a>
