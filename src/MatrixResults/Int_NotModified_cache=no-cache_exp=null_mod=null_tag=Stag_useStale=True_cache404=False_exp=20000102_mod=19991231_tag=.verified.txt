@@ -1,0 +1,12 @@
+﻿{
+  FromDisk: true,
+  Stored: true,
+  Revalidated: true,
+  Response: {
+    Status: 304 Not Modified,
+    Headers: {
+      Cache-Control: no-cache,
+      ETag: "tag"
+    }
+  }
+}

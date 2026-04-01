@@ -1,0 +1,8 @@
+﻿{
+  FromDisk: true,
+  Stored: true,
+  Revalidated: true,
+  Response: {
+    Status: 404 Not Found
+  }
+}

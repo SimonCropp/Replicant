@@ -16,6 +16,7 @@ public class MatrixTests
 
     public static IEnumerable<object?[]> DataForIntegration()
     {
+        foreach (var cache404 in new[] {true, false})
         foreach (var staleIfError in new[] {true, false})
         foreach (var modDate in mods)
         foreach (var expiry in expiries)
@@ -26,10 +27,12 @@ public class MatrixTests
             [
                 new StoredData(expiry, modDate, etag),
                 response,
-                staleIfError
+                staleIfError,
+                cache404
             ];
         }
 
+        foreach (var cache404 in new[] {true, false})
         foreach (var staleIfError in new[] {true, false})
         foreach (var response in Responses())
         {
@@ -37,7 +40,8 @@ public class MatrixTests
             [
                 null,
                 response,
-                staleIfError
+                staleIfError,
+                cache404
             ];
         }
     }
@@ -46,19 +50,20 @@ public class MatrixTests
     public async Task Integration(
         StoredData? data,
         HttpResponseMessageEx response,
-        bool useStale)
+        bool useStale,
+        bool cache404)
     {
         string fileName;
         if (data == null)
         {
-            fileName = $"Int_{response}_useStale={useStale}";
+            fileName = $"Int_{response}_useStale={useStale}_cache404={cache404}";
         }
         else
         {
             var modified = data.Modified?.ToString("yyyyMMdd") ?? "null";
             var expiry = data.Expiry?.ToString("yyyyMMdd") ?? "null";
             var tag = data.Etag?.Replace('/', '_').Replace('"', '_');
-            fileName = $"Int_{response}_useStale={useStale}_exp={expiry}_mod={modified}_tag={tag}";
+            fileName = $"Int_{response}_useStale={useStale}_cache404={cache404}_exp={expiry}_mod={modified}_tag={tag}";
         }
 
         var settings = new VerifySettings(sharedSettings);
@@ -68,7 +73,7 @@ public class MatrixTests
 
         try
         {
-            await using var cache = new HttpCache(directory, new MockHttpClient(response));
+            await using var cache = new HttpCache(directory, new MockHttpClient(response), cache404: cache404);
             cache.Purge();
             if (data != null)
             {
@@ -85,15 +90,15 @@ public class MatrixTests
     }
 
     [TestCaseSource(nameof(StatusForMessageData))]
-    public async Task StatusForMessage(HttpResponseMessageEx response, bool useStale)
+    public async Task StatusForMessage(HttpResponseMessageEx response, bool useStale, bool cache404)
     {
-        var fileName = $"Status_{response}_useStale={useStale}";
+        var fileName = $"Status_{response}_useStale={useStale}_cache404={cache404}";
         var settings = new VerifySettings(sharedSettings);
         settings.UseFileName(fileName);
 
         try
         {
-            await Verify(response.GetCacheStatus(useStale, false), settings);
+            await Verify(response.GetCacheStatus(useStale, cache404), settings);
         }
         catch (HttpRequestException exception)
         {
@@ -107,13 +112,15 @@ public class MatrixTests
 
     public static IEnumerable<object[]> StatusForMessageData()
     {
+        foreach (var cache404 in new[] {true, false})
         foreach (var staleIfError in new[] {true, false})
         foreach (var response in Responses())
         {
             yield return
             [
                 response,
-                staleIfError
+                staleIfError,
+                cache404
             ];
         }
     }
@@ -121,6 +128,10 @@ public class MatrixTests
     static IEnumerable<HttpResponseMessageEx> Responses()
     {
         yield return new(HttpStatusCode.BadRequest)
+        {
+            Content = new StringContent("")
+        };
+        yield return new(HttpStatusCode.NotFound)
         {
             Content = new StringContent("")
         };
