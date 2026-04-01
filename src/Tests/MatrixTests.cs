@@ -91,7 +91,7 @@ public class MatrixTests
 
         try
         {
-            await Verify(response.GetCacheStatus(useStale), settings);
+            await Verify(response.GetCacheStatus(useStale, false), settings);
         }
         catch (HttpRequestException exception)
         {

@@ -118,7 +118,7 @@ class CacheStore
     {
         var timestamp = Timestamp.FromResponse(uri, response);
         var meta = MetaData.FromEnumerables(
-            uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders());
+            uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders(), response.StatusCode);
         return AddItemAsync(cancel, c => response.Content.ReadAsStreamAsync(c), meta, timestamp);
     }
 
@@ -127,7 +127,7 @@ class CacheStore
     {
         var timestamp = Timestamp.FromResponse(uri, response);
         var meta = MetaData.FromEnumerables(
-            uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders());
+            uri.AbsoluteUri, response.Headers, response.Content.Headers, response.TrailingHeaders(), response.StatusCode);
         using var stream = response.Content.ReadAsStream(cancel);
         return AddItem(stream, meta, timestamp);
     }

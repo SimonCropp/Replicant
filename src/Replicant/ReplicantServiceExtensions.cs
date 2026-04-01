@@ -32,10 +32,12 @@ public static class ReplicantServiceExtensions
     /// </summary>
     /// <param name="builder">The HTTP client builder.</param>
     /// <param name="staleIfError">If true, return stale cached content when the server returns an error.</param>
+    /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
     public static IHttpClientBuilder AddReplicantCaching(
         this IHttpClientBuilder builder,
         bool staleIfError = false,
+        bool cache404 = false,
         int maxRetries = 0)
     {
         builder.AddHttpMessageHandler(
@@ -44,7 +46,7 @@ public static class ReplicantServiceExtensions
                 var cache = provider.GetService<ReplicantCache>();
                 if (cache != null)
                 {
-                    return new ReplicantHandler(cache, staleIfError, maxRetries);
+                    return new ReplicantHandler(cache, staleIfError, cache404, maxRetries);
                 }
 
                 throw new("No ReplicantCache has been registered. Call services.AddReplicantCache() before AddReplicantCaching().");

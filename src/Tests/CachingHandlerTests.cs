@@ -445,4 +445,78 @@ public class CachingHandlerTests
 
         return Throws(() => factory.CreateClient("CachedClient"));
     }
+
+    [Test]
+    public async Task Cache404_Stores()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent("not found")
+            });
+        using var handler = new ReplicantHandler(path, inner, cache404: true);
+        using var client = new HttpClient(handler);
+
+        // First request: 404 is stored to cache
+        using var response1 = await client.GetAsync("http://example.com/missing");
+        AreEqual(HttpStatusCode.NotFound, response1.StatusCode);
+        var content1 = await response1.Content.ReadAsStringAsync();
+        AreEqual("not found", content1);
+
+        var binFiles = Directory.GetFiles(path, "*.bin");
+        AreEqual(1, binFiles.Length);
+
+        // Second request served from cache, status code preserved
+        using var response2 = await client.GetAsync("http://example.com/missing");
+        AreEqual(HttpStatusCode.NotFound, response2.StatusCode);
+        var content2 = await response2.Content.ReadAsStringAsync();
+        AreEqual("not found", content2);
+    }
+
+    [Test]
+    public async Task Cache404_Disabled_Throws()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent("not found")
+            });
+        using var handler = new ReplicantHandler(path, inner);
+        using var client = new HttpClient(handler);
+
+        Assert.ThrowsAsync<HttpRequestException>(
+            () => client.GetAsync("http://example.com/missing404"));
+    }
+
+    [Test]
+    public async Task Cache404_SharedCache()
+    {
+        var path = CachePath();
+        using var cache = new ReplicantCache(path);
+        var services = new ServiceCollection();
+        services.AddSingleton(cache);
+        services.AddHttpClient("CachedClient")
+            .ConfigurePrimaryHttpMessageHandler(
+                () => new MockHttpMessageHandler(
+                    new HttpResponseMessage(HttpStatusCode.NotFound)
+                    {
+                        Content = new StringContent("not found")
+                    }))
+            .AddHttpMessageHandler(
+                p => new ReplicantHandler(p.GetRequiredService<ReplicantCache>(), cache404: true));
+
+        using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+        using var client = factory.CreateClient("CachedClient");
+
+        using var response = await client.GetAsync("http://example.com/cache404shared");
+        AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+        var content = await response.Content.ReadAsStringAsync();
+        AreEqual("not found", content);
+
+        var binFiles = Directory.GetFiles(path, "*.bin");
+        AreEqual(1, binFiles.Length);
+    }
 }

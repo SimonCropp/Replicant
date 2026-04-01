@@ -1,0 +1,31 @@
+﻿{
+  Uri: theuri,
+  ResponseHeaders: {
+    Access-Control-Allow-Origin: [
+      *
+    ],
+    Access-Control-Expose-Headers: [
+      Age, Date, Content-Length, Content-Range, X-Content-Duration, X-Cache
+    ],
+    Date: [
+      Thu, 01 Jul 2021 00:43:40 GMT
+    ],
+    ETag: [
+      Guid_1
+    ],
+    Permissions-Policy: [
+      interest-cohort=()
+    ],
+    Timing-Allow-Origin: [
+      *
+    ],
+    X-Timestamp: [
+      1549033342.54804
+    ]
+  },
+  ContentHeaders: {
+    Last-Modified: [
+      Fri, 01 Feb 2019 15:02:23 GMT
+    ]
+  }
+}

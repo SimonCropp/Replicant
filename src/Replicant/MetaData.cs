@@ -2,19 +2,23 @@
     string? uri,
     List<KeyValuePair<string, List<string>>> responseHeaders,
     List<KeyValuePair<string, List<string>>> contentHeaders,
-    List<KeyValuePair<string, List<string>>>? trailingHeaders = null)
+    List<KeyValuePair<string, List<string>>>? trailingHeaders = null,
+    int? statusCode = null)
 {
     public string? Uri { get; } = uri;
     public List<KeyValuePair<string, List<string>>> ResponseHeaders { get; } = responseHeaders;
     public List<KeyValuePair<string, List<string>>> ContentHeaders { get; } = contentHeaders;
     public List<KeyValuePair<string, List<string>>>? TrailingHeaders { get; } = trailingHeaders;
+    public int? StatusCode { get; } = statusCode;
 
     public static MetaData FromEnumerables(
         string uri,
         IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders,
         IEnumerable<KeyValuePair<string, IEnumerable<string>>> contentHeaders,
-        IEnumerable<KeyValuePair<string, IEnumerable<string>>>? trailingHeaders = null) =>
-        new(uri, ToList(responseHeaders)!, ToList(contentHeaders)!, ToList(trailingHeaders));
+        IEnumerable<KeyValuePair<string, IEnumerable<string>>>? trailingHeaders = null,
+        HttpStatusCode? statusCode = null) =>
+        new(uri, ToList(responseHeaders)!, ToList(contentHeaders)!, ToList(trailingHeaders),
+            statusCode.HasValue ? (int) statusCode.Value : null);
 
     static List<KeyValuePair<string, List<string>>>? ToList(IEnumerable<KeyValuePair<string, IEnumerable<string>>>? input) =>
         input?
@@ -50,6 +54,11 @@
 
     static void ApplyHeaders(HttpResponseMessage response, MetaData meta)
     {
+        if (meta.StatusCode.HasValue)
+        {
+            response.StatusCode = (HttpStatusCode) meta.StatusCode.Value;
+        }
+
         response.Headers.AddRange(meta.ResponseHeaders);
         response.Content.Headers.AddRange(meta.ContentHeaders);
 #if NET8_0_OR_GREATER
