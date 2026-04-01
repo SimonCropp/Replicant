@@ -23,8 +23,9 @@ public partial class HttpCache :
 
     int maxRetries;
     bool cache404;
+    TimeSpan? minFreshness;
 
-    HttpCache(string directory, int maxEntries = 1000, bool cache404 = false, int maxRetries = 0)
+    HttpCache(string directory, int maxEntries = 1000, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
     {
         if (maxRetries < 0)
         {
@@ -33,6 +34,7 @@ public partial class HttpCache :
 
         this.maxRetries = maxRetries;
         this.cache404 = cache404;
+        this.minFreshness = minFreshness;
         store = new(directory, maxEntries, PurgeOld);
     }
 
@@ -44,8 +46,9 @@ public partial class HttpCache :
     /// <param name="maxEntries">The maximum entries to store in the cache.</param>
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
-    public HttpCache(string directory, Func<HttpClient> clientFunc, int maxEntries = 1000, bool cache404 = false, int maxRetries = 0) :
-        this(directory, maxEntries, cache404, maxRetries) =>
+    /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers. Useful for immutable content where the server doesn't set long expiry.</param>
+    public HttpCache(string directory, Func<HttpClient> clientFunc, int maxEntries = 1000, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null) :
+        this(directory, maxEntries, cache404, maxRetries, minFreshness) =>
         this.clientFunc = clientFunc;
 
     /// <summary>
@@ -56,8 +59,9 @@ public partial class HttpCache :
     /// <param name="maxEntries">The maximum entries to store in the cache.</param>
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
-    public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000, bool cache404 = false, int maxRetries = 0) :
-        this(directory, maxEntries, cache404, maxRetries)
+    /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers. Useful for immutable content where the server doesn't set long expiry.</param>
+    public HttpCache(string directory, HttpClient? client = null, int maxEntries = 1000, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null) :
+        this(directory, maxEntries, cache404, maxRetries, minFreshness)
     {
         if (client == null)
         {
@@ -83,7 +87,7 @@ public partial class HttpCache :
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancel cancel = default)
     {
-        var session = new CacheSession(store, staleIfError, cache404, maxRetries);
+        var session = new CacheSession(store, staleIfError, cache404, maxRetries, minFreshness);
         var (revalidated, stored, resultFile, response) = await session.ProcessAsync(
             uri,
             async timestamp =>
@@ -116,7 +120,7 @@ public partial class HttpCache :
         Action<HttpRequestMessage>? modifyRequest = null,
         Cancel cancel = default)
     {
-        var session = new CacheSession(store, staleIfError, cache404, maxRetries);
+        var session = new CacheSession(store, staleIfError, cache404, maxRetries, minFreshness);
         var (revalidated, stored, resultFile, response) = session.Process(
             uri,
             timestamp =>

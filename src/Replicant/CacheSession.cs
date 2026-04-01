@@ -1,4 +1,4 @@
-class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, int maxRetries = 0)
+class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
 {
     public async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> ProcessAsync(
         Uri uri,
@@ -52,6 +52,12 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
             return (false, false, existingFile, null);
         }
 
+        if (minFreshness != null &&
+            File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now)
+        {
+            return (false, false, existingFile, null);
+        }
+
         HttpResponseMessage response;
         try
         {
@@ -87,6 +93,12 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
 
         if (expiry == null ||
             expiry > now)
+        {
+            return (false, false, existingFile, null);
+        }
+
+        if (minFreshness != null &&
+            File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now)
         {
             return (false, false, existingFile, null);
         }

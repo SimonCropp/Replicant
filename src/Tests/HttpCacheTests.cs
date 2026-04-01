@@ -512,6 +512,23 @@ public class HttpCacheTests
     }
 
     [Test]
+    public async Task MinFreshness()
+    {
+        var minFreshnessPath = Path.Combine(Path.GetTempPath(), "DownloadTests_MinFreshness");
+
+        #region MinFreshness
+
+        await using var cache = new HttpCache(
+            minFreshnessPath,
+            minFreshness: TimeSpan.FromHours(1));
+        var content = await cache.StringAsync("https://httpbin.org/json");
+
+        #endregion
+
+        await Verify(content);
+    }
+
+    [Test]
     public async Task Purge_ShouldOnlyProcessBinFiles()
     {
         // Add a cached item (creates both .bin and .json files)

@@ -556,6 +556,67 @@ public class CachingHandlerTests
     }
 
     [Test]
+    public async Task MinFreshness_SkipsRevalidation()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("original content")
+            },
+            // If revalidation happens, this would change the content
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("updated content")
+            });
+        using var handler = new ReplicantHandler(path, inner, minFreshness: TimeSpan.FromHours(1));
+        using var client = new HttpClient(handler);
+
+        // First request: stored
+        var content1 = await client.GetStringAsync("http://example.com/minfresh");
+        AreEqual("original content", content1);
+
+        // Expire the cached file (server expiry in the past)
+        var binFile = Directory.GetFiles(path, "*.bin").Single();
+        File.SetLastWriteTimeUtc(binFile, new(2020, 1, 1));
+
+        // Second request: expired per server headers, but minFreshness keeps it fresh
+        var content2 = await client.GetStringAsync("http://example.com/minfresh");
+        AreEqual("original content", content2);
+    }
+
+    [Test]
+    public async Task MinFreshness_RevalidatesWhenStale()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("original content")
+            },
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("updated content")
+            });
+        using var handler = new ReplicantHandler(path, inner, minFreshness: TimeSpan.FromMilliseconds(1));
+        using var client = new HttpClient(handler);
+
+        // First request: stored
+        var content1 = await client.GetStringAsync("http://example.com/minfreshstale");
+        AreEqual("original content", content1);
+
+        // Expire the cached file and wait for minFreshness to elapse
+        var binFile = Directory.GetFiles(path, "*.bin").Single();
+        File.SetLastWriteTimeUtc(binFile, new(2020, 1, 1));
+        File.SetCreationTimeUtc(binFile, new(2020, 1, 1));
+        await Task.Delay(10);
+
+        // Second request: both server expiry and minFreshness elapsed, revalidates
+        var content2 = await client.GetStringAsync("http://example.com/minfreshstale");
+        AreEqual("updated content", content2);
+    }
+
+    [Test]
     public async Task Cache404_SharedCache()
     {
         var path = CachePath();

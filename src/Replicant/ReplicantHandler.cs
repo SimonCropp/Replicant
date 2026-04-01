@@ -16,8 +16,9 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="staleIfError">If true, return stale cached content when the server returns an error.</param>
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
-    public ReplicantHandler(string directory, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0) =>
-        session = new(new CacheStore(directory, maxEntries), staleIfError, cache404, maxRetries);
+    /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
+    public ReplicantHandler(string directory, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null) =>
+        session = new(new CacheStore(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness);
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/>.
@@ -28,9 +29,10 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="staleIfError">If true, return stale cached content when the server returns an error.</param>
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
-    public ReplicantHandler(string directory, HttpMessageHandler innerHandler, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0)
+    /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
+    public ReplicantHandler(string directory, HttpMessageHandler innerHandler, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
         : base(innerHandler) =>
-        session = new(new CacheStore(directory, maxEntries), staleIfError, cache404, maxRetries);
+        session = new(new CacheStore(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness);
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/> using a shared <see cref="ReplicantCache"/>.
@@ -40,9 +42,10 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="staleIfError">If true, return stale cached content when the server returns an error.</param>
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
-    public ReplicantHandler(ReplicantCache cache, bool staleIfError = false, bool cache404 = false, int maxRetries = 0)
+    /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
+    public ReplicantHandler(ReplicantCache cache, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
     {
-        session = new(cache.Store, staleIfError, cache404, maxRetries);
+        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness);
         ownsSession = false;
     }
 
@@ -55,10 +58,11 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="staleIfError">If true, return stale cached content when the server returns an error.</param>
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
-    public ReplicantHandler(ReplicantCache cache, HttpMessageHandler innerHandler, bool staleIfError = false, bool cache404 = false, int maxRetries = 0)
+    /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
+    public ReplicantHandler(ReplicantCache cache, HttpMessageHandler innerHandler, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
         : base(innerHandler)
     {
-        session = new(cache.Store, staleIfError, cache404, maxRetries);
+        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness);
         ownsSession = false;
     }
 
