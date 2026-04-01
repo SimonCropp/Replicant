@@ -647,6 +647,85 @@ public class CachingHandlerTests
     }
 
     [Test]
+    public async Task MoveToFinalLocation_Fallback_WritesToCacheDirectory()
+    {
+        var path = CachePath();
+        var fixedDate = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        // Both responses must produce the same cache filename so the second
+        // move tries to overwrite the locked file and hits the fallback path.
+        // Same Last-Modified + same ETag (none) + same URI = same filename.
+        var response1 = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("original")
+        };
+        response1.Content.Headers.LastModified = fixedDate;
+        response1.Headers.CacheControl = new()
+        {
+            Public = true,
+            MaxAge = TimeSpan.FromSeconds(1)
+        };
+
+        var response2 = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("updated")
+        };
+        response2.Content.Headers.LastModified = fixedDate;
+        response2.Headers.CacheControl = new()
+        {
+            Public = true,
+            MaxAge = TimeSpan.FromDays(1)
+        };
+
+        var inner = new MockHttpMessageHandler(response1, response2);
+        using var handler = new ReplicantHandler(path, inner, staleIfError: false);
+        using var client = new HttpClient(handler);
+
+        // First request: caches the response
+        var result1 = await client.GetAsync("http://example.com/fallback-test");
+        await result1.Content.ReadAsStringAsync();
+        result1.Dispose();
+
+        // Lock both cached files so the second store triggers the fallback path
+        var binFile = Directory.GetFiles(path, "*.bin").Single();
+        var jsonFile = Directory.GetFiles(path, "*.json").Single();
+        using (new FileStream(binFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        using (new FileStream(jsonFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        {
+            // Wait for the entry to expire
+            await Task.Delay(1500);
+
+            // Second request: revalidation stores new content, File.Move fails due to lock
+            using var result2 = await client.GetAsync("http://example.com/fallback-test");
+            var content2 = await result2.Content.ReadAsStringAsync();
+            AreEqual("updated", content2);
+        }
+
+        // All .bin and .json files should be in the cache directory, not the working directory
+        var allBinFiles = Directory.GetFiles(path, "*.bin");
+        var allJsonFiles = Directory.GetFiles(path, "*.json");
+        True(allBinFiles.Length > 0);
+        True(allJsonFiles.Length > 0);
+
+        foreach (var file in allBinFiles.Concat(allJsonFiles))
+        {
+            AreEqual(Path.GetFullPath(path), Path.GetDirectoryName(file));
+        }
+
+        // Verify no cache files leaked to the working directory
+        var cwd = Directory.GetCurrentDirectory();
+        if (cwd != Path.GetFullPath(path))
+        {
+            // Cache files match the pattern: {sha1hash}_*
+            var leaked = Directory.GetFiles(cwd, "*.bin")
+                .Concat(Directory.GetFiles(cwd, "*.json"))
+                .Where(_ => Path.GetFileName(_).Length > 40 && Path.GetFileName(_)[40] == '_')
+                .ToList();
+            AreEqual(0, leaked.Count, $"Cache files leaked to working directory: {cwd}");
+        }
+    }
+
+    [Test]
     public void ShouldReturnStaleIfError_HttpRequestException_WithStale()
     {
         var cancel = new CancelSource().Token;

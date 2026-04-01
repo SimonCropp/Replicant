@@ -148,8 +148,7 @@ class CacheStore
             when (exception is IOException or UnauthorizedAccessException)
         {
             //Failed to move files, so use temp files instead
-            var newName = Path.GetFileNameWithoutExtension(contentFile);
-            newName += Guid.NewGuid();
+            var newName = Path.Combine(directory, Path.GetFileNameWithoutExtension(contentFile) + Guid.NewGuid());
 
             var newMeta = $"{newName}.json";
             File.Move(tempFile.Meta, newMeta, true);
