@@ -1,28 +1,15 @@
 #if DEBUG
 using Microsoft.Extensions.DependencyInjection;
+// ReSharper disable AccessToDisposedClosure
 
 [TestFixture]
 public class HttpCacheTests
 {
-    static string cachePath = Path.Combine(Path.GetTempPath(), "DownloadTests");
-
-    HttpCache httpCache= new(
-        cachePath,
-        new HttpClient
-        {
-            Timeout = TimeSpan.FromSeconds(30)
-        });
-
-    [TearDown]
-    public void Purge()
-    {
-        Directory.Delete(cachePath, true);
-        Directory.CreateDirectory(cachePath);
-    }
-
     [Test]
     public async Task EnsureExpiryIsCorrect()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var result = await httpCache.DownloadAsync("https://httpbin.org/json");
         var path = result.File!.Value.Content;
         var time = Timestamp.FromPath(path);
@@ -30,8 +17,11 @@ public class HttpCacheTests
         AreEqual(FileEx.MinFileDate, File.GetLastWriteTimeUtc(path));
     }
 
-    static async Task Construction(string cacheDirectory)
+    [Test]
+    public static async Task Construction()
     {
+        using var cacheDirectory = new TempDirectory();
+
         #region Construction
 
         var httpCache = new HttpCache(
@@ -53,57 +43,47 @@ public class HttpCacheTests
     [Test]
     public void DependencyInjection()
     {
-        var diPath = Path.Combine(Path.GetTempPath(), "DownloadTests_DI");
+        using var cacheDirectory = new TempDirectory();
 
         #region DependencyInjection
 
         var services = new ServiceCollection();
-        services.AddSingleton(_ => new HttpCache(diPath));
+        services.AddSingleton(_ => new HttpCache(cacheDirectory));
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
         NotNull(httpCache);
 
         #endregion
-
-        if (Directory.Exists(diPath))
-        {
-            Directory.Delete(diPath, true);
-        }
     }
 
     [Test]
     public void DependencyInjectionWithHttpFactory()
     {
-        var diPath = Path.Combine(Path.GetTempPath(), "DownloadTests_DIFactory");
+        using var cacheDirectory = new TempDirectory();
 
         #region DependencyInjectionWithHttpFactory
 
         var services = new ServiceCollection();
         services.AddHttpClient();
-        services.AddSingleton(
-            _ =>
-            {
-                var clientFactory = _.GetRequiredService<IHttpClientFactory>();
-                return new HttpCache(diPath, clientFactory.CreateClient);
-            });
+        services.AddSingleton(_ =>
+        {
+            var clientFactory = _.GetRequiredService<IHttpClientFactory>();
+            return new HttpCache(cacheDirectory, clientFactory.CreateClient);
+        });
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
         NotNull(httpCache);
 
         #endregion
-
-        if (Directory.Exists(diPath))
-        {
-            Directory.Delete(diPath, true);
-        }
     }
 
     [Test]
     public async Task DefaultInstance()
     {
         HttpCache.Default.Purge();
+
         #region DefaultInstance
 
         var content = await HttpCache.Default.DownloadAsync("https://httpbin.org/status/200");
@@ -116,6 +96,8 @@ public class HttpCacheTests
     [Test]
     public async Task EmptyContent()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var content = await httpCache.DownloadAsync("https://httpbin.org/status/200");
         await Verify(content);
     }
@@ -123,6 +105,8 @@ public class HttpCacheTests
     [Test]
     public async Task DuplicateSlowDownloads()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var task = httpCache.DownloadAsync("https://httpbin.org/delay/1");
         await Task.Delay(100);
         var result2 = await httpCache.DownloadAsync("https://httpbin.org/delay/1");
@@ -137,6 +121,8 @@ public class HttpCacheTests
     [Test]
     public async Task PurgeOldWhenContentFileLocked()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         using var result = await httpCache.DownloadAsync("https://httpbin.org/status/200");
         using (await result.AsResponseMessageAsync())
         {
@@ -149,6 +135,8 @@ public class HttpCacheTests
     [Test]
     public async Task PurgeOldWhenMetaFileLocked()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var result = await httpCache.DownloadAsync("https://httpbin.org/status/200");
 
         using (await result.AsResponseMessageAsync())
@@ -163,6 +151,8 @@ public class HttpCacheTests
     [Test]
     public async Task LockedContentFile()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var uri = "https://httpbin.org/etag/{etag}";
         var result = await httpCache.DownloadAsync(uri);
         using (await result.AsResponseMessageAsync())
@@ -177,6 +167,8 @@ public class HttpCacheTests
     [Test]
     public async Task LockedMetaFile()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var uri = "https://httpbin.org/etag/{etag}";
         var result = await httpCache.DownloadAsync(uri);
         using (new FileStream(result.File!.Value.Content, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
@@ -191,6 +183,9 @@ public class HttpCacheTests
     [Test]
     public async Task FullHttpResponseMessageAsync()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
+
         #region FullHttpResponseMessage
 
         using var response = await httpCache.ResponseAsync("https://httpbin.org/status/200");
@@ -203,6 +198,8 @@ public class HttpCacheTests
     [Test]
     public async Task FullHttpResponseMessage()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         using var response = httpCache.Response("https://httpbin.org/status/200");
         await Verify(response);
     }
@@ -210,6 +207,8 @@ public class HttpCacheTests
     [Test]
     public async Task NoCache()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         using var result = await httpCache.DownloadAsync("https://httpbin.org/response-headers?Cache-Control=no-cache");
         await Verify(result);
     }
@@ -217,6 +216,8 @@ public class HttpCacheTests
     [Test]
     public async Task NoStore()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         using var result = await httpCache.DownloadAsync("https://httpbin.org/response-headers?Cache-Control=no-store");
         NotNull(result.Response);
         await Verify(result);
@@ -225,6 +226,8 @@ public class HttpCacheTests
     [Test]
     public async Task Etag()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var uri = "https://httpbin.org/etag/{etag}";
         await httpCache.DownloadAsync(uri);
         var content = await httpCache.DownloadAsync(uri);
@@ -234,10 +237,12 @@ public class HttpCacheTests
     [Test]
     public async Task ExpiredShouldNotSendEtagOrIfModifiedSince()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var uri = "https://httpbin.org/etag/{etag}";
         var result = await httpCache.DownloadAsync(uri);
 
-        File.SetLastWriteTimeUtc(result.File!.Value.Content, new(2020,10,1));
+        File.SetLastWriteTimeUtc(result.File!.Value.Content, new(2020, 10, 1));
         Recording.Start();
         result = await httpCache.DownloadAsync(uri);
         await Verify(result)
@@ -247,6 +252,8 @@ public class HttpCacheTests
     [Test]
     public async Task CacheControlMaxAge()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var uri = "https://httpbin.org/cache/20";
         await httpCache.DownloadAsync(uri);
         var content = await httpCache.DownloadAsync(uri);
@@ -256,6 +263,8 @@ public class HttpCacheTests
     [Test]
     public async Task WithContent()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var content = await httpCache.DownloadAsync("https://httpbin.org/json");
         await Verify(content);
     }
@@ -263,6 +272,8 @@ public class HttpCacheTests
     [Test]
     public Task WithContentSync()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var content = httpCache.Download("https://httpbin.org/json");
         return Verify(content);
     }
@@ -270,6 +281,9 @@ public class HttpCacheTests
     [Test]
     public async Task String()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
+
         #region string
 
         var content = await httpCache.StringAsync("https://httpbin.org/json");
@@ -282,6 +296,9 @@ public class HttpCacheTests
     [Test]
     public async Task Lines()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
+
         #region string
 
         var lines = new List<string>();
@@ -298,6 +315,9 @@ public class HttpCacheTests
     [Test]
     public async Task Bytes()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
+
         #region bytes
 
         var bytes = await httpCache.BytesAsync("https://httpbin.org/json");
@@ -310,6 +330,9 @@ public class HttpCacheTests
     [Test]
     public async Task Stream()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
+
         #region stream
 
         using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
@@ -322,6 +345,8 @@ public class HttpCacheTests
     [Test]
     public async Task ToFile()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var targetFile = FileEx.GetTempFileName("txt");
         try
         {
@@ -342,6 +367,8 @@ public class HttpCacheTests
     [Test]
     public async Task ToStream()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var targetStream = new MemoryStream();
 
         #region ToStream
@@ -356,6 +383,8 @@ public class HttpCacheTests
     [Test]
     public async Task ModifyRequest()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         var uri = "https://httpbin.org/json";
 
         #region ModifyRequest
@@ -374,37 +403,37 @@ public class HttpCacheTests
     }
 
     [Test]
-    public Task NotFound() =>
-        ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/404"));
+    public async Task NotFound()
+    {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
+        await ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/404"));
+    }
 
     [Test]
     public async Task Timeout()
     {
-        var timeoutPath = Path.Combine(Path.GetTempPath(), "DownloadTests_Timeout");
-        HttpClient httpClient = new()
+        using var cacheDirectory = new TempDirectory();
+        var httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromMilliseconds(10)
         };
-        await using var cache = new HttpCache(timeoutPath, httpClient);
+        await using var cache = new HttpCache(cacheDirectory, httpClient);
         var uri = "https://httpbin.org/delay/1";
         await ThrowsTask(() => cache.StringAsync(uri))
             .UniqueForRuntime()
             .IgnoreMembers("InnerException", "CancellationToken");
-        if (Directory.Exists(timeoutPath))
-        {
-            Directory.Delete(timeoutPath, true);
-        }
     }
 
     [Test]
     public async Task TimeoutUseStale()
     {
-        var timeoutPath = Path.Combine(Path.GetTempPath(), "DownloadTests_TimeoutStale");
+        using var cacheDirectory = new TempDirectory();
         var httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromMilliseconds(1)
         };
-        var httpCache = new HttpCache(timeoutPath, httpClient);
+        var httpCache = new HttpCache(cacheDirectory, httpClient);
         var uri = "https://httpbin.org/delay/1";
 
         #region AddItem
@@ -419,15 +448,13 @@ public class HttpCacheTests
 
         await Verify(httpCache.DownloadAsync(uri, true));
         await httpCache.DisposeAsync();
-        if (Directory.Exists(timeoutPath))
-        {
-            Directory.Delete(timeoutPath, true);
-        }
     }
 
     [Test]
     public async Task SyncDownload_WithNullExpiry_ShouldUseCachedFile()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         // Add an item without expiry headers - this will result in null Expiry
         using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -455,12 +482,18 @@ public class HttpCacheTests
     }
 
     [Test]
-    public Task ServerError() =>
-        ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/500"));
+    public async Task ServerError()
+    {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
+        await ThrowsTask(() => httpCache.StringAsync("https://httpbin.org/status/500"));
+    }
 
     [Test]
     public async Task ServerErrorDontUseStale()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("foo")
@@ -479,6 +512,8 @@ public class HttpCacheTests
     [Test]
     public async Task ServerErrorUseStale()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("content")
@@ -498,12 +533,12 @@ public class HttpCacheTests
     [Test]
     public async Task Cache404()
     {
-        var cache404Path = Path.Combine(Path.GetTempPath(), "DownloadTests_Cache404");
+        using var cacheDirectory = new TempDirectory();
         var uri = "https://httpbin.org/status/404";
 
         #region cache404
 
-        await using var cache = new HttpCache(cache404Path, cache404: true);
+        await using var cache = new HttpCache(cacheDirectory, cache404: true);
         var content = await cache.StringAsync(uri);
 
         #endregion
@@ -514,12 +549,12 @@ public class HttpCacheTests
     [Test]
     public async Task MinFreshness()
     {
-        var minFreshnessPath = Path.Combine(Path.GetTempPath(), "DownloadTests_MinFreshness");
+        using var cacheDirectory = new TempDirectory();
 
         #region MinFreshness
 
         await using var cache = new HttpCache(
-            minFreshnessPath,
+            cacheDirectory,
             minFreshness: TimeSpan.FromHours(1));
         var content = await cache.StringAsync("https://httpbin.org/json");
 
@@ -531,6 +566,8 @@ public class HttpCacheTests
     [Test]
     public async Task Purge_ShouldOnlyProcessBinFiles()
     {
+        using var cacheDirectory = new TempDirectory();
+        var httpCache = new HttpCache(cacheDirectory);
         // Add a cached item (creates both .bin and .json files)
         using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -540,9 +577,9 @@ public class HttpCacheTests
         await httpCache.AddItemAsync(uri, response);
 
         // Verify both files exist before purge
-        var files = Directory.GetFiles(cachePath);
-        var binFiles = files.Where(f => f.EndsWith(".bin")).ToList();
-        var jsonFiles = files.Where(f => f.EndsWith(".json")).ToList();
+        var files = Directory.GetFiles(cacheDirectory);
+        var binFiles = files.Where(_ => _.EndsWith(".bin")).ToList();
+        var jsonFiles = files.Where(_ => _.EndsWith(".json")).ToList();
         AreEqual(1, binFiles.Count);
         AreEqual(1, jsonFiles.Count);
 
@@ -553,7 +590,7 @@ public class HttpCacheTests
         httpCache.Purge();
 
         // After purge, all cache files should be deleted
-        var remainingFiles = Directory.GetFiles(cachePath);
+        var remainingFiles = Directory.GetFiles(cacheDirectory);
         AreEqual(0, remainingFiles.Length);
     }
 
@@ -568,19 +605,21 @@ public class HttpCacheTests
         var instances = new HttpCache[threadCount];
 
         var threads = Enumerable.Range(0, threadCount)
-            .Select(i => new Thread(() =>
-            {
-                barrier.SignalAndWait(); // All threads start at the same time
-                instances[i] = HttpCache.Default;
-            }))
+            .Select(_ =>
+                new Thread(() =>
+                {
+                    // All threads start at the same time
+                    barrier.SignalAndWait();
+                    instances[_] = HttpCache.Default;
+                }))
             .ToList();
 
-        threads.ForEach(t => t.Start());
-        threads.ForEach(t => t.Join());
+        threads.ForEach(_ => _.Start());
+        threads.ForEach(_ => _.Join());
 
         // All threads should get the same instance
         var firstInstance = instances[0];
-        True(instances.All(inst => ReferenceEquals(inst, firstInstance)),
+        True(instances.All(_ => ReferenceEquals(_, firstInstance)),
             "All threads should receive the same Default instance");
     }
 }
