@@ -188,8 +188,9 @@ public class MatrixTests
         null
     ];
 
-    static CacheControlHeaderValue[] cacheControls =
+    static CacheControlHeaderValue?[] cacheControls =
     [
+        null,
         new()
         {
             Public = true,

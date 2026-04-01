@@ -1,0 +1,15 @@
+﻿{
+  FromDisk: true,
+  Stored: true,
+  Revalidated: true,
+  Response: {
+    Status: 200 OK,
+    Headers: {
+      ETag: W/"tag"
+    },
+    Content: {
+      Headers: {},
+      Value: a
+    }
+  }
+}

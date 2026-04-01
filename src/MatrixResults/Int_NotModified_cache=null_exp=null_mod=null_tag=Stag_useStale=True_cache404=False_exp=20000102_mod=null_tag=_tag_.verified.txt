@@ -1,0 +1,13 @@
+﻿{
+  FromDisk: true,
+  Stored: false,
+  Revalidated: true,
+  Response: {
+    Status: 200 OK,
+    Content: {
+      Headers: {
+        Expires: DateTime_1
+      }
+    }
+  }
+}
