@@ -491,6 +491,71 @@ public class CachingHandlerTests
     }
 
     [Test]
+    public async Task Cache404_IsSuccessStatusCode_False()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent("not found")
+            });
+        using var handler = new ReplicantHandler(path, inner, cache404: true);
+        using var client = new HttpClient(handler);
+
+        // First request: fresh 404 from server, stored to cache
+        using var response1 = await client.GetAsync("http://example.com/isSuccess");
+        IsFalse(response1.IsSuccessStatusCode);
+
+        // Second request: served from cache, still not successful
+        using var response2 = await client.GetAsync("http://example.com/isSuccess");
+        IsFalse(response2.IsSuccessStatusCode);
+    }
+
+    [Test]
+    public async Task Cache404_EnsureSuccessStatusCode_Throws()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent("not found")
+            });
+        using var handler = new ReplicantHandler(path, inner, cache404: true);
+        using var client = new HttpClient(handler);
+
+        // First request: fresh 404, stored to cache
+        using var response1 = await client.GetAsync("http://example.com/ensureSuccess");
+        Assert.Throws<HttpRequestException>(() => response1.EnsureSuccessStatusCode());
+
+        // Second request: cached 404, still throws
+        using var response2 = await client.GetAsync("http://example.com/ensureSuccess");
+        Assert.Throws<HttpRequestException>(() => response2.EnsureSuccessStatusCode());
+    }
+
+    [Test]
+    public async Task Cache200_IsSuccessStatusCode_True()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("ok")
+            });
+        using var handler = new ReplicantHandler(path, inner, cache404: true);
+        using var client = new HttpClient(handler);
+
+        // First request: fresh 200, stored to cache
+        using var response1 = await client.GetAsync("http://example.com/success200");
+        IsTrue(response1.IsSuccessStatusCode);
+        response1.EnsureSuccessStatusCode();
+
+        // Second request: served from cache, still successful
+        using var response2 = await client.GetAsync("http://example.com/success200");
+        IsTrue(response2.IsSuccessStatusCode);
+        response2.EnsureSuccessStatusCode();
+    }
+
+    [Test]
     public async Task Cache404_SharedCache()
     {
         var path = CachePath();
