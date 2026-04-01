@@ -265,14 +265,15 @@ var content = httpCache.StringAsync(uri, staleIfError: true);
 
 ### Cache 404 responses
 
-By default, 404 responses are not cached and throw an exception. Set `cache404: true` to cache 404 Not Found responses to disk, avoiding repeated requests for resources known to be missing.
+By default, 404 responses are not cached and throw an exception. Set `cache404: true` on the constructor to cache 404 Not Found responses to disk, avoiding repeated requests for resources known to be missing. The original 404 status code is preserved in the cached metadata.
 
 <!-- snippet: cache404 -->
 <a id='snippet-cache404'></a>
 ```cs
-var content = await httpCache.StringAsync(uri, cache404: true);
+await using var cache = new HttpCache(cache404Path, cache404: true);
+var content = await cache.StringAsync(uri);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L503-L507' title='Snippet source file'>snippet source</a> | <a href='#snippet-cache404' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L504-L509' title='Snippet source file'>snippet source</a> | <a href='#snippet-cache404' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

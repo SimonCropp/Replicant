@@ -498,11 +498,13 @@ public class HttpCacheTests
     [Test]
     public async Task Cache404()
     {
+        var cache404Path = Path.Combine(Path.GetTempPath(), "DownloadTests_Cache404");
         var uri = "https://httpbin.org/status/404";
 
         #region cache404
 
-        var content = await httpCache.StringAsync(uri, cache404: true);
+        await using var cache = new HttpCache(cache404Path, cache404: true);
+        var content = await cache.StringAsync(uri);
 
         #endregion
 

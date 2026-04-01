@@ -12,7 +12,7 @@ public interface IHttpCache:
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -23,7 +23,7 @@ public interface IHttpCache:
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -34,7 +34,7 @@ public interface IHttpCache:
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -45,7 +45,7 @@ public interface IHttpCache:
         string path,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -133,7 +133,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -143,7 +143,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -153,7 +153,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -163,7 +163,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -174,7 +174,7 @@ public interface IHttpCache:
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -185,7 +185,7 @@ public interface IHttpCache:
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -196,7 +196,7 @@ public interface IHttpCache:
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -207,7 +207,7 @@ public interface IHttpCache:
         Stream stream,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -217,7 +217,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -227,7 +227,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -237,7 +237,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -247,35 +247,35 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     IAsyncEnumerable<string> LinesAsync(
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     IAsyncEnumerable<string> LinesAsync(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     IEnumerable<string> Lines(
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     IEnumerable<string> Lines(
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -285,7 +285,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -295,7 +295,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -305,7 +305,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -315,7 +315,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -325,7 +325,7 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -335,7 +335,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -345,7 +345,7 @@ public interface IHttpCache:
         string uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 
     /// <summary>
@@ -355,6 +355,6 @@ public interface IHttpCache:
         Uri uri,
         bool staleIfError = false,
         Action<HttpRequestMessage>? modifyRequest = null,
-        bool cache404 = false,
+
         Cancel cancel = default);
 }
