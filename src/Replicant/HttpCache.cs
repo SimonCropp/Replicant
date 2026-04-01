@@ -93,7 +93,7 @@ public partial class HttpCache :
             async timestamp =>
             {
                 using var request = BuildRequest(uri, modifyRequest);
-                if (timestamp is { } t && !(t.Expiry < DateTimeOffset.UtcNow))
+                if (timestamp is { } t)
                 {
                     t.ApplyHeadersToRequest(request);
                 }
