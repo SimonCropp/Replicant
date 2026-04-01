@@ -42,18 +42,18 @@ public class HttpResponseMessageEx(HttpStatusCode code) :
         var webEtag = Headers.ETag;
         if (webEtag == null)
         {
-            builder.Append("mod=null_");
+            builder.Append("tag=null_");
         }
         else
         {
             var etag = Etag.FromResponse(this);
             if (etag.IsEmpty)
             {
-                builder.Append("mod=empty_");
+                builder.Append("tag=empty_");
             }
             else
             {
-                builder.Append($"mod={etag.ForFile}_");
+                builder.Append($"tag={etag.ForFile}_");
             }
         }
 
