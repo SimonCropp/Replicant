@@ -66,15 +66,21 @@ public class ReplicantHandler : DelegatingHandler
         ownsSession = false;
     }
 
-    protected override async Task<HttpResponseMessage> SendAsync(
+    protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, Cancel cancel)
     {
         if (request.Method != HttpMethod.Get &&
             request.Method != HttpMethod.Head)
         {
-            return await base.SendAsync(request, cancel);
+            return base.SendAsync(request, cancel);
         }
 
+        return SendAsyncCore(request, cancel);
+    }
+
+    async Task<HttpResponseMessage> SendAsyncCore(
+        HttpRequestMessage request, Cancel cancel)
+    {
         var uri = request.RequestUri!;
         var (_, _, resultFile, response) = await session.ProcessAsync(
             uri,
@@ -102,6 +108,12 @@ public class ReplicantHandler : DelegatingHandler
             return base.Send(request, cancel);
         }
 
+        return SendCore(request, cancel);
+    }
+
+    HttpResponseMessage SendCore(
+        HttpRequestMessage request, Cancel cancel)
+    {
         var uri = request.RequestUri!;
         var (_, _, resultFile, response) = session.Process(
             uri,
