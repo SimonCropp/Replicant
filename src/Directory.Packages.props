@@ -7,7 +7,7 @@
     <PackageVersion Include="Argon" Version="0.33.5" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.1.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.4.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.5.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.6" />
