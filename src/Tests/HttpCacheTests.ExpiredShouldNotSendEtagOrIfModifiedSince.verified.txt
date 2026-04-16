@@ -27,7 +27,7 @@
     Request: {
       Uri: https://httpbin.org/etag/{etag},
       Headers: {
-        If-Modified-Since: Wed, 01 Apr 2026 11:26:02 GMT,
+        If-Modified-Since: DateTime_2,
         If-None-Match: "{etag}"
       }
     },
@@ -36,7 +36,7 @@
       Headers: {
         Access-Control-Allow-Credentials: true,
         Access-Control-Allow-Origin: *,
-        Date: DateTime_1,
+        Date: DateTime_3,
         ETag: {etag}
       }
     }

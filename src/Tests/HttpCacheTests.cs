@@ -246,7 +246,8 @@ public class HttpCacheTests
         Recording.Start();
         result = await httpCache.DownloadAsync(uri);
         await Verify(result)
-            .IgnoreMembers("traceparent", "Traceparent");
+            .IgnoreMembers("traceparent", "Traceparent")
+            .ScrubInlineDateTimes("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
     }
 
     [Test]
