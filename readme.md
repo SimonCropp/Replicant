@@ -182,14 +182,16 @@ services.AddHttpClient("api", _ => _.BaseAddress = new("https://example.com"))
     .AddResilienceHandler(
         "api-pipeline",
         builder => builder
-            .AddRetry(new HttpRetryStrategyOptions
+            .AddRetry(
+                new HttpRetryStrategyOptions
             {
                 MaxRetryAttempts = 3,
                 Delay = TimeSpan.FromSeconds(1),
                 BackoffType = DelayBackoffType.Exponential,
                 UseJitter = true,
             })
-            .AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+            .AddCircuitBreaker(
+                new HttpCircuitBreakerStrategyOptions
             {
                 SamplingDuration = TimeSpan.FromSeconds(10),
                 FailureRatio = 0.5,
@@ -198,7 +200,7 @@ services.AddHttpClient("api", _ => _.BaseAddress = new("https://example.com"))
             })
             .AddTimeout(TimeSpan.FromSeconds(10)));
 ```
-<sup><a href='/src/Tests/ResilienceTests.cs#L31-L61' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryWithResilienceUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ResilienceTests.cs#L28-L60' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryWithResilienceUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 A shared singleton `ReplicantCache` matters here because `HttpClientFactory` recycles handler instances periodically — without it, a fresh `CacheStore` would be created against the same directory each rotation and throw.
@@ -212,27 +214,29 @@ For code that builds an `HttpClient` by hand, wrap a resilience pipeline in `Res
 <a id='snippet-ManualResilienceUsage'></a>
 ```cs
 var pipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
-    .AddRetry(new RetryStrategyOptions<HttpResponseMessage>
-    {
-        MaxRetryAttempts = 3,
-        Delay = TimeSpan.FromSeconds(1),
-        BackoffType = DelayBackoffType.Exponential,
-        UseJitter = true,
-        ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-            .Handle<HttpRequestException>()
-            .HandleResult(_ => _.StatusCode >= HttpStatusCode.InternalServerError)
-            .HandleResult(_ => _.StatusCode == HttpStatusCode.TooManyRequests)
-    })
-    .AddCircuitBreaker(new CircuitBreakerStrategyOptions<HttpResponseMessage>
-    {
-        SamplingDuration = TimeSpan.FromSeconds(10),
-        FailureRatio = 0.5,
-        MinimumThroughput = 10,
-        BreakDuration = TimeSpan.FromSeconds(30),
-        ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-            .Handle<HttpRequestException>()
-            .HandleResult(_ => _.StatusCode >= HttpStatusCode.InternalServerError)
-    })
+    .AddRetry(
+        new()
+        {
+            MaxRetryAttempts = 3,
+            Delay = TimeSpan.FromSeconds(1),
+            BackoffType = DelayBackoffType.Exponential,
+            UseJitter = true,
+            ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+                .Handle<HttpRequestException>()
+                .HandleResult(_ => _.StatusCode >= HttpStatusCode.InternalServerError)
+                .HandleResult(_ => _.StatusCode == HttpStatusCode.TooManyRequests)
+        })
+    .AddCircuitBreaker(
+        new()
+        {
+            SamplingDuration = TimeSpan.FromSeconds(10),
+            FailureRatio = 0.5,
+            MinimumThroughput = 10,
+            BreakDuration = TimeSpan.FromSeconds(30),
+            ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+                .Handle<HttpRequestException>()
+                .HandleResult(_ => _.StatusCode >= HttpStatusCode.InternalServerError)
+        })
     .AddTimeout(TimeSpan.FromSeconds(10))
     .Build();
 
@@ -256,7 +260,7 @@ var response = await httpClient.GetAsync(
     cancel);
 response.EnsureSuccessStatusCode();
 ```
-<sup><a href='/src/Tests/ResilienceTests.cs#L66-L113' title='Snippet source file'>snippet source</a> | <a href='#snippet-ManualResilienceUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ResilienceTests.cs#L65-L114' title='Snippet source file'>snippet source</a> | <a href='#snippet-ManualResilienceUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
