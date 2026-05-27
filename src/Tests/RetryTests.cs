@@ -102,8 +102,7 @@ public class RetryTests
         using var handler = new ReplicantHandler(path, inner, maxRetries: 1);
         using var client = new HttpClient(handler);
 
-        Assert.ThrowsAsync<HttpRequestException>(
-            () => client.GetStringAsync("http://example.com/retry-exhausted"));
+        Assert.ThrowsAsync<HttpRequestException>(() => client.GetStringAsync("http://example.com/retry-exhausted"));
     }
 
     [Test]
@@ -118,8 +117,7 @@ public class RetryTests
         using var handler = new ReplicantHandler(path, inner, maxRetries: 3);
         using var client = new HttpClient(handler);
 
-        Assert.ThrowsAsync<HttpRequestException>(
-            () => client.GetStringAsync("http://example.com/retry-404"));
+        Assert.ThrowsAsync<HttpRequestException>(() => client.GetStringAsync("http://example.com/retry-404"));
     }
 
     [Test]
@@ -134,8 +132,7 @@ public class RetryTests
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
-        Assert.ThrowsAsync<HttpRequestException>(
-            () => client.GetStringAsync("http://example.com/no-retry"));
+        Assert.ThrowsAsync<HttpRequestException>(() => client.GetStringAsync("http://example.com/no-retry"));
     }
 
     [Test]
@@ -144,7 +141,7 @@ public class RetryTests
         var path = CachePath();
         var inner = new ThrowThenSucceedHandler(
             timesToThrow: 1,
-            new HttpResponseMessage(HttpStatusCode.OK)
+            new(HttpStatusCode.OK)
             {
                 Content = new StringContent("recovered")
             });
@@ -152,8 +149,7 @@ public class RetryTests
         using var client = new HttpClient(handler);
 
         // Without retry, the exception propagates
-        Assert.ThrowsAsync<HttpRequestException>(
-            () => client.GetStringAsync("http://example.com/throw-no-retry"));
+        Assert.ThrowsAsync<HttpRequestException>(() => client.GetStringAsync("http://example.com/throw-no-retry"));
     }
 
     [Test]
@@ -162,7 +158,7 @@ public class RetryTests
         var path = CachePath();
         var inner = new ThrowThenSucceedHandler(
             timesToThrow: 1,
-            new HttpResponseMessage(HttpStatusCode.OK)
+            new(HttpStatusCode.OK)
             {
                 Content = new StringContent("recovered")
             });

@@ -18,7 +18,7 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
     /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
     public ReplicantHandler(string directory, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null) =>
-        session = new(new CacheStore(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness);
+        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness);
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/>.
@@ -32,7 +32,7 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
     public ReplicantHandler(string directory, HttpMessageHandler innerHandler, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
         : base(innerHandler) =>
-        session = new(new CacheStore(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness);
+        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness);
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/> using a shared <see cref="ReplicantCache"/>.

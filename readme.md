@@ -148,6 +148,125 @@ services.AddHttpClient("CachedClient")
 <!-- endSnippet -->
 
 
+### Composing with Microsoft.Extensions.Http.Resilience
+
+`ReplicantHandler` is a standard `DelegatingHandler`, so it composes with the [Microsoft.Extensions.Http.Resilience](https://www.nuget.org/packages/Microsoft.Extensions.Http.Resilience) package (retry / circuit-breaker / timeout strategies built on Polly).
+
+> **Do you actually need it?** Replicant already ships with built-in retry-with-exponential-backoff via the `maxRetries` parameter on both `HttpCache` and `ReplicantHandler` — see [Retry on transient failure](#retry-on-transient-failure). If retries on transient 5xx / 408 / network exceptions are all you need, use that and skip the extra dependency. Reach for `Microsoft.Extensions.Http.Resilience` when you also want circuit-breaking, timeouts, hedging, rate limiting, or fine-grained control over which responses are retried.
+
+Always place the cache **outside** the resilience pipeline:
+
+ * Cache hits short-circuit immediately and never consume retry attempts, the timeout budget, or circuit-breaker throughput
+ * The circuit breaker only observes real upstream failures — cache hits would otherwise look like an artificially healthy server and mask outages
+ * Retries and timeouts only wrap the actual network call (or conditional GET during revalidation)
+
+So the handler chain is: `ReplicantHandler` → `ResilienceHandler` → primary HTTP handler.
+
+
+#### With HttpClientFactory
+
+`IHttpClientBuilder` invokes message handlers in registration order, so the **first** registered handler is the outermost. Register `AddReplicantCaching` first, then the resilience handler:
+
+<!-- snippet: HttpClientFactoryWithResilienceUsage -->
+<a id='snippet-HttpClientFactoryWithResilienceUsage'></a>
+```cs
+var services = new ServiceCollection();
+services.AddReplicantCache(cacheDirectory);
+services.AddHttpClient("api", _ => _.BaseAddress = new("https://example.com"))
+    // Register the cache FIRST so it sits OUTERMOST in the pipeline.
+    // Cache hits short-circuit immediately and never consume retry,
+    // timeout, or circuit-breaker budget.
+    .AddReplicantCaching(staleIfError: true)
+    // Resilience pipeline sits INSIDE the cache, so it only wraps
+    // actual upstream calls (and conditional GETs during revalidation).
+    .AddResilienceHandler(
+        "api-pipeline",
+        builder => builder
+            .AddRetry(new HttpRetryStrategyOptions
+            {
+                MaxRetryAttempts = 3,
+                Delay = TimeSpan.FromSeconds(1),
+                BackoffType = DelayBackoffType.Exponential,
+                UseJitter = true,
+            })
+            .AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+            {
+                SamplingDuration = TimeSpan.FromSeconds(10),
+                FailureRatio = 0.5,
+                MinimumThroughput = 10,
+                BreakDuration = TimeSpan.FromSeconds(30),
+            })
+            .AddTimeout(TimeSpan.FromSeconds(10)));
+```
+<sup><a href='/src/Tests/ResilienceTests.cs#L31-L61' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryWithResilienceUsage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+A shared singleton `ReplicantCache` matters here because `HttpClientFactory` recycles handler instances periodically — without it, a fresh `CacheStore` would be created against the same directory each rotation and throw.
+
+
+#### Manual construction
+
+For code that builds an `HttpClient` by hand, wrap a resilience pipeline in `ResilienceHandler` (from `Microsoft.Extensions.Http.Resilience`) and pass it as the inner handler to `ReplicantHandler`:
+
+<!-- snippet: ManualResilienceUsage -->
+<a id='snippet-ManualResilienceUsage'></a>
+```cs
+var pipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
+    .AddRetry(new RetryStrategyOptions<HttpResponseMessage>
+    {
+        MaxRetryAttempts = 3,
+        Delay = TimeSpan.FromSeconds(1),
+        BackoffType = DelayBackoffType.Exponential,
+        UseJitter = true,
+        ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+            .Handle<HttpRequestException>()
+            .HandleResult(_ => _.StatusCode >= HttpStatusCode.InternalServerError)
+            .HandleResult(_ => _.StatusCode == HttpStatusCode.TooManyRequests)
+    })
+    .AddCircuitBreaker(new CircuitBreakerStrategyOptions<HttpResponseMessage>
+    {
+        SamplingDuration = TimeSpan.FromSeconds(10),
+        FailureRatio = 0.5,
+        MinimumThroughput = 10,
+        BreakDuration = TimeSpan.FromSeconds(30),
+        ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+            .Handle<HttpRequestException>()
+            .HandleResult(_ => _.StatusCode >= HttpStatusCode.InternalServerError)
+    })
+    .AddTimeout(TimeSpan.FromSeconds(10))
+    .Build();
+
+// Resilience handler wraps the primary HTTP handler...
+var resilienceHandler = new ResilienceHandler(pipeline)
+{
+    InnerHandler = new SocketsHttpHandler()
+};
+
+// ...and the cache wraps the resilience handler. Cache hits never
+// touch the resilience pipeline.
+var cachingHandler = new ReplicantHandler(
+    cacheDirectory,
+    innerHandler: resilienceHandler,
+    staleIfError: true);
+
+using var httpClient = new HttpClient(cachingHandler);
+
+var response = await httpClient.GetAsync(
+    "https://example.com/api/data",
+    cancel);
+response.EnsureSuccessStatusCode();
+```
+<sup><a href='/src/Tests/ResilienceTests.cs#L66-L113' title='Snippet source file'>snippet source</a> | <a href='#snippet-ManualResilienceUsage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+#### Notes
+
+ * `staleIfError: true` pairs naturally with the circuit breaker — when the breaker is open and `BrokenCircuitException` bubbles up, Replicant can serve the last successful response rather than failing outright.
+ * `ReplicantHandler` has its own `maxRetries` parameter. Leave it at the default of `0` when retries are delegated to the resilience pipeline, to avoid double-retry.
+ * Only `GET` and `HEAD` go through the cache path; other verbs bypass `ReplicantHandler` and hit the resilience pipeline directly.
+
+
 ### HybridCache support
 
 Replicant can serve as a disk-based L2 cache for [HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid). Register `ReplicantDistributedCache` as the `IDistributedCache` backend, and HybridCache will automatically use it for its L2 layer (with in-memory L1 handled by HybridCache itself):
