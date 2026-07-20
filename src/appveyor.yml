@@ -21,8 +21,18 @@ build_script:
         sudo ./dotnet-install.sh --jsonfile global.json --architecture x64 --install-dir '/usr/share/dotnet'
       }
     }
-- dotnet build src --configuration Release
-- dotnet test src --configuration Release --no-build --no-restore
+- pwsh: |
+    dotnet build src --configuration Release
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    dotnet test src --configuration Release --no-build --no-restore --logger trx
+    $testExit = $LASTEXITCODE
+    $url = "https://ci.appveyor.com/api/testresults/mstest/$($env:APPVEYOR_JOB_ID)"
+    Get-ChildItem -Recurse -Filter *.trx | ForEach-Object {
+      Write-Host "Uploading test results: $($_.FullName)"
+      try { (New-Object System.Net.WebClient).UploadFile($url, $_.FullName) }
+      catch { Write-Host "Failed to upload test results: $_" }
+    }
+    if ($testExit -ne 0) { exit $testExit }
 on_failure:
   - ps: |
       $root = (Get-Location).Path
