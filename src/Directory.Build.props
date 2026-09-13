@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <NoWarn>CS1591;NU1608;NU1109;SC023</NoWarn>
+    <NoWarn>CS1591;NU1608;NU1109</NoWarn>
     <Version>3.3.0</Version>
     <LangVersion>preview</LangVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
@@ -11,7 +11,8 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-    <Verify_SponsorshipLicenseIgnored>true</Verify_SponsorshipLicenseIgnored>
+    <Verify_SponsorshipExemption>OpenSource</Verify_SponsorshipExemption>
+    <Verify_SponsorshipExemptionUntil>2027-08</Verify_SponsorshipExemptionUntil>
   </PropertyGroup>
   <ItemGroup>
     <Using Include="System.ReadOnlySpan&lt;System.Char&gt;" Alias="CharSpan" />
