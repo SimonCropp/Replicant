@@ -100,20 +100,47 @@
         [];
 #endif
 
+    static TimeSpan maxHeuristicFreshness = TimeSpan.FromDays(1);
+
+    /// <summary>
+    /// Null means there is no expiry information, so the entry is revalidated on every use.
+    /// </summary>
     public static DateTimeOffset? GetExpiry(this HttpResponseMessage response, DateTimeOffset now)
     {
         var responseHeaders = response.Headers;
         var contentHeaders = response.Content.Headers;
+        var cacheControl = responseHeaders.CacheControl;
 
+        // no-cache: revalidate before every use
+        if (cacheControl is {NoCache: true})
+        {
+            return DateTimeOffset.MinValue;
+        }
+
+        // An invalid Expires (e.g. "-1" or "0") is returned as MinValue, which means already expired
         if (contentHeaders.Expires != null)
         {
             return contentHeaders.Expires.Value;
         }
 
-        var cacheControl = responseHeaders.CacheControl;
         if (cacheControl?.MaxAge != null)
         {
             return now.Add(cacheControl.MaxAge.Value);
+        }
+
+        // Heuristic freshness https://www.rfc-editor.org/rfc/rfc9111#heuristic.freshness
+        // 10% of the time since Last-Modified, capped at one day
+        var lastModified = contentHeaders.LastModified;
+        if (lastModified != null &&
+            lastModified < now)
+        {
+            var age = TimeSpan.FromTicks((now - lastModified.Value).Ticks / 10);
+            if (age > maxHeuristicFreshness)
+            {
+                age = maxHeuristicFreshness;
+            }
+
+            return now.Add(age);
         }
 
         return null;

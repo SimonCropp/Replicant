@@ -1,11 +1,4 @@
 ﻿{
-  FromDisk: true,
-  Stored: false,
-  Revalidated: false,
-  Response: {
-    Status: 200 OK,
-    Content: {
-      Headers: {}
-    }
-  }
+  Type: HttpRequestException,
+  Message: Response status code does not indicate success: 404 (Not Found). Uri: 
 }

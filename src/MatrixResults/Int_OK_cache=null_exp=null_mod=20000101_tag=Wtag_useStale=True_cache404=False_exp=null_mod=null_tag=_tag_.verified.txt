@@ -1,11 +1,17 @@
 ﻿{
   FromDisk: true,
-  Stored: false,
-  Revalidated: false,
+  Stored: true,
+  Revalidated: true,
   Response: {
     Status: 200 OK,
+    Headers: {
+      ETag: W/"tag"
+    },
     Content: {
-      Headers: {}
+      Headers: {
+        Last-Modified: DateTime_1
+      },
+      Value: a
     }
   }
 }

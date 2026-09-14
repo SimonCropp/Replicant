@@ -7,14 +7,15 @@
             return CacheStatus.NoStore;
         }
 
-        if (response.IsNoCache())
-        {
-            return CacheStatus.Revalidate;
-        }
-
+        // Checked before no-cache: a 304 carrying no-cache confirms the cached content, it does not replace it
         if (response.IsNotModified())
         {
             return CacheStatus.Hit;
+        }
+
+        if (response.IsNoCache())
+        {
+            return CacheStatus.Revalidate;
         }
 
         if (!response.IsSuccessStatusCode)

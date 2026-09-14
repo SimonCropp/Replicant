@@ -381,7 +381,7 @@ If an error occurs when re-validating a potentially stale item, then the cached 
 ```cs
 var content = httpCache.StringAsync(uri, staleIfError: true);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L525-L529' title='Snippet source file'>snippet source</a> | <a href='#snippet-staleIfError' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L524-L528' title='Snippet source file'>snippet source</a> | <a href='#snippet-staleIfError' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -395,7 +395,7 @@ By default, 404 responses are not cached and throw an exception. Set `cache404: 
 await using var cache = new HttpCache(cacheDirectory, cache404: true);
 var content = await cache.StringAsync(uri);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L540-L545' title='Snippet source file'>snippet source</a> | <a href='#snippet-cache404' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L539-L544' title='Snippet source file'>snippet source</a> | <a href='#snippet-cache404' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -438,7 +438,7 @@ Retries use exponential backoff (200ms, 400ms, 800ms, ...). When combined with `
 
 ### Minimum freshness
 
-By default, cached entries are revalidated when the server-provided expiry (from `Expires` or `Cache-Control: max-age`) has passed. When no expiry header is present, cached entries are served indefinitely without revalidation.
+By default, cached entries are revalidated when their expiry has passed (see [How expiry is determined](#how-expiry-is-determined)). Entries with no expiry information, `Cache-Control: no-cache`, or a past or invalid `Expires` are revalidated on every use.
 
 For servers that set short expiry times on content that rarely or never changes (e.g. symbol servers, package registries), set `minFreshness` to override the server's expiry and keep cached entries fresh for a minimum duration. This avoids unnecessary conditional GET round-trips for immutable content. This is a client-side form of [heuristic freshness](https://httpwg.org/specs/rfc9111.html#heuristic.freshness) — useful when the server doesn't send [`Cache-Control: immutable`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#immutable) or long-lived expiry headers.
 
@@ -450,7 +450,23 @@ await using var cache = new HttpCache(
     minFreshness: TimeSpan.FromHours(1));
 var content = await cache.StringAsync("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L555-L562' title='Snippet source file'>snippet source</a> | <a href='#snippet-MinFreshness' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L554-L561' title='Snippet source file'>snippet source</a> | <a href='#snippet-MinFreshness' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### Always revalidate
+
+For polling clients that must see changes as soon as the server has them, set `alwaysRevalidate: true`. Every use sends a conditional request (`If-None-Match` / `If-Modified-Since`), ignoring freshness from `Expires`, `max-age`, heuristic freshness, and `minFreshness`. Unchanged content still costs only a `304 Not Modified`. The option is available on `HttpCache`, `ReplicantHandler`, and `AddReplicantCaching`.
+
+<!-- snippet: AlwaysRevalidate -->
+<a id='snippet-AlwaysRevalidate'></a>
+```cs
+using var handler = new ReplicantHandler(
+    cacheDirectory,
+    server,
+    alwaysRevalidate: true);
+```
+<sup><a href='/src/Tests/RevalidationTests.cs#L208-L215' title='Snippet source file'>snippet source</a> | <a href='#snippet-AlwaysRevalidate' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -543,7 +559,7 @@ graph TD
     ReturnDirect[Return response directly<br/>nothing cached]
     Store[Store response to disk]
     ReturnCached[Return content from cache]
-    IsExpired{Expired?<br/>file last-write-time<br/>vs now}
+    IsExpired{Expired?<br/>file last-write-time<br/>vs now<br/>no expiry = expired}
     CacheHit[Cache hit<br/>return cached content]
     SendConditional["Send conditional request<br/>If-Modified-Since: {last-modified}<br/>If-None-Match: {etag}"]
     IsNetworkError{Network error?}
@@ -604,11 +620,15 @@ graph TD
 
 When storing a response, the cache expiry is derived from response headers in this order:
 
- 1. `Expires` header — used as the absolute expiry time
- 2. `Cache-Control: max-age` — expiry = now + max-age
- 3. Neither present — no expiry, file last-write-time set to min date (always revalidate)
+ 1. `Cache-Control: no-cache` — already expired (revalidate on every use)
+ 2. `Expires` header — used as the absolute expiry time. An invalid value (e.g. `-1` or `0`) means already expired
+ 3. `Cache-Control: max-age` — expiry = now + max-age
+ 4. `Last-Modified` header — [heuristic freshness](https://httpwg.org/specs/rfc9111.html#heuristic.freshness): expiry = now + 10% of the time since Last-Modified, capped at one day
+ 5. None of the above — no expiry information (revalidate on every use)
 
-The expiry is persisted as the cached file's **last-write-time** in the filesystem.
+The expiry is persisted as the cached file's **last-write-time** in the filesystem. "No expiry information" and "already expired" are stored as distinct dates, and both revalidate.
+
+When a response for a URI is stored, any previously cached entries for that URI are removed, so revalidation always uses the latest `ETag` and `Last-Modified`.
 
 ### Conditional request headers
 

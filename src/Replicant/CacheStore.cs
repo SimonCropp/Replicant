@@ -46,9 +46,11 @@ class CacheStore
     public FilePair? FindContentFileForUri(Uri uri)
     {
         var hash = Hash.Compute(uri.AbsoluteUri);
+        // Last write time holds the expiry, so order by creation time to pick the most recently stored entry.
+        // Superseded entries are normally removed on store, but can remain if they were locked at the time.
         var file = Directory
             .EnumerateFiles(directory, $"{hash}_*.bin")
-            .MinBy(File.GetLastWriteTime);
+            .MaxBy(File.GetCreationTimeUtc);
 
         if (file == null)
         {
@@ -139,10 +141,12 @@ class CacheStore
         var contentFile = Path.Combine(directory, timestamp.ContentFileName);
         var metaFile = Path.Combine(directory, timestamp.MetaFileName);
 
+        FilePair result;
         try
         {
             File.Move(tempFile.Content, contentFile, true);
             File.Move(tempFile.Meta, metaFile, true);
+            result = new(contentFile, metaFile);
         }
         catch (Exception exception)
             when (exception is IOException or UnauthorizedAccessException)
@@ -156,13 +160,37 @@ class CacheStore
             {
                 var newContent = $"{newName}.bin";
                 File.Move(tempFile.Content, newContent, true);
-                return new(newContent, newMeta);
+                result = new(newContent, newMeta);
             }
-
-            return new(contentFile, newMeta);
+            else
+            {
+                result = new(contentFile, newMeta);
+            }
         }
 
-        return new(contentFile, metaFile);
+        PurgeSuperseded(timestamp.UriHash, result.Content);
+        return result;
+    }
+
+    // A newer response for the same uri replaces any previously stored entries
+    void PurgeSuperseded(string uriHash, string currentContent)
+    {
+        foreach (var file in Directory.EnumerateFiles(directory, $"{uriHash}_*.bin"))
+        {
+            if (string.Equals(file, currentContent, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            try
+            {
+                FilePair.FromContentFile(file).PurgeItem();
+            }
+            catch (Exception exception)
+            {
+                HttpCache.LogError($"Could not purge superseded item. Path: {file}. {exception.Message}");
+            }
+        }
     }
 
     public static HttpResponseMessage BuildResponseFromCache(FilePair file)

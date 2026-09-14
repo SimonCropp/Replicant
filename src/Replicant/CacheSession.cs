@@ -1,4 +1,4 @@
-class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
+class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false)
 {
     public async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> ProcessAsync(
         Uri uri,
@@ -44,16 +44,8 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     {
         var now = DateTimeOffset.UtcNow;
         var timestamp = Timestamp.FromPath(existingFile.Content);
-        var expiry = timestamp.Expiry;
 
-        if (expiry == null ||
-            expiry > now)
-        {
-            return (false, false, existingFile, null);
-        }
-
-        if (minFreshness != null &&
-            File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now)
+        if (IsFresh(existingFile, timestamp, now))
         {
             return (false, false, existingFile, null);
         }
@@ -89,16 +81,8 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     {
         var now = DateTimeOffset.UtcNow;
         var timestamp = Timestamp.FromPath(existingFile.Content);
-        var expiry = timestamp.Expiry;
 
-        if (expiry == null ||
-            expiry > now)
-        {
-            return (false, false, existingFile, null);
-        }
-
-        if (minFreshness != null &&
-            File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now)
+        if (IsFresh(existingFile, timestamp, now))
         {
             return (false, false, existingFile, null);
         }
@@ -125,6 +109,13 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
             ? (true, stored, null, response)
             : (true, stored, resultFile, null);
     }
+
+    // No expiry (null) means no freshness information, so revalidate
+    bool IsFresh(FilePair existingFile, Timestamp timestamp, DateTimeOffset now) =>
+        !alwaysRevalidate &&
+        (timestamp.Expiry > now ||
+        (minFreshness != null &&
+         File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now));
 
     async Task<(bool stored, FilePair? file)> HandleCacheStatusAsync(
         HttpResponseMessage response, FilePair existingFile, Uri uri, Cancel cancel)

@@ -17,8 +17,9 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
     /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
-    public ReplicantHandler(string directory, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null) =>
-        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness);
+    /// <param name="alwaysRevalidate">If true, revalidate cached entries with the server on every use, ignoring freshness from cache headers and minFreshness. Useful for polling clients.</param>
+    public ReplicantHandler(string directory, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false) =>
+        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate);
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/>.
@@ -30,9 +31,10 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
     /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
-    public ReplicantHandler(string directory, HttpMessageHandler innerHandler, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
+    /// <param name="alwaysRevalidate">If true, revalidate cached entries with the server on every use, ignoring freshness from cache headers and minFreshness. Useful for polling clients.</param>
+    public ReplicantHandler(string directory, HttpMessageHandler innerHandler, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false)
         : base(innerHandler) =>
-        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness);
+        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate);
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/> using a shared <see cref="ReplicantCache"/>.
@@ -43,9 +45,10 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
     /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
-    public ReplicantHandler(ReplicantCache cache, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
+    /// <param name="alwaysRevalidate">If true, revalidate cached entries with the server on every use, ignoring freshness from cache headers and minFreshness. Useful for polling clients.</param>
+    public ReplicantHandler(ReplicantCache cache, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false)
     {
-        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness);
+        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate);
         ownsSession = false;
     }
 
@@ -59,10 +62,11 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="cache404">If true, cache 404 Not Found responses.</param>
     /// <param name="maxRetries">The maximum number of retries for transient HTTP failures. Default is 0 (no retries).</param>
     /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
-    public ReplicantHandler(ReplicantCache cache, HttpMessageHandler innerHandler, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
+    /// <param name="alwaysRevalidate">If true, revalidate cached entries with the server on every use, ignoring freshness from cache headers and minFreshness. Useful for polling clients.</param>
+    public ReplicantHandler(ReplicantCache cache, HttpMessageHandler innerHandler, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false)
         : base(innerHandler)
     {
-        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness);
+        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate);
         ownsSession = false;
     }
 

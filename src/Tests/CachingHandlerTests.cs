@@ -65,7 +65,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("hello")
+                Content = new StringContent("hello"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
@@ -88,7 +89,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("")
+                Content = new StringContent(""),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
@@ -272,7 +274,8 @@ public class CachingHandlerTests
                 () => new MockHttpMessageHandler(
                     new HttpResponseMessage(HttpStatusCode.OK)
                     {
-                        Content = new StringContent("factory content")
+                        Content = new StringContent("factory content"),
+                        Headers = { CacheControl = CacheHeaders.OneDay }
                     }))
             .AddHttpMessageHandler(
                 p => new ReplicantHandler(p.GetRequiredService<ReplicantCache>()));
@@ -304,7 +307,8 @@ public class CachingHandlerTests
                 () => new MockHttpMessageHandler(
                     new HttpResponseMessage(HttpStatusCode.OK)
                     {
-                        Content = new StringContent("shared content")
+                        Content = new StringContent("shared content"),
+                        Headers = { CacheControl = CacheHeaders.OneDay }
                     }))
             .AddHttpMessageHandler(
                 p => new ReplicantHandler(p.GetRequiredService<ReplicantCache>()));
@@ -453,7 +457,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.NotFound)
             {
-                Content = new StringContent("not found")
+                Content = new StringContent("not found"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner, cache404: true);
         using var client = new HttpClient(handler);
@@ -481,7 +486,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.NotFound)
             {
-                Content = new StringContent("not found")
+                Content = new StringContent("not found"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
@@ -497,7 +503,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.NotFound)
             {
-                Content = new StringContent("not found")
+                Content = new StringContent("not found"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner, cache404: true);
         using var client = new HttpClient(handler);
@@ -518,7 +525,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.NotFound)
             {
-                Content = new StringContent("not found")
+                Content = new StringContent("not found"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner, cache404: true);
         using var client = new HttpClient(handler);
@@ -539,7 +547,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("ok")
+                Content = new StringContent("ok"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner, cache404: true);
         using var client = new HttpClient(handler);
