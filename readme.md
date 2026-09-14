@@ -447,7 +447,7 @@ Retries use exponential backoff (200ms, 400ms, 800ms, ...). When combined with `
 
 By default, cached entries are revalidated when their expiry has passed (see [How expiry is determined](#how-expiry-is-determined)). Entries with no expiry information, `Cache-Control: no-cache`, or a past or invalid `Expires` are revalidated on every use.
 
-For servers that set short expiry times on content that rarely or never changes (e.g. symbol servers, package registries), set `minFreshness` to override the server's expiry and keep cached entries fresh for a minimum duration. This avoids unnecessary conditional GET round-trips for immutable content. This is a client-side form of [heuristic freshness](https://httpwg.org/specs/rfc9111.html#heuristic.freshness) — useful when the server doesn't send [`Cache-Control: immutable`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#immutable) or long-lived expiry headers.
+For servers that set short expiry times on content that rarely or never changes (e.g. symbol servers, package registries), set `minFreshness` to override the server's expiry and keep cached entries fresh for a minimum duration. This avoids unnecessary conditional GET round-trips for immutable content. This is a client-side form of [heuristic freshness](https://httpwg.org/specs/rfc9111.html#heuristic.freshness) — useful when the server doesn't send [`Cache-Control: immutable`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#immutable) or long-lived expiry headers. The option is available on `HttpCache`, `ReplicantHandler`, and `AddReplicantCaching`.
 
 <!-- snippet: MinFreshness -->
 <a id='snippet-MinFreshness'></a>

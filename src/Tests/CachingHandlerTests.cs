@@ -766,6 +766,37 @@ public class CachingHandlerTests
     }
 
     [Test]
+    public async Task AddReplicantCaching_MinFreshness_SkipsRevalidation()
+    {
+        var path = CachePath();
+        var services = new ServiceCollection();
+        services.AddReplicantCache(path);
+        services.AddHttpClient("CachedClient")
+            .ConfigurePrimaryHttpMessageHandler(
+                () => new MockHttpMessageHandler(
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("original content")
+                    },
+                    // If revalidation happens, this would change the content
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("updated content")
+                    }))
+            .AddReplicantCaching(minFreshness: TimeSpan.FromHours(1));
+
+        await using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+        using var client = factory.CreateClient("CachedClient");
+        var uri = "http://example.com/factory-minfresh";
+
+        AreEqual("original content", await client.GetStringAsync(uri));
+
+        // No expiry headers, so without minFreshness this would revalidate
+        AreEqual("original content", await client.GetStringAsync(uri));
+    }
+
+    [Test]
     public async Task Cache404_SharedCache()
     {
         var path = CachePath();
