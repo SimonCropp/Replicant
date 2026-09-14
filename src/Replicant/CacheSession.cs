@@ -1,4 +1,4 @@
-class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false)
+class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false, bool throwOnError = true)
 {
     public async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> ProcessAsync(
         Uri uri,
@@ -120,7 +120,7 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     async Task<(bool stored, FilePair? file)> HandleCacheStatusAsync(
         HttpResponseMessage response, FilePair existingFile, Uri uri, Cancel cancel)
     {
-        var status = response.GetCacheStatus(staleIfError, cache404);
+        var status = response.GetCacheStatus(staleIfError, cache404, throwOnError);
         switch (status)
         {
             case CacheStatus.Hit:
@@ -138,6 +138,7 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
                 }
             }
             case CacheStatus.NoStore:
+            case CacheStatus.Error:
             {
                 return (false, null);
             }
@@ -152,7 +153,7 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     (bool stored, FilePair? file) HandleCacheStatus(
         HttpResponseMessage response, FilePair existingFile, Uri uri, Cancel cancel)
     {
-        var status = response.GetCacheStatus(staleIfError, cache404);
+        var status = response.GetCacheStatus(staleIfError, cache404, throwOnError);
         switch (status)
         {
             case CacheStatus.Hit:
@@ -170,6 +171,7 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
                 }
             }
             case CacheStatus.NoStore:
+            case CacheStatus.Error:
             {
                 return (false, null);
             }
@@ -184,8 +186,14 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> StoreNewResponseAsync(
         HttpResponseMessage response, Uri uri, Cancel cancel)
     {
-        if (!cache404 || response.StatusCode != HttpStatusCode.NotFound)
+        if (!response.IsSuccessStatusCode &&
+            (!cache404 || response.StatusCode != HttpStatusCode.NotFound))
         {
+            if (!throwOnError)
+            {
+                return (true, false, null, response);
+            }
+
             response.EnsureSuccess();
         }
 
@@ -203,8 +211,14 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     (bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response) StoreNewResponse(
         HttpResponseMessage response, Uri uri, Cancel cancel)
     {
-        if (!cache404 || response.StatusCode != HttpStatusCode.NotFound)
+        if (!response.IsSuccessStatusCode &&
+            (!cache404 || response.StatusCode != HttpStatusCode.NotFound))
         {
+            if (!throwOnError)
+            {
+                return (true, false, null, response);
+            }
+
             response.EnsureSuccess();
         }
 

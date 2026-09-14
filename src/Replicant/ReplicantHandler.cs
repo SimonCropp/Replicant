@@ -2,6 +2,7 @@ namespace Replicant;
 
 /// <summary>
 /// A <see cref="DelegatingHandler"/> that caches HTTP GET and HEAD responses to disk.
+/// Non-success responses are returned to the caller (not thrown) and are not cached, unless 404 caching is enabled.
 /// </summary>
 public class ReplicantHandler : DelegatingHandler
 {
@@ -19,7 +20,7 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="minFreshness">Minimum time a cached entry is considered fresh, overriding server cache headers.</param>
     /// <param name="alwaysRevalidate">If true, revalidate cached entries with the server on every use, ignoring freshness from cache headers and minFreshness. Useful for polling clients.</param>
     public ReplicantHandler(string directory, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false) =>
-        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate);
+        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate, throwOnError: false);
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/>.
@@ -34,7 +35,7 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="alwaysRevalidate">If true, revalidate cached entries with the server on every use, ignoring freshness from cache headers and minFreshness. Useful for polling clients.</param>
     public ReplicantHandler(string directory, HttpMessageHandler innerHandler, int maxEntries = 1000, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false)
         : base(innerHandler) =>
-        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate);
+        session = new(new(directory, maxEntries), staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate, throwOnError: false);
 
     /// <summary>
     /// Instantiate a new instance of <see cref="ReplicantHandler"/> using a shared <see cref="ReplicantCache"/>.
@@ -48,7 +49,7 @@ public class ReplicantHandler : DelegatingHandler
     /// <param name="alwaysRevalidate">If true, revalidate cached entries with the server on every use, ignoring freshness from cache headers and minFreshness. Useful for polling clients.</param>
     public ReplicantHandler(ReplicantCache cache, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false)
     {
-        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate);
+        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate, throwOnError: false);
         ownsSession = false;
     }
 
@@ -66,7 +67,7 @@ public class ReplicantHandler : DelegatingHandler
     public ReplicantHandler(ReplicantCache cache, HttpMessageHandler innerHandler, bool staleIfError = false, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false)
         : base(innerHandler)
     {
-        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate);
+        session = new(cache.Store, staleIfError, cache404, maxRetries, minFreshness, alwaysRevalidate, throwOnError: false);
         ownsSession = false;
     }
 

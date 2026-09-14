@@ -120,6 +120,13 @@ var response = await client.GetAsync("https://example.com");
 <!-- endSnippet -->
 
 
+#### Non-success responses
+
+`ReplicantHandler` behaves like a standard `DelegatingHandler`: a non-success response (e.g. 401, 403, 429, 500) is returned to the caller rather than thrown, so headers such as `Retry-After`, `X-RateLimit-*`, and `WWW-Authenticate` can be read. Non-success responses are not cached (except 404 when `cache404` is enabled). If revalidation of a cached entry gets a non-success response, the cached entry is kept, and the response is returned unless `staleIfError` is enabled, in which case the cached content is returned instead.
+
+`HttpCache` still throws `HttpRequestException` for non-success responses.
+
+
 ### DelegatingHandler with HttpClientFactory
 
 ReplicantHandler integrates with [HttpClientFactory](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests) using `AddHttpMessageHandler`:
@@ -387,7 +394,7 @@ var content = httpCache.StringAsync(uri, staleIfError: true);
 
 ### Cache 404 responses
 
-By default, 404 responses are not cached and throw an exception. Set `cache404: true` on the constructor to cache 404 Not Found responses to disk, avoiding repeated requests for resources known to be missing. The original 404 status code is preserved in the cached metadata.
+By default, 404 responses are not cached. `HttpCache` throws an exception for them; `ReplicantHandler` returns the response (see [Non-success responses](#non-success-responses)). Set `cache404: true` on the constructor to cache 404 Not Found responses to disk, avoiding repeated requests for resources known to be missing. The original 404 status code is preserved in the cached metadata.
 
 <!-- snippet: cache404 -->
 <a id='snippet-cache404'></a>
@@ -554,7 +561,7 @@ graph TD
     IsSuccess{Response 2xx?}
     Is404{HTTP 404?}
     IsCache404{cache404<br/>enabled?}
-    ThrowException[Throw exception]
+    ThrowException["Throw exception (HttpCache)<br/>Return response (ReplicantHandler)"]
     IsNoStoreNew{Cache-Control:<br/>no-store?}
     ReturnDirect[Return response directly<br/>nothing cached]
     Store[Store response to disk]

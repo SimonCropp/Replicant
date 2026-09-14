@@ -480,7 +480,7 @@ public class CachingHandlerTests
     }
 
     [Test]
-    public async Task Cache404_Disabled_Throws()
+    public async Task Cache404_Disabled_ReturnsResponse()
     {
         var path = CachePath();
         var inner = new MockHttpMessageHandler(
@@ -492,8 +492,148 @@ public class CachingHandlerTests
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
-        Assert.ThrowsAsync<HttpRequestException>(
-            () => client.GetAsync("http://example.com/missing404"));
+        using var response = await client.GetAsync("http://example.com/missing404");
+        AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+        AreEqual("not found", await response.Content.ReadAsStringAsync());
+        AreEqual(0, Directory.GetFiles(path, "*.bin").Length);
+    }
+
+    [Test]
+    public async Task NonSuccess_ReturnsResponseWithHeaders()
+    {
+        var path = CachePath();
+        var tooMany = new HttpResponseMessage(HttpStatusCode.TooManyRequests)
+        {
+            Content = new StringContent("slow down")
+        };
+        tooMany.Headers.RetryAfter = new(TimeSpan.FromSeconds(30));
+        tooMany.Headers.TryAddWithoutValidation("X-RateLimit-Remaining", "0");
+        var inner = new MockHttpMessageHandler(tooMany);
+        using var handler = new ReplicantHandler(path, inner);
+        using var client = new HttpClient(handler);
+
+        using var response = await client.GetAsync("http://example.com/rate-limited");
+
+        AreEqual(HttpStatusCode.TooManyRequests, response.StatusCode);
+        AreEqual(TimeSpan.FromSeconds(30), response.Headers.RetryAfter!.Delta);
+        AreEqual("0", response.Headers.GetValues("X-RateLimit-Remaining").Single());
+        AreEqual("slow down", await response.Content.ReadAsStringAsync());
+        AreEqual(0, Directory.GetFiles(path, "*.bin").Length);
+    }
+
+    [Test]
+    public void NonSuccess_Sync_ReturnsResponse()
+    {
+        var path = CachePath();
+        var inner = new SyncHandler(
+            new HttpResponseMessage(HttpStatusCode.Forbidden)
+            {
+                Content = new StringContent("forbidden")
+            });
+        using var handler = new ReplicantHandler(path, inner);
+        using var client = new HttpClient(handler);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "http://example.com/forbidden-sync");
+        using var response = client.Send(request);
+
+        AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
+        AreEqual(0, Directory.GetFiles(path, "*.bin").Length);
+    }
+
+    [Test]
+    public async Task Revalidation_NonSuccess_ReturnsResponse_KeepsCachedEntry()
+    {
+        var path = CachePath();
+        var unauthorized = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+        {
+            Content = new StringContent("")
+        };
+        unauthorized.Headers.WwwAuthenticate.Add(new("Bearer"));
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("cached")
+            },
+            unauthorized);
+        using var handler = new ReplicantHandler(path, inner);
+        using var client = new HttpClient(handler);
+        var uri = "http://example.com/revalidate-401";
+
+        AreEqual("cached", await client.GetStringAsync(uri));
+
+        using var response = await client.GetAsync(uri);
+
+        AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+        AreEqual("Bearer", response.Headers.WwwAuthenticate.Single().Scheme);
+        AreEqual(1, Directory.GetFiles(path, "*.bin").Length);
+    }
+
+    [Test]
+    public async Task Revalidation_NonSuccessWithNoCache_NotStored()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("cached")
+            },
+            new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                Content = new StringContent("denied"),
+                Headers = { CacheControl = new() { NoCache = true } }
+            },
+            new HttpResponseMessage(HttpStatusCode.NotModified)
+            {
+                Content = new StringContent("")
+            });
+        using var handler = new ReplicantHandler(path, inner);
+        using var client = new HttpClient(handler);
+        var uri = "http://example.com/revalidate-401-no-cache";
+
+        AreEqual("cached", await client.GetStringAsync(uri));
+
+        using (var response = await client.GetAsync(uri))
+        {
+            AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        // The 401 must not have replaced the cached entry
+        AreEqual("cached", await client.GetStringAsync(uri));
+    }
+
+    [Test]
+    public async Task Revalidation_NonSuccess_WithStaleIfError_ReturnsStale()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("cached")
+            },
+            new HttpResponseMessage(HttpStatusCode.TooManyRequests)
+            {
+                Content = new StringContent("")
+            });
+        using var handler = new ReplicantHandler(path, inner, staleIfError: true);
+        using var client = new HttpClient(handler);
+        var uri = "http://example.com/revalidate-429-stale";
+
+        AreEqual("cached", await client.GetStringAsync(uri));
+
+        using var response = await client.GetAsync(uri);
+
+        AreEqual(HttpStatusCode.OK, response.StatusCode);
+        AreEqual("cached", await response.Content.ReadAsStringAsync());
+    }
+
+    class SyncHandler(HttpResponseMessage response) :
+        HttpMessageHandler
+    {
+        protected override HttpResponseMessage Send(HttpRequestMessage request, Cancel cancel) =>
+            response;
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, Cancel cancel) =>
+            Task.FromResult(response);
     }
 
     [Test]
