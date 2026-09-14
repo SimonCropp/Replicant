@@ -247,7 +247,8 @@ public class HttpCacheTests
         result = await httpCache.DownloadAsync(uri);
         await Verify(result)
             .IgnoreMembers("traceparent", "Traceparent")
-            .ScrubInlineDateTimes("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+            // Header dates come from the clock and httpbin, so scrub by name rather than by value
+            .ScrubMembers("If-Modified-Since", "Date");
     }
 
     [Test]
