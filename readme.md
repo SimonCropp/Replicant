@@ -120,6 +120,13 @@ var response = await client.GetAsync("https://example.com");
 <!-- endSnippet -->
 
 
+#### Non-success responses
+
+`ReplicantHandler` behaves like a standard `DelegatingHandler`: a non-success response (e.g. 401, 403, 429, 500) is returned to the caller rather than thrown, so headers such as `Retry-After`, `X-RateLimit-*`, and `WWW-Authenticate` can be read. Non-success responses are not cached (except 404 when `cache404` is enabled). If revalidation of a cached entry gets a non-success response, the cached entry is kept, and the response is returned unless `staleIfError` is enabled, in which case the cached content is returned instead.
+
+`HttpCache` still throws `HttpRequestException` for non-success responses.
+
+
 ### DelegatingHandler with HttpClientFactory
 
 ReplicantHandler integrates with [HttpClientFactory](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests) using `AddHttpMessageHandler`:
@@ -300,7 +307,7 @@ To share a cache across multiple handlers or consumers, use a single `ReplicantC
 ```cs
 var content = await httpCache.StringAsync("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L288-L292' title='Snippet source file'>snippet source</a> | <a href='#snippet-string' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L289-L293' title='Snippet source file'>snippet source</a> | <a href='#snippet-string' title='Start of snippet'>anchor</a></sup>
 <a id='snippet-string-1'></a>
 ```cs
 var lines = new List<string>();
@@ -309,7 +316,7 @@ await foreach (var line in httpCache.LinesAsync("https://httpbin.org/json"))
     lines.Add(line);
 }
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L303-L311' title='Snippet source file'>snippet source</a> | <a href='#snippet-string-1' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L304-L312' title='Snippet source file'>snippet source</a> | <a href='#snippet-string-1' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -320,7 +327,7 @@ await foreach (var line in httpCache.LinesAsync("https://httpbin.org/json"))
 ```cs
 var bytes = await httpCache.BytesAsync("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L322-L326' title='Snippet source file'>snippet source</a> | <a href='#snippet-bytes' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L323-L327' title='Snippet source file'>snippet source</a> | <a href='#snippet-bytes' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -331,7 +338,7 @@ var bytes = await httpCache.BytesAsync("https://httpbin.org/json");
 ```cs
 using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L337-L341' title='Snippet source file'>snippet source</a> | <a href='#snippet-stream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L338-L342' title='Snippet source file'>snippet source</a> | <a href='#snippet-stream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -342,7 +349,7 @@ using var stream = await httpCache.StreamAsync("https://httpbin.org/json");
 ```cs
 await httpCache.ToFileAsync("https://httpbin.org/json", targetFile);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L354-L358' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToFile' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L355-L359' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToFile' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -353,7 +360,7 @@ await httpCache.ToFileAsync("https://httpbin.org/json", targetFile);
 ```cs
 await httpCache.ToStreamAsync("https://httpbin.org/json", targetStream);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L375-L379' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToStream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L376-L380' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToStream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -368,7 +375,7 @@ using var response = new HttpResponseMessage(HttpStatusCode.OK)
 };
 await httpCache.AddItemAsync(uri, response);
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L440-L448' title='Snippet source file'>snippet source</a> | <a href='#snippet-AddItem' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L441-L449' title='Snippet source file'>snippet source</a> | <a href='#snippet-AddItem' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -387,7 +394,7 @@ var content = httpCache.StringAsync(uri, staleIfError: true);
 
 ### Cache 404 responses
 
-By default, 404 responses are not cached and throw an exception. Set `cache404: true` on the constructor to cache 404 Not Found responses to disk, avoiding repeated requests for resources known to be missing. The original 404 status code is preserved in the cached metadata.
+By default, 404 responses are not cached. `HttpCache` throws an exception for them; `ReplicantHandler` returns the response (see [Non-success responses](#non-success-responses)). Set `cache404: true` on the constructor to cache 404 Not Found responses to disk, avoiding repeated requests for resources known to be missing. The original 404 status code is preserved in the cached metadata.
 
 <!-- snippet: cache404 -->
 <a id='snippet-cache404'></a>
@@ -438,9 +445,9 @@ Retries use exponential backoff (200ms, 400ms, 800ms, ...). When combined with `
 
 ### Minimum freshness
 
-By default, cached entries are revalidated when the server-provided expiry (from `Expires` or `Cache-Control: max-age`) has passed. When no expiry header is present, cached entries are served indefinitely without revalidation.
+By default, cached entries are revalidated when their expiry has passed (see [How expiry is determined](#how-expiry-is-determined)). Entries with no expiry information, `Cache-Control: no-cache`, or a past or invalid `Expires` are revalidated on every use.
 
-For servers that set short expiry times on content that rarely or never changes (e.g. symbol servers, package registries), set `minFreshness` to override the server's expiry and keep cached entries fresh for a minimum duration. This avoids unnecessary conditional GET round-trips for immutable content. This is a client-side form of [heuristic freshness](https://httpwg.org/specs/rfc9111.html#heuristic.freshness) — useful when the server doesn't send [`Cache-Control: immutable`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#immutable) or long-lived expiry headers.
+For servers that set short expiry times on content that rarely or never changes (e.g. symbol servers, package registries), set `minFreshness` to override the server's expiry and keep cached entries fresh for a minimum duration. This avoids unnecessary conditional GET round-trips for immutable content. This is a client-side form of [heuristic freshness](https://httpwg.org/specs/rfc9111.html#heuristic.freshness) — useful when the server doesn't send [`Cache-Control: immutable`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#immutable) or long-lived expiry headers. The option is available on `HttpCache`, `ReplicantHandler`, and `AddReplicantCaching`.
 
 <!-- snippet: MinFreshness -->
 <a id='snippet-MinFreshness'></a>
@@ -451,6 +458,22 @@ await using var cache = new HttpCache(
 var content = await cache.StringAsync("https://httpbin.org/json");
 ```
 <sup><a href='/src/Tests/HttpCacheTests.cs#L555-L562' title='Snippet source file'>snippet source</a> | <a href='#snippet-MinFreshness' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+
+### Always revalidate
+
+For polling clients that must see changes as soon as the server has them, set `alwaysRevalidate: true`. Every use sends a conditional request (`If-None-Match` / `If-Modified-Since`), ignoring freshness from `Expires`, `max-age`, heuristic freshness, and `minFreshness`. Unchanged content still costs only a `304 Not Modified`. The option is available on `HttpCache`, `ReplicantHandler`, and `AddReplicantCaching`.
+
+<!-- snippet: AlwaysRevalidate -->
+<a id='snippet-AlwaysRevalidate'></a>
+```cs
+using var handler = new ReplicantHandler(
+    cacheDirectory,
+    server,
+    alwaysRevalidate: true);
+```
+<sup><a href='/src/Tests/RevalidationTests.cs#L208-L215' title='Snippet source file'>snippet source</a> | <a href='#snippet-AlwaysRevalidate' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -469,7 +492,7 @@ var content = await httpCache.StringAsync(
         message.Headers.Add("Key2", "Value2");
     });
 ```
-<sup><a href='/src/Tests/HttpCacheTests.cs#L391-L401' title='Snippet source file'>snippet source</a> | <a href='#snippet-ModifyRequest' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/HttpCacheTests.cs#L392-L402' title='Snippet source file'>snippet source</a> | <a href='#snippet-ModifyRequest' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -538,12 +561,12 @@ graph TD
     IsSuccess{Response 2xx?}
     Is404{HTTP 404?}
     IsCache404{cache404<br/>enabled?}
-    ThrowException[Throw exception]
+    ThrowException["Throw exception (HttpCache)<br/>Return response (ReplicantHandler)"]
     IsNoStoreNew{Cache-Control:<br/>no-store?}
     ReturnDirect[Return response directly<br/>nothing cached]
     Store[Store response to disk]
     ReturnCached[Return content from cache]
-    IsExpired{Expired?<br/>file last-write-time<br/>vs now}
+    IsExpired{Expired?<br/>file last-write-time<br/>vs now<br/>no expiry = expired}
     CacheHit[Cache hit<br/>return cached content]
     SendConditional["Send conditional request<br/>If-Modified-Since: {last-modified}<br/>If-None-Match: {etag}"]
     IsNetworkError{Network error?}
@@ -604,11 +627,15 @@ graph TD
 
 When storing a response, the cache expiry is derived from response headers in this order:
 
- 1. `Expires` header — used as the absolute expiry time
- 2. `Cache-Control: max-age` — expiry = now + max-age
- 3. Neither present — no expiry, file last-write-time set to min date (always revalidate)
+ 1. `Cache-Control: no-cache` — already expired (revalidate on every use)
+ 2. `Expires` header — used as the absolute expiry time. An invalid value (e.g. `-1` or `0`) means already expired
+ 3. `Cache-Control: max-age` — expiry = now + max-age
+ 4. `Last-Modified` header — [heuristic freshness](https://httpwg.org/specs/rfc9111.html#heuristic.freshness): expiry = now + 10% of the time since Last-Modified, capped at one day
+ 5. None of the above — no expiry information (revalidate on every use)
 
-The expiry is persisted as the cached file's **last-write-time** in the filesystem.
+The expiry is persisted as the cached file's **last-write-time** in the filesystem. "No expiry information" and "already expired" are stored as distinct dates, and both revalidate.
+
+When a response for a URI is stored, any previously cached entries for that URI are removed, so revalidation always uses the latest `ETag` and `Last-Modified`.
 
 ### Conditional request headers
 

@@ -4,5 +4,7 @@
     Stored,
     NoStore,
     Revalidate,
-    UseStaleDueToError
+    UseStaleDueToError,
+    // Non-success response that is returned to the caller rather than thrown
+    Error
 }

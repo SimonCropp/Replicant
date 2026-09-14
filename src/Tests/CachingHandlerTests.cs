@@ -65,7 +65,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("hello")
+                Content = new StringContent("hello"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
@@ -88,7 +89,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("")
+                Content = new StringContent(""),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
@@ -272,7 +274,8 @@ public class CachingHandlerTests
                 () => new MockHttpMessageHandler(
                     new HttpResponseMessage(HttpStatusCode.OK)
                     {
-                        Content = new StringContent("factory content")
+                        Content = new StringContent("factory content"),
+                        Headers = { CacheControl = CacheHeaders.OneDay }
                     }))
             .AddHttpMessageHandler(
                 p => new ReplicantHandler(p.GetRequiredService<ReplicantCache>()));
@@ -304,7 +307,8 @@ public class CachingHandlerTests
                 () => new MockHttpMessageHandler(
                     new HttpResponseMessage(HttpStatusCode.OK)
                     {
-                        Content = new StringContent("shared content")
+                        Content = new StringContent("shared content"),
+                        Headers = { CacheControl = CacheHeaders.OneDay }
                     }))
             .AddHttpMessageHandler(
                 p => new ReplicantHandler(p.GetRequiredService<ReplicantCache>()));
@@ -453,7 +457,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.NotFound)
             {
-                Content = new StringContent("not found")
+                Content = new StringContent("not found"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner, cache404: true);
         using var client = new HttpClient(handler);
@@ -475,19 +480,160 @@ public class CachingHandlerTests
     }
 
     [Test]
-    public async Task Cache404_Disabled_Throws()
+    public async Task Cache404_Disabled_ReturnsResponse()
     {
         var path = CachePath();
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.NotFound)
             {
-                Content = new StringContent("not found")
+                Content = new StringContent("not found"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
-        Assert.ThrowsAsync<HttpRequestException>(
-            () => client.GetAsync("http://example.com/missing404"));
+        using var response = await client.GetAsync("http://example.com/missing404");
+        AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+        AreEqual("not found", await response.Content.ReadAsStringAsync());
+        AreEqual(0, Directory.GetFiles(path, "*.bin").Length);
+    }
+
+    [Test]
+    public async Task NonSuccess_ReturnsResponseWithHeaders()
+    {
+        var path = CachePath();
+        var tooMany = new HttpResponseMessage(HttpStatusCode.TooManyRequests)
+        {
+            Content = new StringContent("slow down")
+        };
+        tooMany.Headers.RetryAfter = new(TimeSpan.FromSeconds(30));
+        tooMany.Headers.TryAddWithoutValidation("X-RateLimit-Remaining", "0");
+        var inner = new MockHttpMessageHandler(tooMany);
+        using var handler = new ReplicantHandler(path, inner);
+        using var client = new HttpClient(handler);
+
+        using var response = await client.GetAsync("http://example.com/rate-limited");
+
+        AreEqual(HttpStatusCode.TooManyRequests, response.StatusCode);
+        AreEqual(TimeSpan.FromSeconds(30), response.Headers.RetryAfter!.Delta);
+        AreEqual("0", response.Headers.GetValues("X-RateLimit-Remaining").Single());
+        AreEqual("slow down", await response.Content.ReadAsStringAsync());
+        AreEqual(0, Directory.GetFiles(path, "*.bin").Length);
+    }
+
+    [Test]
+    public void NonSuccess_Sync_ReturnsResponse()
+    {
+        var path = CachePath();
+        var inner = new SyncHandler(
+            new HttpResponseMessage(HttpStatusCode.Forbidden)
+            {
+                Content = new StringContent("forbidden")
+            });
+        using var handler = new ReplicantHandler(path, inner);
+        using var client = new HttpClient(handler);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "http://example.com/forbidden-sync");
+        using var response = client.Send(request);
+
+        AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
+        AreEqual(0, Directory.GetFiles(path, "*.bin").Length);
+    }
+
+    [Test]
+    public async Task Revalidation_NonSuccess_ReturnsResponse_KeepsCachedEntry()
+    {
+        var path = CachePath();
+        var unauthorized = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+        {
+            Content = new StringContent("")
+        };
+        unauthorized.Headers.WwwAuthenticate.Add(new("Bearer"));
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("cached")
+            },
+            unauthorized);
+        using var handler = new ReplicantHandler(path, inner);
+        using var client = new HttpClient(handler);
+        var uri = "http://example.com/revalidate-401";
+
+        AreEqual("cached", await client.GetStringAsync(uri));
+
+        using var response = await client.GetAsync(uri);
+
+        AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+        AreEqual("Bearer", response.Headers.WwwAuthenticate.Single().Scheme);
+        AreEqual(1, Directory.GetFiles(path, "*.bin").Length);
+    }
+
+    [Test]
+    public async Task Revalidation_NonSuccessWithNoCache_NotStored()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("cached")
+            },
+            new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                Content = new StringContent("denied"),
+                Headers = { CacheControl = new() { NoCache = true } }
+            },
+            new HttpResponseMessage(HttpStatusCode.NotModified)
+            {
+                Content = new StringContent("")
+            });
+        using var handler = new ReplicantHandler(path, inner);
+        using var client = new HttpClient(handler);
+        var uri = "http://example.com/revalidate-401-no-cache";
+
+        AreEqual("cached", await client.GetStringAsync(uri));
+
+        using (var response = await client.GetAsync(uri))
+        {
+            AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        // The 401 must not have replaced the cached entry
+        AreEqual("cached", await client.GetStringAsync(uri));
+    }
+
+    [Test]
+    public async Task Revalidation_NonSuccess_WithStaleIfError_ReturnsStale()
+    {
+        var path = CachePath();
+        var inner = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("cached")
+            },
+            new HttpResponseMessage(HttpStatusCode.TooManyRequests)
+            {
+                Content = new StringContent("")
+            });
+        using var handler = new ReplicantHandler(path, inner, staleIfError: true);
+        using var client = new HttpClient(handler);
+        var uri = "http://example.com/revalidate-429-stale";
+
+        AreEqual("cached", await client.GetStringAsync(uri));
+
+        using var response = await client.GetAsync(uri);
+
+        AreEqual(HttpStatusCode.OK, response.StatusCode);
+        AreEqual("cached", await response.Content.ReadAsStringAsync());
+    }
+
+    class SyncHandler(HttpResponseMessage response) :
+        HttpMessageHandler
+    {
+        protected override HttpResponseMessage Send(HttpRequestMessage request, Cancel cancel) =>
+            response;
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, Cancel cancel) =>
+            Task.FromResult(response);
     }
 
     [Test]
@@ -497,7 +643,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.NotFound)
             {
-                Content = new StringContent("not found")
+                Content = new StringContent("not found"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner, cache404: true);
         using var client = new HttpClient(handler);
@@ -518,7 +665,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.NotFound)
             {
-                Content = new StringContent("not found")
+                Content = new StringContent("not found"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner, cache404: true);
         using var client = new HttpClient(handler);
@@ -539,7 +687,8 @@ public class CachingHandlerTests
         var inner = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("ok")
+                Content = new StringContent("ok"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         using var handler = new ReplicantHandler(path, inner, cache404: true);
         using var client = new HttpClient(handler);
@@ -614,6 +763,37 @@ public class CachingHandlerTests
         // Second request: both server expiry and minFreshness elapsed, revalidates
         var content2 = await client.GetStringAsync("http://example.com/minfreshstale");
         AreEqual("updated content", content2);
+    }
+
+    [Test]
+    public async Task AddReplicantCaching_MinFreshness_SkipsRevalidation()
+    {
+        var path = CachePath();
+        var services = new ServiceCollection();
+        services.AddReplicantCache(path);
+        services.AddHttpClient("CachedClient")
+            .ConfigurePrimaryHttpMessageHandler(
+                () => new MockHttpMessageHandler(
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("original content")
+                    },
+                    // If revalidation happens, this would change the content
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("updated content")
+                    }))
+            .AddReplicantCaching(minFreshness: TimeSpan.FromHours(1));
+
+        await using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+        using var client = factory.CreateClient("CachedClient");
+        var uri = "http://example.com/factory-minfresh";
+
+        AreEqual("original content", await client.GetStringAsync(uri));
+
+        // No expiry headers, so without minFreshness this would revalidate
+        AreEqual("original content", await client.GetStringAsync(uri));
     }
 
     [Test]
