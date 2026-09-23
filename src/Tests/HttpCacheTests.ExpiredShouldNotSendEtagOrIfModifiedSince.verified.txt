@@ -8,7 +8,7 @@
       Headers: {
         Access-Control-Allow-Credentials: true,
         Access-Control-Allow-Origin: *,
-        Date: DateTime_1,
+        Date: {Scrubbed},
         ETag: {etag}
       },
       Content: {
@@ -27,7 +27,7 @@
     Request: {
       Uri: https://httpbin.org/etag/{etag},
       Headers: {
-        If-Modified-Since: DateTime_2,
+        If-Modified-Since: {Scrubbed},
         If-None-Match: "{etag}"
       }
     },
@@ -36,7 +36,7 @@
       Headers: {
         Access-Control-Allow-Credentials: true,
         Access-Control-Allow-Origin: *,
-        Date: DateTime_3,
+        Date: {Scrubbed},
         ETag: {etag}
       }
     }

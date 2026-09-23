@@ -247,7 +247,8 @@ public class HttpCacheTests
         result = await httpCache.DownloadAsync(uri);
         await Verify(result)
             .IgnoreMembers("traceparent", "Traceparent")
-            .ScrubInlineDateTimes("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+            // Header dates come from the clock and httpbin, so scrub by name rather than by value
+            .ScrubMembers("If-Modified-Since", "Date");
     }
 
     [Test]
@@ -452,28 +453,27 @@ public class HttpCacheTests
     }
 
     [Test]
-    public async Task SyncDownload_WithNullExpiry_ShouldUseCachedFile()
+    public async Task SyncDownload_WithFutureExpiry_ShouldUseCachedFile()
     {
         using var cacheDirectory = new TempDirectory();
         var httpCache = new HttpCache(cacheDirectory);
-        // Add an item without expiry headers - this will result in null Expiry
         using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("test content")
+            {
+                Headers =
+                {
+                    Expires = DateTimeOffset.UtcNow.AddDays(1)
+                }
+            }
         };
         // Use a real URL that we'll cache, then verify sync uses cache without network
         var uri = "https://httpbin.org/json";
         await httpCache.AddItemAsync(uri, response);
 
-        // Bug: HttpCache.cs does "if (timestamp.Expiry > now)" but should be
-        // "if (expiry == null || expiry > now)" like the async version.
-        // When Expiry is null, sync version incorrectly tries to re-fetch from network
-        // instead of returning the cached file.
         // ReSharper disable once MethodHasAsyncOverload
         var result = httpCache.Download(uri);
 
-        // If the bug exists, this will have fetched new content from httpbin.org/json
-        // If fixed, it should return our cached "test content"
         // ReSharper disable once UseAwaitUsing
         using var stream = result.AsStream();
         using var reader = new StreamReader(stream);

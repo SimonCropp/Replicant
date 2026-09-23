@@ -1,7 +1,7 @@
 ﻿{
   FromDisk: true,
   Stored: false,
-  Revalidated: false,
+  Revalidated: true,
   Response: {
     Status: 200 OK,
     Content: {

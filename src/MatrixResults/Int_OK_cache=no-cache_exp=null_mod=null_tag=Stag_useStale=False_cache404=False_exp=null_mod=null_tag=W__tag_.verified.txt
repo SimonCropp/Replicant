@@ -1,11 +1,16 @@
 ﻿{
   FromDisk: true,
-  Stored: false,
-  Revalidated: false,
+  Stored: true,
+  Revalidated: true,
   Response: {
     Status: 200 OK,
+    Headers: {
+      Cache-Control: no-cache,
+      ETag: "tag"
+    },
     Content: {
-      Headers: {}
+      Headers: {},
+      Value: a
     }
   }
 }

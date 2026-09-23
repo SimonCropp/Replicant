@@ -35,9 +35,9 @@ readonly struct FilePair(string content, string meta)
 
         var expiryDate = expiry.Value.UtcDateTime;
 
-        if (expiryDate < FileEx.MinFileDate)
+        if (expiryDate <= FileEx.MinFileDate)
         {
-            return FileEx.MinFileDate;
+            return FileEx.ExpiredFileDate;
         }
 
         return expiryDate;

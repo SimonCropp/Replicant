@@ -121,7 +121,8 @@ public class ResilienceTests
         var mock = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("payload")
+                Content = new StringContent("payload"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         var counting = new CountingHandler(mock);
 
@@ -189,7 +190,8 @@ public class ResilienceTests
         var mock = new MockHttpMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("factory payload")
+                Content = new StringContent("factory payload"),
+                Headers = { CacheControl = CacheHeaders.OneDay }
             });
         var counting = new CountingHandler(mock);
 

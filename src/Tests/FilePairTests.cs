@@ -61,7 +61,7 @@ public class FilePairTests
     }
 
     [Test]
-    public void SetExpiry_ShouldSetMinFileDate_WhenExpiryIsBeforeMinFileDate()
+    public void SetExpiry_ShouldSetExpiredFileDate_WhenExpiryIsBeforeMinFileDate()
     {
         // Arrange
         var path = Path.GetTempFileName();
@@ -74,7 +74,7 @@ public class FilePairTests
 
             // Assert
             var actualDate = File.GetLastWriteTimeUtc(path);
-            AreEqual(FileEx.MinFileDate, actualDate);
+            AreEqual(FileEx.ExpiredFileDate, actualDate);
         }
         finally
         {
@@ -123,15 +123,40 @@ public class FilePairTests
             // Date before Win32 FileTime epoch (1601-01-01)
             var invalidDate = new DateTimeOffset(1600, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-            // Should not throw - should fall back to MinFileDate
+            // Should not throw - should fall back to ExpiredFileDate
             filePair.SetExpiry(invalidDate);
 
             var actualDate = File.GetLastWriteTimeUtc(path);
-            AreEqual(FileEx.MinFileDate, actualDate);
+            AreEqual(FileEx.ExpiredFileDate, actualDate);
         }
         finally
         {
             File.Delete(path);
+        }
+    }
+
+    [Test]
+    public void SetExpiry_NoExpiryAndAlreadyExpired_AreDistinguishable()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(directory);
+        try
+        {
+            var path = Path.Combine(directory, "92cb8761e3e5246f873da524f438f95468eb3d36_2021-03-22T095023_.bin");
+            File.WriteAllText(path, "");
+            var filePair = new FilePair(path, "");
+
+            filePair.SetExpiry(null);
+            Null(Timestamp.FromPath(path).Expiry);
+
+            filePair.SetExpiry(DateTimeOffset.MinValue);
+            var expiry = Timestamp.FromPath(path).Expiry;
+            NotNull(expiry);
+            True(expiry < DateTimeOffset.UtcNow);
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
         }
     }
 }

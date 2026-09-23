@@ -1,4 +1,4 @@
-class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null)
+class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, int maxRetries = 0, TimeSpan? minFreshness = null, bool alwaysRevalidate = false, bool throwOnError = true)
 {
     public async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> ProcessAsync(
         Uri uri,
@@ -44,16 +44,8 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     {
         var now = DateTimeOffset.UtcNow;
         var timestamp = Timestamp.FromPath(existingFile.Content);
-        var expiry = timestamp.Expiry;
 
-        if (expiry == null ||
-            expiry > now)
-        {
-            return (false, false, existingFile, null);
-        }
-
-        if (minFreshness != null &&
-            File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now)
+        if (IsFresh(existingFile, timestamp, now))
         {
             return (false, false, existingFile, null);
         }
@@ -89,16 +81,8 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     {
         var now = DateTimeOffset.UtcNow;
         var timestamp = Timestamp.FromPath(existingFile.Content);
-        var expiry = timestamp.Expiry;
 
-        if (expiry == null ||
-            expiry > now)
-        {
-            return (false, false, existingFile, null);
-        }
-
-        if (minFreshness != null &&
-            File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now)
+        if (IsFresh(existingFile, timestamp, now))
         {
             return (false, false, existingFile, null);
         }
@@ -126,10 +110,17 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
             : (true, stored, resultFile, null);
     }
 
+    // No expiry (null) means no freshness information, so revalidate
+    bool IsFresh(FilePair existingFile, Timestamp timestamp, DateTimeOffset now) =>
+        !alwaysRevalidate &&
+        (timestamp.Expiry > now ||
+        (minFreshness != null &&
+         File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now));
+
     async Task<(bool stored, FilePair? file)> HandleCacheStatusAsync(
         HttpResponseMessage response, FilePair existingFile, Uri uri, Cancel cancel)
     {
-        var status = response.GetCacheStatus(staleIfError, cache404);
+        var status = response.GetCacheStatus(staleIfError, cache404, throwOnError);
         switch (status)
         {
             case CacheStatus.Hit:
@@ -147,6 +138,7 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
                 }
             }
             case CacheStatus.NoStore:
+            case CacheStatus.Error:
             {
                 return (false, null);
             }
@@ -161,7 +153,7 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     (bool stored, FilePair? file) HandleCacheStatus(
         HttpResponseMessage response, FilePair existingFile, Uri uri, Cancel cancel)
     {
-        var status = response.GetCacheStatus(staleIfError, cache404);
+        var status = response.GetCacheStatus(staleIfError, cache404, throwOnError);
         switch (status)
         {
             case CacheStatus.Hit:
@@ -179,6 +171,7 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
                 }
             }
             case CacheStatus.NoStore:
+            case CacheStatus.Error:
             {
                 return (false, null);
             }
@@ -193,8 +186,14 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     async Task<(bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response)> StoreNewResponseAsync(
         HttpResponseMessage response, Uri uri, Cancel cancel)
     {
-        if (!cache404 || response.StatusCode != HttpStatusCode.NotFound)
+        if (!response.IsSuccessStatusCode &&
+            (!cache404 || response.StatusCode != HttpStatusCode.NotFound))
         {
+            if (!throwOnError)
+            {
+                return (true, false, null, response);
+            }
+
             response.EnsureSuccess();
         }
 
@@ -212,8 +211,14 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
     (bool revalidated, bool stored, FilePair? file, HttpResponseMessage? response) StoreNewResponse(
         HttpResponseMessage response, Uri uri, Cancel cancel)
     {
-        if (!cache404 || response.StatusCode != HttpStatusCode.NotFound)
+        if (!response.IsSuccessStatusCode &&
+            (!cache404 || response.StatusCode != HttpStatusCode.NotFound))
         {
+            if (!throwOnError)
+            {
+                return (true, false, null, response);
+            }
+
             response.EnsureSuccess();
         }
 
