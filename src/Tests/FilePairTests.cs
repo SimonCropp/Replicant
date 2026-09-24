@@ -22,14 +22,12 @@ public class FilePairTests
         {
             // Arrange
             var filePair = new FilePair(path, "");
-            var expectedDate = FileEx.MinFileDate;
-
             // Act
             filePair.SetExpiry(null);
 
             // Assert
             var actualDate = File.GetLastWriteTimeUtc(path);
-            AreEqual(expectedDate, actualDate);
+            IsTrue(FileEx.IsNoExpiry(actualDate), actualDate.ToString("O"));
         }
         finally
         {
@@ -74,7 +72,7 @@ public class FilePairTests
 
             // Assert
             var actualDate = File.GetLastWriteTimeUtc(path);
-            AreEqual(FileEx.MinFileDate, actualDate);
+            IsTrue(FileEx.IsNoExpiry(actualDate), actualDate.ToString("O"));
         }
         finally
         {
@@ -127,7 +125,7 @@ public class FilePairTests
             filePair.SetExpiry(invalidDate);
 
             var actualDate = File.GetLastWriteTimeUtc(path);
-            AreEqual(FileEx.MinFileDate, actualDate);
+            IsTrue(FileEx.IsNoExpiry(actualDate), actualDate.ToString("O"));
         }
         finally
         {

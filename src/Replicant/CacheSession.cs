@@ -52,8 +52,11 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
             return (false, false, existingFile, null);
         }
 
+        // When the entry was stored. Not the content file's creation time, which Linux does not
+        // reliably report, nor its last write time, which holds the expiry. The meta file is
+        // written once when the entry is stored and never touched after.
         if (minFreshness != null &&
-            File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now)
+            File.GetLastWriteTimeUtc(existingFile.Meta) + minFreshness > now)
         {
             return (false, false, existingFile, null);
         }
@@ -98,7 +101,7 @@ class CacheSession(CacheStore store, bool staleIfError, bool cache404 = false, i
         }
 
         if (minFreshness != null &&
-            File.GetCreationTimeUtc(existingFile.Content) + minFreshness > now)
+            File.GetLastWriteTimeUtc(existingFile.Meta) + minFreshness > now)
         {
             return (false, false, existingFile, null);
         }
