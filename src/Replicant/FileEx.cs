@@ -4,6 +4,12 @@
     public static DateTime OldMinFileDate { get; } = DateTime.FromFileTimeUtc(0);
     public static DateTime MinFileDate { get; }  = DateTime.FromFileTimeUtc(1);
 
+    // A file system does not hand back exactly what was set. Linux and macOS store times relative
+    // to 1970, so the 1601 marker can come back shifted or clamped to the epoch. No real expiry
+    // is before 1970, so anything up to a day after it is the marker.
+    public static bool IsNoExpiry(DateTime lastWriteTimeUtc) =>
+        lastWriteTimeUtc < new DateTime(1970, 1, 2, 0, 0, 0, DateTimeKind.Utc);
+
     public static string TempPath { get; } = Path.GetTempPath();
 
     public static Encoding Default(this Encoding? encoding) =>

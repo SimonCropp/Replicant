@@ -64,7 +64,7 @@
         var etag = Etag.FromFilePart(etagSpan.ToString());
 
         DateTime? expiry = File.GetLastWriteTimeUtc(path);
-        if (expiry == FileEx.MinFileDate || expiry == FileEx.OldMinFileDate)
+        if (FileEx.IsNoExpiry(expiry.Value))
         {
             expiry = null;
         }
