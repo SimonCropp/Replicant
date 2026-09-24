@@ -1,6 +1,6 @@
 # <img src="/src/icon.png" height="30px"> Replicant
 
-[![Build status](https://img.shields.io/appveyor/build/SimonCropp/Replicant)](https://ci.appveyor.com/project/SimonCropp/Replicant)
+[![Build status](https://github.com/SimonCropp/Replicant/actions/workflows/build.yml/badge.svg)](https://github.com/SimonCropp/Replicant/actions/workflows/build.yml)
 [![NuGet Status](https://img.shields.io/nuget/v/Replicant.svg)](https://www.nuget.org/packages/Replicant/)
 
 A wrapper for HttpClient that caches to disk. Cached files, over the max specified, are deleted based on the last access times.
