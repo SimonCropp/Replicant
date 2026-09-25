@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Polyfill" PrivateAssets="all" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Sbom.Targets" PrivateAssets="all" Condition="'$(CI)' == 'true'" />
+    <PackageReference Include="Sbom" PrivateAssets="all" />
     <PackageReference Include="System.Net.Http" Condition="$(TargetFramework) == 'net48'" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48' Or '$(TargetFramework)' == 'netstandard2.0'">
