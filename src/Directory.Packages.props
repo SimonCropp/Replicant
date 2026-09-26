@@ -15,7 +15,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageVersion Include="Polyfill" Version="11.4.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.181" />
-    <PackageVersion Include="Sbom" Version="0.2.0" />
+    <PackageVersion Include="Sbom" Version="0.3.1" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Text.Json" Version="10.0.12" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.3.1" />
