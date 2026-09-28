@@ -1,7 +1,5 @@
 // ReSharper disable UnusedVariable
 // ReSharper disable ShortLivedHttpClient
-[TestFixture]
-[Parallelizable(ParallelScope.Children)]
 public class RetryTests
 {
     static string root = Path.Combine(Path.GetTempPath(), "ReplicantRetryTests");
@@ -9,8 +7,8 @@ public class RetryTests
     static string CachePath([CallerMemberName] string name = "") =>
         Path.Combine(root, name);
 
-    [OneTimeTearDown]
-    public void Cleanup()
+    [After(Class)]
+    public static void Cleanup()
     {
         if (Directory.Exists(root))
         {
@@ -59,7 +57,7 @@ public class RetryTests
         using var client = new HttpClient(handler);
 
         var content = await client.GetStringAsync("http://example.com/retry");
-        AreEqual("success", content);
+        await Assert.That(content).IsEqualTo("success");
     }
 
     [Test]
@@ -83,11 +81,11 @@ public class RetryTests
         using var client = new HttpClient(handler);
 
         var content = await client.GetStringAsync("http://example.com/retry-multi");
-        AreEqual("success", content);
+        await Assert.That(content).IsEqualTo("success");
     }
 
     [Test]
-    public void RetriesExhausted_Throws()
+    public async Task RetriesExhausted_Throws()
     {
         var path = CachePath();
         var inner = new MockHttpMessageHandler(
@@ -102,11 +100,11 @@ public class RetryTests
         using var handler = new ReplicantHandler(path, inner, maxRetries: 1);
         using var client = new HttpClient(handler);
 
-        Assert.ThrowsAsync<HttpRequestException>(() => client.GetStringAsync("http://example.com/retry-exhausted"));
+        await Assert.That(() => (Task) client.GetStringAsync("http://example.com/retry-exhausted")).ThrowsExactly<HttpRequestException>();
     }
 
     [Test]
-    public void NonRetryableStatus_NotRetried()
+    public async Task NonRetryableStatus_NotRetried()
     {
         var path = CachePath();
         var inner = new MockHttpMessageHandler(
@@ -117,11 +115,11 @@ public class RetryTests
         using var handler = new ReplicantHandler(path, inner, maxRetries: 3);
         using var client = new HttpClient(handler);
 
-        Assert.ThrowsAsync<HttpRequestException>(() => client.GetStringAsync("http://example.com/retry-404"));
+        await Assert.That(() => (Task) client.GetStringAsync("http://example.com/retry-404")).ThrowsExactly<HttpRequestException>();
     }
 
     [Test]
-    public void RetryDisabled_Throws()
+    public async Task RetryDisabled_Throws()
     {
         var path = CachePath();
         var inner = new MockHttpMessageHandler(
@@ -132,11 +130,11 @@ public class RetryTests
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
-        Assert.ThrowsAsync<HttpRequestException>(() => client.GetStringAsync("http://example.com/no-retry"));
+        await Assert.That(() => (Task) client.GetStringAsync("http://example.com/no-retry")).ThrowsExactly<HttpRequestException>();
     }
 
     [Test]
-    public void Exception_ThenSuccess_ReturnsContent()
+    public async Task Exception_ThenSuccess_ReturnsContent()
     {
         var path = CachePath();
         var inner = new ThrowThenSucceedHandler(
@@ -149,7 +147,7 @@ public class RetryTests
         using var client = new HttpClient(handler);
 
         // Without retry, the exception propagates
-        Assert.ThrowsAsync<HttpRequestException>(() => client.GetStringAsync("http://example.com/throw-no-retry"));
+        await Assert.That(() => (Task) client.GetStringAsync("http://example.com/throw-no-retry")).ThrowsExactly<HttpRequestException>();
     }
 
     [Test]
@@ -166,7 +164,7 @@ public class RetryTests
         using var client = new HttpClient(handler);
 
         var content = await client.GetStringAsync("http://example.com/throw-retry");
-        AreEqual("recovered", content);
+        await Assert.That(content).IsEqualTo("recovered");
     }
 
     [Test]
@@ -192,7 +190,7 @@ public class RetryTests
 
         // First request: stored
         var content1 = await client.GetStringAsync("http://example.com/revalidate-retry");
-        AreEqual("original", content1);
+        await Assert.That(content1).IsEqualTo("original");
 
         // Expire the cached file
         var binFile = Directory.GetFiles(path, "*.bin").Single();
@@ -200,7 +198,7 @@ public class RetryTests
 
         // Second request: revalidation retries past 503, gets 200
         var content2 = await client.GetStringAsync("http://example.com/revalidate-retry");
-        AreEqual("updated", content2);
+        await Assert.That(content2).IsEqualTo("updated");
     }
 
     [Test]
@@ -226,7 +224,7 @@ public class RetryTests
 
         // First request: stored
         var content1 = await client.GetStringAsync("http://example.com/retry-stale");
-        AreEqual("cached content", content1);
+        await Assert.That(content1).IsEqualTo("cached content");
 
         // Expire the cached file
         var binFile = Directory.GetFiles(path, "*.bin").Single();
@@ -234,7 +232,7 @@ public class RetryTests
 
         // Second request: retries exhausted, staleIfError returns cached content
         var content2 = await client.GetStringAsync("http://example.com/retry-stale");
-        AreEqual("cached content", content2);
+        await Assert.That(content2).IsEqualTo("cached content");
     }
 
     [Test]
@@ -265,7 +263,7 @@ public class RetryTests
             using var client = new HttpClient(handler);
 
             var content = await client.GetStringAsync($"http://example.com/retry-{status}");
-            AreEqual($"success after {status}", content);
+            await Assert.That(content).IsEqualTo($"success after {status}");
         }
     }
 

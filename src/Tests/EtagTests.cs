@@ -1,9 +1,10 @@
-[TestFixture]
+[NotInParallel]
 public class EtagTests
 {
-    [TestCase("tag")]
-    [TestCase("\"tag\"")]
-    [TestCase("W/\"tag\"")]
+    [Test]
+    [Arguments("tag")]
+    [Arguments("\"tag\"")]
+    [Arguments("W/\"tag\"")]
     public Task RoundTrip(string etag)
     {
         var fromHeader = Etag.FromHeader(etag);

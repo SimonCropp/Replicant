@@ -57,7 +57,7 @@ jobs:
         run: dotnet build src --configuration Release ${{ env.VERSION_ARGUMENT }}
 
       - name: Test
-        run: dotnet test src --configuration Release --no-build --no-restore
+        run: dotnet test --solution src/Replicant.slnx --configuration Release --no-build --no-restore
 
       - name: Upload received on failure
         if: failure()

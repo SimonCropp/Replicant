@@ -32,7 +32,10 @@ public static class ModuleInitializer
             "Strict-Transport-Security",
             "X-Cache-Status",
             "X-Cache",
-            "origin");
+            "origin",
+            "Baggage",
+            "baggage",
+            "Traceparent");
         VerifierSettings.InitializePlugins();
     }
 }

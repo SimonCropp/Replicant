@@ -1,4 +1,4 @@
-[TestFixture]
+[NotInParallel]
 public class MetaTests
 {
     [Test]
@@ -16,18 +16,18 @@ public class MetaTests
     }
 
     [Test]
-    public Task ReadMetaV1_1_StatusCodeAbsent()
+    public async Task ReadMetaV1_1_StatusCodeAbsent()
     {
         var meta = MetaData.ReadMeta("v1.1Meta.json");
-        Assert.That(meta.StatusCode, Is.Null);
-        return Verify(meta);
+        await Assert.That(meta.StatusCode).IsNull();
+        await Verify(meta);
     }
 
     [Test]
-    public Task ReadMetaV2()
+    public async Task ReadMetaV2()
     {
         var meta = MetaData.ReadMeta("v2Meta.json");
-        Assert.That(meta.StatusCode, Is.EqualTo(404));
-        return Verify(meta);
+        await Assert.That(meta.StatusCode).IsEqualTo(404);
+        await Verify(meta);
     }
 }

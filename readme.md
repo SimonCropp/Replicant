@@ -76,7 +76,7 @@ services.AddSingleton(_ => new HttpCache(cacheDirectory));
 
 using var provider = services.BuildServiceProvider();
 var httpCache = provider.GetRequiredService<HttpCache>();
-NotNull(httpCache);
+await Assert.That(httpCache).IsNotNull();
 ```
 <sup><a href='/src/Tests/HttpCacheTests.cs#L48-L57' title='Snippet source file'>snippet source</a> | <a href='#snippet-DependencyInjection' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
@@ -96,7 +96,7 @@ services.AddSingleton(_ =>
 
 using var provider = services.BuildServiceProvider();
 var httpCache = provider.GetRequiredService<HttpCache>();
-NotNull(httpCache);
+await Assert.That(httpCache).IsNotNull();
 ```
 <sup><a href='/src/Tests/HttpCacheTests.cs#L65-L79' title='Snippet source file'>snippet source</a> | <a href='#snippet-DependencyInjectionWithHttpFactory' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
@@ -116,7 +116,7 @@ var handler = new ReplicantHandler(cacheDirectory)
 using var client = new HttpClient(handler);
 var response = await client.GetAsync("https://example.com");
 ```
-<sup><a href='/src/Tests/CachingHandlerTests.cs#L26-L35' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReplicantHandlerUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L24-L33' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReplicantHandlerUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -131,7 +131,7 @@ var services = new ServiceCollection();
 services.AddHttpClient("CachedClient")
     .AddHttpMessageHandler(() => new ReplicantHandler(cacheDirectory));
 ```
-<sup><a href='/src/Tests/CachingHandlerTests.cs#L40-L46' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L38-L44' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 To share a single cache (and purge timer) across multiple named clients, register a `ReplicantCache` as a singleton:
@@ -144,7 +144,7 @@ services.AddReplicantCache(cacheDirectory);
 services.AddHttpClient("CachedClient")
     .AddReplicantCaching();
 ```
-<sup><a href='/src/Tests/CachingHandlerTests.cs#L51-L58' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactorySharedCacheUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/CachingHandlerTests.cs#L49-L56' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactorySharedCacheUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -200,7 +200,7 @@ services.AddHttpClient("api", _ => _.BaseAddress = new("https://example.com"))
             })
             .AddTimeout(TimeSpan.FromSeconds(10)));
 ```
-<sup><a href='/src/Tests/ResilienceTests.cs#L28-L60' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryWithResilienceUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ResilienceTests.cs#L26-L58' title='Snippet source file'>snippet source</a> | <a href='#snippet-HttpClientFactoryWithResilienceUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 A shared singleton `ReplicantCache` matters here because `HttpClientFactory` recycles handler instances periodically — without it, a fresh `CacheStore` would be created against the same directory each rotation and throw.
@@ -260,7 +260,7 @@ var response = await httpClient.GetAsync(
     cancel);
 response.EnsureSuccessStatusCode();
 ```
-<sup><a href='/src/Tests/ResilienceTests.cs#L65-L114' title='Snippet source file'>snippet source</a> | <a href='#snippet-ManualResilienceUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ResilienceTests.cs#L63-L112' title='Snippet source file'>snippet source</a> | <a href='#snippet-ManualResilienceUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -282,7 +282,7 @@ var services = new ServiceCollection();
 services.AddReplicantDistributedCache(cacheDirectory);
 services.AddHybridCache();
 ```
-<sup><a href='/src/Tests/DistributedCacheTests.cs#L25-L31' title='Snippet source file'>snippet source</a> | <a href='#snippet-DistributedCacheUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/DistributedCacheTests.cs#L23-L29' title='Snippet source file'>snippet source</a> | <a href='#snippet-DistributedCacheUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -417,7 +417,7 @@ Retried status codes:
 using var httpCache = new HttpCache(cacheDirectory, maxRetries: 3);
 var content = await httpCache.StringAsync("https://example.com");
 ```
-<sup><a href='/src/Tests/RetryTests.cs#L23-L28' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryHttpCacheUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/RetryTests.cs#L21-L26' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryHttpCacheUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 <!-- snippet: RetryHandlerUsage -->
@@ -430,7 +430,7 @@ var handler = new ReplicantHandler(cacheDirectory, maxRetries: 3)
 using var client = new HttpClient(handler);
 var response = await client.GetAsync("https://example.com");
 ```
-<sup><a href='/src/Tests/RetryTests.cs#L33-L42' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryHandlerUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/RetryTests.cs#L31-L40' title='Snippet source file'>snippet source</a> | <a href='#snippet-RetryHandlerUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Retries use exponential backoff (200ms, 400ms, 800ms, ...). When combined with `staleIfError`, retries are attempted first; if all retries are exhausted, stale cached content is returned as a fallback.

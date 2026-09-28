@@ -1,8 +1,8 @@
-[TestFixture]
+[NotInParallel]
 public class HashTests
 {
     [Test]
-    public void Compute()
+    public async Task Compute()
     {
         // Arrange
         var input = "test";
@@ -10,6 +10,6 @@ public class HashTests
 
         var result = Hash.Compute(input);
 
-        AreEqual(expectedHash, result);
+        await Assert.That(result).IsEqualTo(expectedHash);
     }
 }

@@ -3,8 +3,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-[TestFixture]
-[Parallelizable(ParallelScope.Children)]
 public class CachingHandlerTests
 {
     static string root = Path.Combine(Path.GetTempPath(), "ReplicantHandlerTests");
@@ -12,8 +10,8 @@ public class CachingHandlerTests
     static string CachePath([CallerMemberName] string name = "") =>
         Path.Combine(root, name);
 
-    [OneTimeTearDown]
-    public void Cleanup()
+    [After(Class)]
+    public static void Cleanup()
     {
         if (Directory.Exists(root))
         {
@@ -71,14 +69,14 @@ public class CachingHandlerTests
         using var client = new HttpClient(handler);
 
         var content1 = await client.GetStringAsync("http://example.com/test");
-        AreEqual("hello", content1);
+        await Assert.That(content1).IsEqualTo("hello");
 
         // Second request served from cache (mock has no more responses)
         var content2 = await client.GetStringAsync("http://example.com/test");
-        AreEqual("hello", content2);
+        await Assert.That(content2).IsEqualTo("hello");
 
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(1, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(1);
     }
 
     [Test]
@@ -95,12 +93,12 @@ public class CachingHandlerTests
 
         using var request1 = new HttpRequestMessage(HttpMethod.Head, "http://example.com/head");
         using var response1 = await client.SendAsync(request1);
-        AreEqual(HttpStatusCode.OK, response1.StatusCode);
+        await Assert.That(response1.StatusCode).IsEqualTo(HttpStatusCode.OK);
 
         // Second HEAD served from cache
         using var request2 = new HttpRequestMessage(HttpMethod.Head, "http://example.com/head");
         using var response2 = await client.SendAsync(request2);
-        AreEqual(HttpStatusCode.OK, response2.StatusCode);
+        await Assert.That(response2.StatusCode).IsEqualTo(HttpStatusCode.OK);
     }
 
     [Test]
@@ -121,7 +119,7 @@ public class CachingHandlerTests
 
         // First request: stored
         var content1 = await client.GetStringAsync("http://example.com/revalidate");
-        AreEqual("original content", content1);
+        await Assert.That(content1).IsEqualTo("original content");
 
         // Expire the cached file
         var binFile = Directory.GetFiles(path, "*.bin").Single();
@@ -129,7 +127,7 @@ public class CachingHandlerTests
 
         // Second request: revalidation returns 304, cached content served
         var content2 = await client.GetStringAsync("http://example.com/revalidate");
-        AreEqual("original content", content2);
+        await Assert.That(content2).IsEqualTo("original content");
     }
 
     [Test]
@@ -152,11 +150,11 @@ public class CachingHandlerTests
         using var client = new HttpClient(handler);
 
         var content = await client.GetStringAsync("http://example.com/nostore");
-        AreEqual("no-store content", content);
+        await Assert.That(content).IsEqualTo("no-store content");
 
         // No files should be cached
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(0, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(0);
     }
 
     [Test]
@@ -177,7 +175,7 @@ public class CachingHandlerTests
 
         // First request: stored
         var content1 = await client.GetStringAsync("http://example.com/stale");
-        AreEqual("cached content", content1);
+        await Assert.That(content1).IsEqualTo("cached content");
 
         // Expire the cached file
         var binFile = Directory.GetFiles(path, "*.bin").Single();
@@ -185,7 +183,7 @@ public class CachingHandlerTests
 
         // Second request: server error, stale content returned
         var content2 = await client.GetStringAsync("http://example.com/stale");
-        AreEqual("cached content", content2);
+        await Assert.That(content2).IsEqualTo("cached content");
     }
 
     [Test]
@@ -204,11 +202,11 @@ public class CachingHandlerTests
             "http://example.com/post",
             new StringContent("body"));
         var content = await response.Content.ReadAsStringAsync();
-        AreEqual("post response", content);
+        await Assert.That(content).IsEqualTo("post response");
 
         // POST should not be cached
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(0, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(0);
     }
 
     [Test]
@@ -225,12 +223,12 @@ public class CachingHandlerTests
 
         await client.GetStringAsync("http://example.com/purge");
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(1, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(1);
 
         handler.Purge();
 
         binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(0, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(0);
     }
 
     [Test]
@@ -254,10 +252,10 @@ public class CachingHandlerTests
 
         // no-cache responses are still stored
         var content = await client.GetStringAsync("http://example.com/nocache");
-        AreEqual("content", content);
+        await Assert.That(content).IsEqualTo("content");
 
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(1, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(1);
     }
 
     [Test]
@@ -282,14 +280,14 @@ public class CachingHandlerTests
         using var client = factory.CreateClient("CachedClient");
 
         var content1 = await client.GetStringAsync("http://example.com/factory");
-        AreEqual("factory content", content1);
+        await Assert.That(content1).IsEqualTo("factory content");
 
         // Second request served from cache
         var content2 = await client.GetStringAsync("http://example.com/factory");
-        AreEqual("factory content", content2);
+        await Assert.That(content2).IsEqualTo("factory content");
 
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(1, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(1);
     }
 
     [Test]
@@ -319,15 +317,15 @@ public class CachingHandlerTests
         // Client1 fetches and caches
         using var client1 = factory.CreateClient("Client1");
         var content1 = await client1.GetStringAsync("http://example.com/shared");
-        AreEqual("shared content", content1);
+        await Assert.That(content1).IsEqualTo("shared content");
 
         // Client2 serves from the shared cache (mock has no responses)
         using var client2 = factory.CreateClient("Client2");
         var content2 = await client2.GetStringAsync("http://example.com/shared");
-        AreEqual("shared content", content2);
+        await Assert.That(content2).IsEqualTo("shared content");
 
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(1, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(1);
     }
 
     [Test]
@@ -355,21 +353,20 @@ public class CachingHandlerTests
             "http://example.com/post",
             new StringContent("body"));
         var content = await response.Content.ReadAsStringAsync();
-        AreEqual("post response", content);
+        await Assert.That(content).IsEqualTo("post response");
 
         // POST should not be cached
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(0, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(0);
     }
 
     [Test]
-    public void DuplicateDirectory_Throws()
+    public async Task DuplicateDirectory_Throws()
     {
         var path = CachePath();
         using var handler1 = new ReplicantHandler(path, new MockHttpMessageHandler());
 
-        Assert.Throws<Exception>(
-            () => new ReplicantHandler(path, new MockHttpMessageHandler()));
+        await Assert.That(() => new ReplicantHandler(path, new MockHttpMessageHandler())).ThrowsExactly<Exception>();
     }
 
     [Test]
@@ -384,13 +381,12 @@ public class CachingHandlerTests
     }
 
     [Test]
-    public void DuplicateDirectory_SharedCache_Throws()
+    public async Task DuplicateDirectory_SharedCache_Throws()
     {
         var path = CachePath();
         using var cache = new ReplicantCache(path);
 
-        Assert.Throws<Exception>(
-            () => new ReplicantCache(path));
+        await Assert.That(() => new ReplicantCache(path)).ThrowsExactly<Exception>();
     }
 
     [Test]
@@ -404,13 +400,12 @@ public class CachingHandlerTests
     }
 
     [Test]
-    public void DuplicateDirectory_HandlerAndCache_Throws()
+    public async Task DuplicateDirectory_HandlerAndCache_Throws()
     {
         var path = CachePath();
         using var handler = new ReplicantHandler(path, new MockHttpMessageHandler());
 
-        Assert.Throws<Exception>(
-            () => new ReplicantCache(path));
+        await Assert.That(() => new ReplicantCache(path)).ThrowsExactly<Exception>();
     }
 
     [Test]
@@ -460,18 +455,18 @@ public class CachingHandlerTests
 
         // First request: 404 is stored to cache
         using var response1 = await client.GetAsync("http://example.com/missing");
-        AreEqual(HttpStatusCode.NotFound, response1.StatusCode);
+        await Assert.That(response1.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
         var content1 = await response1.Content.ReadAsStringAsync();
-        AreEqual("not found", content1);
+        await Assert.That(content1).IsEqualTo("not found");
 
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(1, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(1);
 
         // Second request served from cache, status code preserved
         using var response2 = await client.GetAsync("http://example.com/missing");
-        AreEqual(HttpStatusCode.NotFound, response2.StatusCode);
+        await Assert.That(response2.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
         var content2 = await response2.Content.ReadAsStringAsync();
-        AreEqual("not found", content2);
+        await Assert.That(content2).IsEqualTo("not found");
     }
 
     [Test]
@@ -486,8 +481,7 @@ public class CachingHandlerTests
         using var handler = new ReplicantHandler(path, inner);
         using var client = new HttpClient(handler);
 
-        Assert.ThrowsAsync<HttpRequestException>(
-            () => client.GetAsync("http://example.com/missing404"));
+        await Assert.That(() => (Task) client.GetAsync("http://example.com/missing404")).ThrowsExactly<HttpRequestException>();
     }
 
     [Test]
@@ -504,11 +498,11 @@ public class CachingHandlerTests
 
         // First request: fresh 404 from server, stored to cache
         using var response1 = await client.GetAsync("http://example.com/isSuccess");
-        IsFalse(response1.IsSuccessStatusCode);
+        await Assert.That(response1.IsSuccessStatusCode).IsFalse();
 
         // Second request: served from cache, still not successful
         using var response2 = await client.GetAsync("http://example.com/isSuccess");
-        IsFalse(response2.IsSuccessStatusCode);
+        await Assert.That(response2.IsSuccessStatusCode).IsFalse();
     }
 
     [Test]
@@ -525,11 +519,11 @@ public class CachingHandlerTests
 
         // First request: fresh 404, stored to cache
         using var response1 = await client.GetAsync("http://example.com/ensureSuccess");
-        Assert.Throws<HttpRequestException>(() => response1.EnsureSuccessStatusCode());
+        await Assert.That(() => response1.EnsureSuccessStatusCode()).ThrowsExactly<HttpRequestException>();
 
         // Second request: cached 404, still throws
         using var response2 = await client.GetAsync("http://example.com/ensureSuccess");
-        Assert.Throws<HttpRequestException>(() => response2.EnsureSuccessStatusCode());
+        await Assert.That(() => response2.EnsureSuccessStatusCode()).ThrowsExactly<HttpRequestException>();
     }
 
     [Test]
@@ -546,12 +540,12 @@ public class CachingHandlerTests
 
         // First request: fresh 200, stored to cache
         using var response1 = await client.GetAsync("http://example.com/success200");
-        IsTrue(response1.IsSuccessStatusCode);
+        await Assert.That(response1.IsSuccessStatusCode).IsTrue();
         response1.EnsureSuccessStatusCode();
 
         // Second request: served from cache, still successful
         using var response2 = await client.GetAsync("http://example.com/success200");
-        IsTrue(response2.IsSuccessStatusCode);
+        await Assert.That(response2.IsSuccessStatusCode).IsTrue();
         response2.EnsureSuccessStatusCode();
     }
 
@@ -574,7 +568,7 @@ public class CachingHandlerTests
 
         // First request: stored
         var content1 = await client.GetStringAsync("http://example.com/minfresh");
-        AreEqual("original content", content1);
+        await Assert.That(content1).IsEqualTo("original content");
 
         // Expire the cached file (server expiry in the past)
         var binFile = Directory.GetFiles(path, "*.bin").Single();
@@ -582,7 +576,7 @@ public class CachingHandlerTests
 
         // Second request: expired per server headers, but minFreshness keeps it fresh
         var content2 = await client.GetStringAsync("http://example.com/minfresh");
-        AreEqual("original content", content2);
+        await Assert.That(content2).IsEqualTo("original content");
     }
 
     [Test]
@@ -603,7 +597,7 @@ public class CachingHandlerTests
 
         // First request: stored
         var content1 = await client.GetStringAsync("http://example.com/minfreshstale");
-        AreEqual("original content", content1);
+        await Assert.That(content1).IsEqualTo("original content");
 
         // Expire the cached file and wait for minFreshness to elapse
         var binFile = Directory.GetFiles(path, "*.bin").Single();
@@ -613,7 +607,7 @@ public class CachingHandlerTests
 
         // Second request: both server expiry and minFreshness elapsed, revalidates
         var content2 = await client.GetStringAsync("http://example.com/minfreshstale");
-        AreEqual("updated content", content2);
+        await Assert.That(content2).IsEqualTo("updated content");
     }
 
     [Test]
@@ -638,12 +632,12 @@ public class CachingHandlerTests
         using var client = factory.CreateClient("CachedClient");
 
         using var response = await client.GetAsync("http://example.com/cache404shared");
-        AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
         var content = await response.Content.ReadAsStringAsync();
-        AreEqual("not found", content);
+        await Assert.That(content).IsEqualTo("not found");
 
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(1, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(1);
     }
 
     [Test]
@@ -698,18 +692,18 @@ public class CachingHandlerTests
             // Second request: revalidation stores new content, File.Move fails due to lock
             using var result2 = await client.GetAsync("http://example.com/fallback-test");
             var content2 = await result2.Content.ReadAsStringAsync();
-            AreEqual("updated", content2);
+            await Assert.That(content2).IsEqualTo("updated");
         }
 
         // All .bin and .json files should be in the cache directory, not the working directory
         var allBinFiles = Directory.GetFiles(path, "*.bin");
         var allJsonFiles = Directory.GetFiles(path, "*.json");
-        True(allBinFiles.Length > 0);
-        True(allJsonFiles.Length > 0);
+        await Assert.That(allBinFiles.Length > 0).IsTrue();
+        await Assert.That(allJsonFiles.Length > 0).IsTrue();
 
         foreach (var file in allBinFiles.Concat(allJsonFiles))
         {
-            AreEqual(Path.GetFullPath(path), Path.GetDirectoryName(file));
+            await Assert.That(Path.GetDirectoryName(file)).IsEqualTo(Path.GetFullPath(path));
         }
 
         // Verify no cache files leaked to the working directory
@@ -721,53 +715,53 @@ public class CachingHandlerTests
                 .Concat(Directory.GetFiles(cwd, "*.json"))
                 .Where(_ => Path.GetFileName(_).Length > 40 && Path.GetFileName(_)[40] == '_')
                 .ToList();
-            AreEqual(0, leaked.Count, $"Cache files leaked to working directory: {cwd}");
+            await Assert.That(leaked.Count).IsEqualTo(0);
         }
     }
 
     [Test]
-    public void ShouldReturnStaleIfError_HttpRequestException_WithStale()
+    public async Task ShouldReturnStaleIfError_HttpRequestException_WithStale()
     {
         var cancel = new CancelSource().Token;
-        True(CacheStore.ShouldReturnStaleIfError(true, new HttpRequestException(), cancel));
+        await Assert.That(CacheStore.ShouldReturnStaleIfError(true, new HttpRequestException(), cancel)).IsTrue();
     }
 
     [Test]
-    public void ShouldReturnStaleIfError_HttpRequestException_WithoutStale()
+    public async Task ShouldReturnStaleIfError_HttpRequestException_WithoutStale()
     {
         var cancel = new CancelSource().Token;
-        False(CacheStore.ShouldReturnStaleIfError(false, new HttpRequestException(), cancel));
+        await Assert.That(CacheStore.ShouldReturnStaleIfError(false, new HttpRequestException(), cancel)).IsFalse();
     }
 
     [Test]
-    public void ShouldReturnStaleIfError_Timeout_WithStale()
+    public async Task ShouldReturnStaleIfError_Timeout_WithStale()
     {
         // TaskCanceledException from a timeout (not user cancellation)
         var cancel = new CancelSource().Token;
-        True(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cancel));
+        await Assert.That(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cancel)).IsTrue();
     }
 
     [Test]
-    public void ShouldReturnStaleIfError_Timeout_WithoutStale()
+    public async Task ShouldReturnStaleIfError_Timeout_WithoutStale()
     {
         var cancel = new CancelSource().Token;
-        False(CacheStore.ShouldReturnStaleIfError(false, new TaskCanceledException(), cancel));
+        await Assert.That(CacheStore.ShouldReturnStaleIfError(false, new TaskCanceledException(), cancel)).IsFalse();
     }
 
     [Test]
-    public void ShouldReturnStaleIfError_UserCancellation_WithStale()
+    public async Task ShouldReturnStaleIfError_UserCancellation_WithStale()
     {
         // User-initiated cancellation should NOT return stale
         var cts = new CancelSource();
         cts.Cancel();
-        False(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cts.Token));
+        await Assert.That(CacheStore.ShouldReturnStaleIfError(true, new TaskCanceledException(), cts.Token)).IsFalse();
     }
 
     [Test]
-    public void ShouldReturnStaleIfError_OtherException_WithStale()
+    public async Task ShouldReturnStaleIfError_OtherException_WithStale()
     {
         var cancel = new CancelSource().Token;
-        False(CacheStore.ShouldReturnStaleIfError(true, new InvalidOperationException(), cancel));
+        await Assert.That(CacheStore.ShouldReturnStaleIfError(true, new InvalidOperationException(), cancel)).IsFalse();
     }
 
     [Test]
@@ -794,7 +788,7 @@ public class CachingHandlerTests
         using var result = await cache.DownloadAsync("http://test/resource");
 
         var request = mock.Requests.Single();
-        NotNull(request.Headers.IfModifiedSince);
-        True(request.Headers.TryGetValues("If-None-Match", out _));
+        await Assert.That(request.Headers.IfModifiedSince).IsNotNull();
+        await Assert.That(request.Headers.TryGetValues("If-None-Match", out _)).IsTrue();
     }
 }

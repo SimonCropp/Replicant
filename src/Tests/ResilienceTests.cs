@@ -5,8 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
 
-[TestFixture]
-[Parallelizable(ParallelScope.Children)]
 public class ResilienceTests
 {
     static string root = Path.Combine(Path.GetTempPath(), "ReplicantResilienceTests");
@@ -14,8 +12,8 @@ public class ResilienceTests
     static string CachePath([CallerMemberName] string name = "") =>
         Path.Combine(root, name);
 
-    [OneTimeTearDown]
-    public void Cleanup()
+    [After(Class)]
+    public static void Cleanup()
     {
         if (Directory.Exists(root))
         {
@@ -137,14 +135,14 @@ public class ResilienceTests
         using var client = new HttpClient(handler);
 
         var first = await client.GetStringAsync("http://example.com/cached");
-        AreEqual("payload", first);
-        AreEqual(1, counting.Count);
+        await Assert.That(first).IsEqualTo("payload");
+        await Assert.That(counting.Count).IsEqualTo(1);
 
         // Second request should be served from cache, never reaching the
         // resilience handler or the underlying mock.
         var second = await client.GetStringAsync("http://example.com/cached");
-        AreEqual("payload", second);
-        AreEqual(1, counting.Count);
+        await Assert.That(second).IsEqualTo("payload");
+        await Assert.That(counting.Count).IsEqualTo(1);
     }
 
     [Test]
@@ -175,11 +173,11 @@ public class ResilienceTests
         using var client = new HttpClient(handler);
 
         var content = await client.GetStringAsync("http://example.com/retried");
-        AreEqual("eventual success", content);
-        AreEqual(2, counting.Count);
+        await Assert.That(content).IsEqualTo("eventual success");
+        await Assert.That(counting.Count).IsEqualTo(2);
 
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(1, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(1);
     }
 
     [Test]
@@ -209,13 +207,13 @@ public class ResilienceTests
         using var client = factory.CreateClient("api");
 
         var first = await client.GetStringAsync("http://example.com/factory-cached");
-        AreEqual("factory payload", first);
-        AreEqual(1, counting.Count);
+        await Assert.That(first).IsEqualTo("factory payload");
+        await Assert.That(counting.Count).IsEqualTo(1);
 
         // Second request: cache hit. Should not reach the resilience handler.
         var second = await client.GetStringAsync("http://example.com/factory-cached");
-        AreEqual("factory payload", second);
-        AreEqual(1, counting.Count);
+        await Assert.That(second).IsEqualTo("factory payload");
+        await Assert.That(counting.Count).IsEqualTo(1);
     }
 
     [Test]
@@ -247,11 +245,11 @@ public class ResilienceTests
         using var client = factory.CreateClient("api");
 
         var content = await client.GetStringAsync("http://example.com/factory-retry");
-        AreEqual("ok after retry", content);
-        AreEqual(2, counting.Count);
+        await Assert.That(content).IsEqualTo("ok after retry");
+        await Assert.That(counting.Count).IsEqualTo(2);
 
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(1, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(1);
     }
 
     [Test]
@@ -285,14 +283,14 @@ public class ResilienceTests
         using var response = await client.PostAsync(
             "http://example.com/factory-post",
             new StringContent("body"));
-        AreEqual(HttpStatusCode.OK, response.StatusCode);
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
 
         // POST bypasses Replicant's cache logic, but still flows through the
         // resilience pipeline — first call returned 500, retry returned 200.
-        AreEqual(2, counting.Count);
+        await Assert.That(counting.Count).IsEqualTo(2);
 
         var binFiles = Directory.GetFiles(path, "*.bin");
-        AreEqual(0, binFiles.Length);
+        await Assert.That(binFiles.Length).IsEqualTo(0);
     }
 
     static HttpRetryStrategyOptions FastRetryOptions() =>

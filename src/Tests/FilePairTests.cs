@@ -1,8 +1,7 @@
-﻿[TestFixture]
-public class FilePairTests
+﻿public class FilePairTests
 {
     [Test]
-    public void FromContentFile_WithJsonFile_CreatesSelfReferencingPair()
+    public async Task FromContentFile_WithJsonFile_CreatesSelfReferencingPair()
     {
         // FromContentFile expects a .bin content file and derives the .json meta path.
         // If given a .json file, both Content and Meta will point to the same file.
@@ -10,12 +9,12 @@ public class FilePairTests
 
         var pair = FilePair.FromContentFile(jsonPath);
 
-        AreEqual(jsonPath, pair.Content);
-        AreEqual(jsonPath, pair.Meta);
+        await Assert.That(pair.Content).IsEqualTo(jsonPath);
+        await Assert.That(pair.Meta).IsEqualTo(jsonPath);
     }
 
     [Test]
-    public void SetExpiry_ShouldSetMinFileDate_WhenExpiryIsNull()
+    public async Task SetExpiry_ShouldSetMinFileDate_WhenExpiryIsNull()
     {
         var path = Path.GetTempFileName();
         try
@@ -27,7 +26,7 @@ public class FilePairTests
 
             // Assert
             var actualDate = File.GetLastWriteTimeUtc(path);
-            IsTrue(FileEx.IsNoExpiry(actualDate), actualDate.ToString("O"));
+            await Assert.That(FileEx.IsNoExpiry(actualDate)).IsTrue();
         }
         finally
         {
@@ -36,7 +35,7 @@ public class FilePairTests
     }
 
     [Test]
-    public void SetExpiry_ShouldSetExpiryDate_WhenExpiryIsProvided()
+    public async Task SetExpiry_ShouldSetExpiryDate_WhenExpiryIsProvided()
     {
         // Arrange
         var path = Path.GetTempFileName();
@@ -50,7 +49,7 @@ public class FilePairTests
 
             // Assert
             var actualDate = File.GetLastWriteTimeUtc(path);
-            AreEqual(expiryDate.UtcDateTime, actualDate);
+            await Assert.That(actualDate).IsEqualTo(expiryDate.UtcDateTime);
         }
         finally
         {
@@ -59,7 +58,7 @@ public class FilePairTests
     }
 
     [Test]
-    public void SetExpiry_ShouldSetMinFileDate_WhenExpiryIsBeforeMinFileDate()
+    public async Task SetExpiry_ShouldSetMinFileDate_WhenExpiryIsBeforeMinFileDate()
     {
         // Arrange
         var path = Path.GetTempFileName();
@@ -72,7 +71,7 @@ public class FilePairTests
 
             // Assert
             var actualDate = File.GetLastWriteTimeUtc(path);
-            IsTrue(FileEx.IsNoExpiry(actualDate), actualDate.ToString("O"));
+            await Assert.That(FileEx.IsNoExpiry(actualDate)).IsTrue();
         }
         finally
         {
@@ -81,7 +80,7 @@ public class FilePairTests
     }
 
     [Test]
-    public void SetExpiry_WithNegativeMaxAgeResultingInPastDate_ShouldNotThrow()
+    public async Task SetExpiry_WithNegativeMaxAgeResultingInPastDate_ShouldNotThrow()
     {
         // Regression test for https://github.com/SimonCropp/Replicant/issues/176
         // When HTTP response has negative max-age (e.g., max-age=-1), the calculated
@@ -99,7 +98,7 @@ public class FilePairTests
 
             // Past dates are still valid, just means content is already expired
             var actualDate = File.GetLastWriteTimeUtc(path);
-            AreEqual(pastExpiry.UtcDateTime, actualDate);
+            await Assert.That(actualDate).IsEqualTo(pastExpiry.UtcDateTime);
         }
         finally
         {
@@ -108,7 +107,7 @@ public class FilePairTests
     }
 
     [Test]
-    public void SetExpiry_WithDateBeforeWin32Epoch_ShouldNotThrow()
+    public async Task SetExpiry_WithDateBeforeWin32Epoch_ShouldNotThrow()
     {
         // Regression test for https://github.com/SimonCropp/Replicant/issues/176
         // Dates before 1601-01-01 (Win32 FileTime epoch) would throw
@@ -125,7 +124,7 @@ public class FilePairTests
             filePair.SetExpiry(invalidDate);
 
             var actualDate = File.GetLastWriteTimeUtc(path);
-            IsTrue(FileEx.IsNoExpiry(actualDate), actualDate.ToString("O"));
+            await Assert.That(FileEx.IsNoExpiry(actualDate)).IsTrue();
         }
         finally
         {

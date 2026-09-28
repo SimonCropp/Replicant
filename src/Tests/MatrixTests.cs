@@ -1,4 +1,4 @@
-[TestFixture]
+[NotInParallel]
 public class MatrixTests
 {
     static VerifySettings sharedSettings;
@@ -46,7 +46,8 @@ public class MatrixTests
         }
     }
 
-    [TestCaseSource(nameof(DataForIntegration))]
+    [Test]
+    [MethodDataSource(nameof(DataForIntegration))]
     public async Task Integration(
         StoredData? data,
         HttpResponseMessageEx response,
@@ -89,7 +90,8 @@ public class MatrixTests
         }
     }
 
-    [TestCaseSource(nameof(StatusForMessageData))]
+    [Test]
+    [MethodDataSource(nameof(StatusForMessageData))]
     public async Task StatusForMessage(HttpResponseMessageEx response, bool useStale, bool cache404)
     {
         var fileName = $"Status_{response}_useStale={useStale}_cache404={cache404}";

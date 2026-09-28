@@ -2,8 +2,6 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 
-[TestFixture]
-[Parallelizable(ParallelScope.Children)]
 public class DistributedCacheTests
 {
     static string root = Path.Combine(Path.GetTempPath(), "ReplicantDistributedCacheTests");
@@ -11,8 +9,8 @@ public class DistributedCacheTests
     static string CachePath([CallerMemberName] string name = "") =>
         Path.Combine(root, name);
 
-    [OneTimeTearDown]
-    public void Cleanup()
+    [After(Class)]
+    public static void Cleanup()
     {
         if (Directory.Exists(root))
         {
@@ -32,7 +30,7 @@ public class DistributedCacheTests
     }
 
     [Test]
-    public void SetAndGet()
+    public async Task SetAndGet()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -40,7 +38,7 @@ public class DistributedCacheTests
         cache.Set("key1", "hello"u8.ToArray(), new());
 
         var result = cache.Get("key1");
-        AreEqual("hello"u8.ToArray(), result);
+        await Assert.That(result).IsEquivalentTo("hello"u8.ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
@@ -52,22 +50,22 @@ public class DistributedCacheTests
         await cache.SetAsync("key1", "hello"u8.ToArray(), new());
 
         var result = await cache.GetAsync("key1");
-        AreEqual("hello"u8.ToArray(), result);
+        await Assert.That(result).IsEquivalentTo("hello"u8.ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
-    public void Get_MissingKey_ReturnsNull()
+    public async Task Get_MissingKey_ReturnsNull()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
 
         var result = cache.Get("missing");
 
-        IsNull(result);
+        await Assert.That(result).IsNull();
     }
 
     [Test]
-    public void AbsoluteExpiration()
+    public async Task AbsoluteExpiration()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -80,11 +78,11 @@ public class DistributedCacheTests
         Thread.Sleep(50);
 
         var result = cache.Get("key1");
-        IsNull(result);
+        await Assert.That(result).IsNull();
     }
 
     [Test]
-    public void SlidingExpiration()
+    public async Task SlidingExpiration()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -97,11 +95,11 @@ public class DistributedCacheTests
         Thread.Sleep(50);
 
         var result = cache.Get("key1");
-        IsNull(result);
+        await Assert.That(result).IsNull();
     }
 
     [Test]
-    public void SlidingExpiration_RefreshKeepsAlive()
+    public async Task SlidingExpiration_RefreshKeepsAlive()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -114,11 +112,11 @@ public class DistributedCacheTests
         cache.Refresh("key1");
 
         var result = cache.Get("key1");
-        AreEqual("hello"u8.ToArray(), result);
+        await Assert.That(result).IsEquivalentTo("hello"u8.ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
-    public void Remove_DeletesEntry()
+    public async Task Remove_DeletesEntry()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -127,11 +125,11 @@ public class DistributedCacheTests
         cache.Remove("key1");
 
         var result = cache.Get("key1");
-        IsNull(result);
+        await Assert.That(result).IsNull();
     }
 
     [Test]
-    public void Purge_DeletesAll()
+    public async Task Purge_DeletesAll()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -141,12 +139,12 @@ public class DistributedCacheTests
 
         cache.Purge();
 
-        IsNull(cache.Get("key1"));
-        IsNull(cache.Get("key2"));
+        await Assert.That(cache.Get("key1")).IsNull();
+        await Assert.That(cache.Get("key2")).IsNull();
     }
 
     [Test]
-    public void NoExpiration_LivesForever()
+    public async Task NoExpiration_LivesForever()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -154,11 +152,11 @@ public class DistributedCacheTests
         cache.Set("key1", "hello"u8.ToArray(), new());
 
         var result = cache.Get("key1");
-        AreEqual("hello"u8.ToArray(), result);
+        await Assert.That(result).IsEquivalentTo("hello"u8.ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
-    public void OverwriteExistingKey()
+    public async Task OverwriteExistingKey()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -167,11 +165,11 @@ public class DistributedCacheTests
         cache.Set("key1", "world"u8.ToArray(), new());
 
         var result = cache.Get("key1");
-        AreEqual("world"u8.ToArray(), result);
+        await Assert.That(result).IsEquivalentTo("world"u8.ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
-    public void AbsoluteExpiration_DateTimeOffset()
+    public async Task AbsoluteExpiration_DateTimeOffset()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -184,11 +182,11 @@ public class DistributedCacheTests
         Thread.Sleep(50);
 
         var result = cache.Get("key1");
-        IsNull(result);
+        await Assert.That(result).IsNull();
     }
 
     [Test]
-    public void SlidingExpiration_CappedByAbsolute()
+    public async Task SlidingExpiration_CappedByAbsolute()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -203,11 +201,11 @@ public class DistributedCacheTests
 
         // Sliding is long but absolute has passed — should be expired
         var result = cache.Get("key1");
-        IsNull(result);
+        await Assert.That(result).IsNull();
     }
 
     [Test]
-    public void AbsoluteExpiration_CleansUpFiles()
+    public async Task AbsoluteExpiration_CleansUpFiles()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path);
@@ -223,8 +221,8 @@ public class DistributedCacheTests
 
         var datFiles = Directory.GetFiles(path, "*.dat");
         var metaFiles = Directory.GetFiles(path, "*.meta");
-        AreEqual(0, datFiles.Length);
-        AreEqual(0, metaFiles.Length);
+        await Assert.That(datFiles.Length).IsEqualTo(0);
+        await Assert.That(metaFiles.Length).IsEqualTo(0);
     }
 
     [Test]
@@ -237,7 +235,7 @@ public class DistributedCacheTests
         await cache.RemoveAsync("key1");
 
         var result = await cache.GetAsync("key1");
-        IsNull(result);
+        await Assert.That(result).IsNull();
     }
 
     [Test]
@@ -254,11 +252,11 @@ public class DistributedCacheTests
         await cache.RefreshAsync("key1");
 
         var result = await cache.GetAsync("key1");
-        AreEqual("hello"u8.ToArray(), result);
+        await Assert.That(result).IsEquivalentTo("hello"u8.ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
-    public void PurgeOld_EnforcesMaxEntries()
+    public async Task PurgeOld_EnforcesMaxEntries()
     {
         var path = CachePath();
         using var cache = new ReplicantDistributedCache(path, maxEntries: 100);
@@ -271,32 +269,28 @@ public class DistributedCacheTests
         cache.PurgeOld();
 
         var datFiles = Directory.GetFiles(path, "*.dat");
-        IsTrue(datFiles.Length <= 100);
+        await Assert.That(datFiles.Length <= 100).IsTrue();
     }
 
     [Test]
-    public void Constructor_NullDirectory_Throws() =>
-        Assert.Throws<ArgumentNullException>(
-            () => new ReplicantDistributedCache(null!));
+    public async Task Constructor_NullDirectory_Throws() =>
+        await Assert.That(() => new ReplicantDistributedCache(null!)).ThrowsExactly<ArgumentNullException>();
 
     [Test]
-    public void Constructor_EmptyDirectory_Throws() =>
-        Assert.Throws<ArgumentNullException>(
-            () => new ReplicantDistributedCache(""));
+    public async Task Constructor_EmptyDirectory_Throws() =>
+        await Assert.That(() => new ReplicantDistributedCache("")).ThrowsExactly<ArgumentNullException>();
 
     [Test]
-    public void Constructor_MaxEntriesTooLow_Throws() =>
-        Assert.Throws<ArgumentOutOfRangeException>(
-            () => new ReplicantDistributedCache(CachePath(), maxEntries: 50));
+    public async Task Constructor_MaxEntriesTooLow_Throws() =>
+        await Assert.That(() => new ReplicantDistributedCache(CachePath(), maxEntries: 50)).ThrowsExactly<ArgumentOutOfRangeException>();
 
     [Test]
-    public void DuplicateDirectory_Throws()
+    public async Task DuplicateDirectory_Throws()
     {
         var path = CachePath();
         using var cache1 = new ReplicantDistributedCache(path);
 
-        Assert.Throws<InvalidOperationException>(
-            () => new ReplicantDistributedCache(path));
+        await Assert.That(() => new ReplicantDistributedCache(path)).ThrowsExactly<InvalidOperationException>();
     }
 
     [Test]
@@ -310,7 +304,7 @@ public class DistributedCacheTests
     }
 
     [Test]
-    public void DependencyInjection()
+    public async Task DependencyInjection()
     {
         var path = CachePath();
         var services = new ServiceCollection();
@@ -319,7 +313,7 @@ public class DistributedCacheTests
         using var provider = services.BuildServiceProvider();
         var cache = provider.GetRequiredService<IDistributedCache>();
 
-        IsInstanceOf<ReplicantDistributedCache>(cache);
+        await Assert.That(cache).IsTypeOf<ReplicantDistributedCache>();
     }
 
     [Test]
@@ -334,10 +328,10 @@ public class DistributedCacheTests
         var cache = provider.GetRequiredService<HybridCache>();
 
         var value = await cache.GetOrCreateAsync("key1", async _ => "hello");
-        AreEqual("hello", value);
+        await Assert.That(value).IsEqualTo("hello");
 
         // Second call served from cache
         var value2 = await cache.GetOrCreateAsync("key1", async _ => "world");
-        AreEqual("hello", value2);
+        await Assert.That(value2).IsEqualTo("hello");
     }
 }

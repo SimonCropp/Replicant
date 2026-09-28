@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 // ReSharper disable AccessToDisposedClosure
 
-[TestFixture]
+[NotInParallel]
 public class HttpCacheTests
 {
     [Test]
@@ -13,12 +13,12 @@ public class HttpCacheTests
         var result = await httpCache.DownloadAsync("https://httpbin.org/json");
         var path = result.File!.Value.Content;
         var time = Timestamp.FromPath(path);
-        Null(time.Expiry);
-        AreEqual(FileEx.MinFileDate, File.GetLastWriteTimeUtc(path));
+        await Assert.That(time.Expiry).IsNull();
+        await Assert.That(File.GetLastWriteTimeUtc(path)).IsEqualTo(FileEx.MinFileDate);
     }
 
     [Test]
-    public static async Task Construction()
+    public async Task Construction()
     {
         using var cacheDirectory = new TempDirectory();
 
@@ -41,7 +41,7 @@ public class HttpCacheTests
     }
 
     [Test]
-    public void DependencyInjection()
+    public async Task DependencyInjection()
     {
         using var cacheDirectory = new TempDirectory();
 
@@ -52,13 +52,13 @@ public class HttpCacheTests
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
-        NotNull(httpCache);
+        await Assert.That(httpCache).IsNotNull();
 
         #endregion
     }
 
     [Test]
-    public void DependencyInjectionWithHttpFactory()
+    public async Task DependencyInjectionWithHttpFactory()
     {
         using var cacheDirectory = new TempDirectory();
 
@@ -74,7 +74,7 @@ public class HttpCacheTests
 
         using var provider = services.BuildServiceProvider();
         var httpCache = provider.GetRequiredService<HttpCache>();
-        NotNull(httpCache);
+        await Assert.That(httpCache).IsNotNull();
 
         #endregion
     }
@@ -113,7 +113,7 @@ public class HttpCacheTests
 
         var result1 = await task;
 
-        True(result1.Stored || result2.Stored);
+        await Assert.That(result1.Stored || result2.Stored).IsTrue();
     }
 
 #if DEBUG
@@ -128,7 +128,7 @@ public class HttpCacheTests
         {
             var filePair = result.File!.Value;
             filePair.PurgeItem();
-            True(filePair.Exists());
+            await Assert.That(filePair.Exists()).IsTrue();
         }
     }
 
@@ -143,7 +143,7 @@ public class HttpCacheTests
         {
             var filePair = result.File!.Value;
             filePair.PurgeItem();
-            True(filePair.Exists());
+            await Assert.That(filePair.Exists()).IsTrue();
         }
     }
 #endif
@@ -219,7 +219,7 @@ public class HttpCacheTests
         using var cacheDirectory = new TempDirectory();
         var httpCache = new HttpCache(cacheDirectory);
         using var result = await httpCache.DownloadAsync("https://httpbin.org/response-headers?Cache-Control=no-store");
-        NotNull(result.Response);
+        await Assert.That(result.Response).IsNotNull();
         await Verify(result);
     }
 
@@ -479,7 +479,7 @@ public class HttpCacheTests
         using var reader = new StreamReader(stream);
         // ReSharper disable once MethodHasAsyncOverload
         var content = reader.ReadToEnd();
-        AreEqual("test content", content);
+        await Assert.That(content).IsEqualTo("test content");
     }
 
     [Test]
@@ -581,8 +581,8 @@ public class HttpCacheTests
         var files = Directory.GetFiles(cacheDirectory);
         var binFiles = files.Where(_ => _.EndsWith(".bin")).ToList();
         var jsonFiles = files.Where(_ => _.EndsWith(".json")).ToList();
-        AreEqual(1, binFiles.Count);
-        AreEqual(1, jsonFiles.Count);
+        await Assert.That(binFiles.Count).IsEqualTo(1);
+        await Assert.That(jsonFiles.Count).IsEqualTo(1);
 
         // Bug: Purge() iterates over ALL files including .json files.
         // When FilePair.FromContentFile() is called on a .json file,
@@ -592,11 +592,11 @@ public class HttpCacheTests
 
         // After purge, all cache files should be deleted
         var remainingFiles = Directory.GetFiles(cacheDirectory);
-        AreEqual(0, remainingFiles.Length);
+        await Assert.That(remainingFiles.Length).IsEqualTo(0);
     }
 
     [Test]
-    public void Default_ConcurrentAccess_IsThreadSafe()
+    public async Task Default_ConcurrentAccess_IsThreadSafe()
     {
         // Lazy<T> ensures thread-safe initialization without leaking instances.
         // All threads get the same instance and only one HttpCache + HttpClient is created.
@@ -620,8 +620,7 @@ public class HttpCacheTests
 
         // All threads should get the same instance
         var firstInstance = instances[0];
-        True(instances.All(_ => ReferenceEquals(_, firstInstance)),
-            "All threads should receive the same Default instance");
+        await Assert.That(instances.All(_ => ReferenceEquals(_, firstInstance))).IsTrue();
     }
 }
 #endif

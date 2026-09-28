@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class IntegrationTests
+﻿public class IntegrationTests
 {
     [Test]
     public async Task ReadFromJsonAsync()
@@ -11,11 +10,11 @@ public class IntegrationTests
         var time1 = Stopwatch.StartNew();
         var result1 = await GetResult();
         Console.WriteLine($"First: {time1.ElapsedMilliseconds}ms");
-        NotNull(result1);
+        await Assert.That(result1).IsNotNull();
         var time2 = Stopwatch.StartNew();
         var result2 = await GetResult();
         Console.WriteLine($"Second: {time2.ElapsedMilliseconds}ms");
-        NotNull(result2);
+        await Assert.That(result2).IsNotNull();
         await Verify(new
             {
                 result1,

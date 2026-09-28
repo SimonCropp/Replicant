@@ -12,17 +12,14 @@
     <PackageReference Include="Argon" />
     <PackageReference Include="Verify.DiffPlex" />
     <PackageReference Include="Verify.Http" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="MarkdownSnippets.MsBuild" PrivateAssets="all" />
-    <PackageReference Include="Verify.NUnit" />
+    <PackageReference Include="Verify.TUnit" />
     <PackageReference Include="DiffEngine" />
     <PackageReference Include="EmptyFiles" />
     <PackageReference Include="SimpleInfoName" />
     <PackageReference Include="Verify" />
-    <PackageReference Include="NUnit" />
-    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="TUnit" />
     <ProjectReference Include="..\Replicant\Replicant.csproj" />
-    <Using Include="NUnit.Framework.Legacy.ClassicAssert" Static="True" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <None Update="*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

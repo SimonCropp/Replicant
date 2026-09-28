@@ -1,4 +1,4 @@
-[TestFixture]
+[NotInParallel]
 public class TimestampTests
 {
     [Test]
@@ -21,7 +21,7 @@ public class TimestampTests
     }
 
     [Test]
-    public void FromPath_EtagParsedCorrectly()
+    public async Task FromPath_EtagParsedCorrectly()
     {
         // Verify etag is parsed correctly without off-by-one error
         // Format: {hash}_{date}_{etag}.bin
@@ -34,34 +34,34 @@ public class TimestampTests
 
         // The etag ForFile should be exactly "SmyEtagValue" (S prefix + value)
         // If there's an off-by-one error, it would be "myEtagValue" (missing S)
-        AreEqual("SmyEtagValue", timestamp.Etag.ForFile);
+        await Assert.That(timestamp.Etag.ForFile).IsEqualTo("SmyEtagValue");
     }
 
     [Test]
-    public void FromPath_MalformedFilename_NoUnderscore_Throws()
+    public async Task FromPath_MalformedFilename_NoUnderscore_Throws()
     {
         var path = "/Dir/malformedfilewithoutunderscore.bin";
 
-        var ex = Assert.Throws<ArgumentException>(() => Timestamp.FromPath(path));
-        StringAssert.Contains("Invalid cache filename format", ex!.Message);
+        var ex = await Assert.That(() => Timestamp.FromPath(path)).ThrowsExactly<ArgumentException>();
+        await Assert.That(ex!.Message).Contains("Invalid cache filename format");
     }
 
     [Test]
-    public void FromPath_MalformedFilename_TooShort_Throws()
+    public async Task FromPath_MalformedFilename_TooShort_Throws()
     {
         var path = "/Dir/hash_short.bin";
 
-        var ex = Assert.Throws<ArgumentException>(() => Timestamp.FromPath(path));
-        StringAssert.Contains("Invalid cache filename format", ex!.Message);
+        var ex = await Assert.That(() => Timestamp.FromPath(path)).ThrowsExactly<ArgumentException>();
+        await Assert.That(ex!.Message).Contains("Invalid cache filename format");
     }
 
     [Test]
-    public void FromPath_MalformedFilename_InvalidDate_Throws()
+    public async Task FromPath_MalformedFilename_InvalidDate_Throws()
     {
         // Valid structure but invalid date format
         var path = "/Dir/hash_notavaliddate1234_Setag.bin";
 
-        var ex = Assert.Throws<ArgumentException>(() => Timestamp.FromPath(path));
-        StringAssert.Contains("Invalid date format", ex!.Message);
+        var ex = await Assert.That(() => Timestamp.FromPath(path)).ThrowsExactly<ArgumentException>();
+        await Assert.That(ex!.Message).Contains("Invalid date format");
     }
 }
