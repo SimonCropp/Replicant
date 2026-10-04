@@ -20,9 +20,9 @@
     <PackageVersion Include="Verify.TUnit" Version="33.2.0" />
     <PackageVersion Include="Verify.Http" Version="7.5.1" />
     <PackageVersion Include="DiffEngine" Version="20.6.0" />
-    <PackageVersion Include="EmptyFiles" Version="8.19.0" />
+    <PackageVersion Include="EmptyFiles" Version="8.20.0" />
     <PackageVersion Include="SimpleInfoName" Version="3.2.0" />
-    <PackageVersion Include="TUnit" Version="1.72.4" />
+    <PackageVersion Include="TUnit" Version="1.72.16" />
     <PackageVersion Include="Verify" Version="33.2.0" />
   </ItemGroup>
 </Project>
